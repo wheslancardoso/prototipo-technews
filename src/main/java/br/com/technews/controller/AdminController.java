@@ -54,7 +54,8 @@ public class AdminController {
     @GetMapping("/{id}")
     public String viewSubscriber(@PathVariable Long id, Model model) {
         try {
-            Subscriber subscriber = subscriberService.findById(id);
+            Optional<Subscriber> subscriberOpt = subscriberService.findById(id);
+            Subscriber subscriber = subscriberOpt.orElseThrow(() -> new RuntimeException("Subscriber not found"));
             model.addAttribute("subscriber", subscriber);
             return "admin/subscribers/view";
         } catch (RuntimeException e) {
@@ -65,7 +66,8 @@ public class AdminController {
     @GetMapping("/{id}/edit")
     public String editSubscriber(@PathVariable Long id, Model model) {
         try {
-            Subscriber subscriber = subscriberService.findById(id);
+            Optional<Subscriber> subscriberOpt = subscriberService.findById(id);
+            Subscriber subscriber = subscriberOpt.orElseThrow(() -> new RuntimeException("Subscriber not found"));
             model.addAttribute("subscriber", subscriber);
             return "admin/subscribers/form";
         } catch (RuntimeException e) {
@@ -77,7 +79,7 @@ public class AdminController {
     public String updateSubscriber(@PathVariable Long id, @ModelAttribute Subscriber subscriber, RedirectAttributes redirectAttributes) {
         try {
             subscriber.setId(id);
-            subscriberService.updateSubscriber(subscriber);
+            subscriberService.save(subscriber);
             redirectAttributes.addFlashAttribute("success", "Assinante atualizado com sucesso!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Erro ao atualizar assinante: " + e.getMessage());
@@ -88,7 +90,7 @@ public class AdminController {
     @PostMapping("/{id}/delete")
     public String deleteSubscriber(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
-            subscriberService.deleteSubscriber(id);
+            subscriberService.delete(id);
             redirectAttributes.addFlashAttribute("success", "Assinante removido com sucesso!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Erro ao remover assinante: " + e.getMessage());
@@ -99,9 +101,9 @@ public class AdminController {
     @PostMapping("/{id}/toggle-status")
     public String toggleSubscriberStatus(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
-            Subscriber subscriber = subscriberService.findById(id);
-            subscriber.setAtivo(!subscriber.isAtivo());
-            subscriberService.updateSubscriber(subscriber);
+            Subscriber subscriber = subscriberService.findById(id).orElseThrow(() -> new RuntimeException("Subscriber not found"));
+            subscriber.setActive(!subscriber.getActive());
+            subscriberService.save(subscriber);
             redirectAttributes.addFlashAttribute("success", "Status do assinante alterado com sucesso!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Erro ao alterar status: " + e.getMessage());
@@ -111,16 +113,16 @@ public class AdminController {
     
     @GetMapping("/export")
     public ResponseEntity<String> exportSubscribers() {
-        List<Subscriber> subscribers = subscriberService.getAllSubscribers();
+        List<Subscriber> subscribers = subscriberService.findAll();
         StringBuilder csv = new StringBuilder();
         csv.append("ID,Nome,Email,Ativo,Data de Inscrição\n");
         
         for (Subscriber subscriber : subscribers) {
             csv.append(subscriber.getId()).append(",")
-               .append(subscriber.getNome()).append(",")
+               .append(subscriber.getFullName()).append(",")
                .append(subscriber.getEmail()).append(",")
-               .append(subscriber.isAtivo() ? "Sim" : "Não").append(",")
-               .append(subscriber.getDataInscricao()).append("\n");
+               .append(subscriber.getActive() ? "Sim" : "Não").append(",")
+               .append(subscriber.getSubscribedAt()).append("\n");
         }
         
         HttpHeaders headers = new HttpHeaders();
