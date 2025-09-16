@@ -4,5 +4,6 @@ public enum ArticleStatus {
     PENDENTE_REVISAO,
     APROVADO,
     REJEITADO,
-    ENVIADO
+    ENVIADO,
+    PUBLICADO
 }

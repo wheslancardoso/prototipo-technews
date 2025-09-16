@@ -1,0 +1,121 @@
+package br.com.technews.service;
+
+import br.com.technews.model.NewsArticle;
+import br.com.technews.model.ArticleStatus;
+import br.com.technews.repository.NewsArticleRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
+@Service
+@Transactional
+public class NewsArticleService {
+
+    @Autowired
+    private NewsArticleRepository newsArticleRepository;
+
+    public List<NewsArticle> findAll() {
+        return newsArticleRepository.findAll();
+    }
+
+    public Page<NewsArticle> findAll(Pageable pageable) {
+        return newsArticleRepository.findAll(pageable);
+    }
+
+    public Optional<NewsArticle> findById(Long id) {
+        return newsArticleRepository.findById(id);
+    }
+
+    public List<NewsArticle> findPublishedArticles() {
+        return newsArticleRepository.findByPublishedTrueOrderByPublishedAtDesc();
+    }
+
+    public Page<NewsArticle> findPublishedArticles(Pageable pageable) {
+        return newsArticleRepository.findByPublishedTrueOrderByPublishedAtDesc(pageable);
+    }
+
+    public List<NewsArticle> findByCategory(String category) {
+        return newsArticleRepository.findByCategoryOrderByCreatedAtDesc(category);
+    }
+
+    public List<NewsArticle> findByStatus(ArticleStatus status) {
+        return newsArticleRepository.findByStatusOrderByCreatedAtDesc(status);
+    }
+
+    public NewsArticle save(NewsArticle article) {
+        return newsArticleRepository.save(article);
+    }
+
+    public NewsArticle create(NewsArticle article) {
+        article.setId(null); // Garantir que é um novo artigo
+        article.setStatus(ArticleStatus.PENDENTE_REVISAO);
+        article.setPublished(false);
+        return newsArticleRepository.save(article);
+    }
+
+    public NewsArticle update(Long id, NewsArticle articleDetails) {
+        Optional<NewsArticle> optionalArticle = newsArticleRepository.findById(id);
+        if (optionalArticle.isPresent()) {
+            NewsArticle article = optionalArticle.get();
+            article.setTitle(articleDetails.getTitle());
+            article.setContent(articleDetails.getContent());
+            article.setSummary(articleDetails.getSummary());
+            article.setAuthor(articleDetails.getAuthor());
+            article.setCategory(articleDetails.getCategory());
+            article.setUrl(articleDetails.getUrl());
+            article.setImageUrl(articleDetails.getImageUrl());
+            article.setSourceDomain(articleDetails.getSourceDomain());
+            return newsArticleRepository.save(article);
+        }
+        throw new RuntimeException("Artigo não encontrado com ID: " + id);
+    }
+
+    public NewsArticle publish(Long id) {
+        Optional<NewsArticle> optionalArticle = newsArticleRepository.findById(id);
+        if (optionalArticle.isPresent()) {
+            NewsArticle article = optionalArticle.get();
+            article.setPublished(true);
+            article.setPublishedAt(LocalDateTime.now());
+            article.setStatus(ArticleStatus.PUBLICADO);
+            return newsArticleRepository.save(article);
+        }
+        throw new RuntimeException("Artigo não encontrado com ID: " + id);
+    }
+
+    public NewsArticle unpublish(Long id) {
+        Optional<NewsArticle> optionalArticle = newsArticleRepository.findById(id);
+        if (optionalArticle.isPresent()) {
+            NewsArticle article = optionalArticle.get();
+            article.setPublished(false);
+            article.setStatus(ArticleStatus.PENDENTE_REVISAO);
+            return newsArticleRepository.save(article);
+        }
+        throw new RuntimeException("Artigo não encontrado com ID: " + id);
+    }
+
+    public void deleteById(Long id) {
+        if (newsArticleRepository.existsById(id)) {
+            newsArticleRepository.deleteById(id);
+        } else {
+            throw new RuntimeException("Artigo não encontrado com ID: " + id);
+        }
+    }
+
+    public long countAll() {
+        return newsArticleRepository.count();
+    }
+
+    public long countPublished() {
+        return newsArticleRepository.countByPublishedTrue();
+    }
+
+    public long countByStatus(ArticleStatus status) {
+        return newsArticleRepository.countByStatus(status);
+    }
+}

@@ -2,6 +2,8 @@ package br.com.technews.repository;
 
 import br.com.technews.model.NewsArticle;
 import br.com.technews.model.ArticleStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -18,6 +20,11 @@ public interface NewsArticleRepository extends JpaRepository<NewsArticle, Long> 
      * Busca artigos por status
      */
     List<NewsArticle> findByStatus(ArticleStatus status);
+    
+    /**
+     * Busca artigos por status ordenados por data de criação
+     */
+    List<NewsArticle> findByStatusOrderByCreatedAtDesc(ArticleStatus status);
     
     /**
      * Busca artigo por URL
@@ -38,4 +45,29 @@ public interface NewsArticleRepository extends JpaRepository<NewsArticle, Long> 
      * Busca artigos aprovados ordenados por data de publicação
      */
     List<NewsArticle> findByStatusOrderByPublishedAtDesc(ArticleStatus status);
+    
+    /**
+     * Busca artigos publicados ordenados por data de publicação
+     */
+    List<NewsArticle> findByPublishedTrueOrderByPublishedAtDesc();
+    
+    /**
+     * Busca artigos publicados com paginação
+     */
+    Page<NewsArticle> findByPublishedTrueOrderByPublishedAtDesc(Pageable pageable);
+    
+    /**
+     * Busca artigos por categoria ordenados por data de criação
+     */
+    List<NewsArticle> findByCategoryOrderByCreatedAtDesc(String category);
+    
+    /**
+     * Conta artigos publicados
+     */
+    long countByPublishedTrue();
+    
+    /**
+     * Conta artigos por status
+     */
+    long countByStatus(ArticleStatus status);
 }

@@ -17,22 +17,54 @@ public class NewsArticle {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @Column(nullable = false)
+    @Column(nullable = false, length = 200)
     private String title;
     
     @Column(columnDefinition = "TEXT")
-    private String description;
+    private String content;
     
-    @Column(unique = true)
+    @Column(name = "summary", length = 500)
+    private String summary;
+    
+    @Column(name = "author", length = 100)
+    private String author;
+    
+    @Column(name = "category", length = 50)
+    private String category;
+    
+    @Column(unique = true, length = 500)
     private String url;
     
+    @Column(name = "image_url", length = 500)
     private String imageUrl;
     
+    @Column(name = "source_domain", length = 100)
     private String sourceDomain;
     
+    @Column(name = "published")
+    private Boolean published = false;
+    
+    @Column(name = "published_at")
     private LocalDateTime publishedAt;
     
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ArticleStatus status = ArticleStatus.PENDENTE_REVISAO;
+    
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+    
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+    
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+    
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 }

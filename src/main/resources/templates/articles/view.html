@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${article.title} + ' - TechNews'">Artigo - TechNews</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .article-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 60px 0;
+        }
+        .article-category {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+        .article-meta {
+            color: rgba(255,255,255,0.8);
+            font-size: 0.95rem;
+        }
+        .article-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+            margin: 30px 0;
+        }
+        .article-content {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #333;
+        }
+        .article-content p {
+            margin-bottom: 1.5rem;
+        }
+        .article-content h2, .article-content h3 {
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            color: #2c3e50;
+        }
+        .back-btn {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            border: none;
+            border-radius: 25px;
+            padding: 12px 25px;
+            color: white;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40,167,69,0.3);
+            color: white;
+        }
+        .share-buttons {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 30px 0;
+        }
+        .share-btn {
+            border: none;
+            border-radius: 8px;
+            padding: 10px 15px;
+            margin: 5px;
+            color: white;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .share-btn:hover {
+            transform: translateY(-2px);
+            color: white;
+        }
+        .share-btn.facebook { background: #3b5998; }
+        .share-btn.twitter { background: #1da1f2; }
+        .share-btn.linkedin { background: #0077b5; }
+        .share-btn.whatsapp { background: #25d366; }
+        .article-sidebar {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 25px;
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+        }
+        .related-article {
+            border: none;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .related-article:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+        }
+        .source-info {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            border-radius: 0 8px 8px 0;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-primary" href="/">
+                <i class="fas fa-home me-2"></i>TechNews
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/">Início</a>
+                <a class="nav-link" href="/articles">Artigos</a>
+                <a class="nav-link" href="/admin">Admin</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Article Header -->
+    <section class="article-header">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <a href="/articles" class="back-btn text-decoration-none mb-4 d-inline-block">
+                        <i class="fas fa-arrow-left me-2"></i>Voltar aos Artigos
+                    </a>
+                    
+                    <div class="article-category" th:text="${article.category}">Categoria</div>
+                    
+                    <h1 class="display-5 fw-bold mb-4" th:text="${article.title}">
+                        Título do Artigo
+                    </h1>
+                    
+                    <div class="article-meta">
+                        <i class="fas fa-user me-2"></i>
+                        <span th:text="${article.author}">Autor</span>
+                        <span class="mx-3">•</span>
+                        <i class="fas fa-calendar me-2"></i>
+                        <span th:text="${#temporals.format(article.publishedAt, 'dd/MM/yyyy HH:mm')}" th:if="${article.publishedAt}">Data</span>
+                        <span th:text="${#temporals.format(article.createdAt, 'dd/MM/yyyy HH:mm')}" th:unless="${article.publishedAt}">Data</span>
+                        <span class="mx-3" th:if="${article.sourceDomain}">•</span>
+                        <i class="fas fa-external-link-alt me-2" th:if="${article.sourceDomain}"></i>
+                        <span th:text="${article.sourceDomain}" th:if="${article.sourceDomain}">Fonte</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <div class="container my-5">
+        <div class="row">
+            <!-- Article Content -->
+            <div class="col-lg-8">
+                <!-- Article Summary -->
+                <div class="alert alert-info" th:if="${article.summary}">
+                    <h6 class="alert-heading">
+                        <i class="fas fa-info-circle me-2"></i>Resumo
+                    </h6>
+                    <p class="mb-0" th:text="${article.summary}">Resumo do artigo</p>
+                </div>
+
+                <!-- Article Image -->
+                <img th:if="${article.imageUrl}" 
+                     th:src="${article.imageUrl}" 
+                     th:alt="${article.title}"
+                     class="article-image">
+
+                <!-- Article Content -->
+                <div class="article-content" th:utext="${article.content}">
+                    Conteúdo do artigo...
+                </div>
+
+                <!-- Source Information -->
+                <div class="source-info" th:if="${article.url}">
+                    <h6 class="mb-2">
+                        <i class="fas fa-link me-2"></i>Fonte Original
+                    </h6>
+                    <p class="mb-2">Este artigo foi baseado em informações da fonte original:</p>
+                    <a th:href="${article.url}" target="_blank" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-external-link-alt me-2"></i>
+                        Acessar Fonte Original
+                    </a>
+                </div>
+
+                <!-- Share Buttons -->
+                <div class="share-buttons">
+                    <h6 class="mb-3">
+                        <i class="fas fa-share-alt me-2"></i>Compartilhar este artigo
+                    </h6>
+                    <div class="d-flex flex-wrap">
+                        <button class="share-btn facebook" onclick="shareOnFacebook()">
+                            <i class="fab fa-facebook-f me-2"></i>Facebook
+                        </button>
+                        <button class="share-btn twitter" onclick="shareOnTwitter()">
+                            <i class="fab fa-twitter me-2"></i>Twitter
+                        </button>
+                        <button class="share-btn linkedin" onclick="shareOnLinkedIn()">
+                            <i class="fab fa-linkedin-in me-2"></i>LinkedIn
+                        </button>
+                        <button class="share-btn whatsapp" onclick="shareOnWhatsApp()">
+                            <i class="fab fa-whatsapp me-2"></i>WhatsApp
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <div class="article-sidebar">
+                    <h5 class="mb-4">
+                        <i class="fas fa-newspaper me-2"></i>Artigos Relacionados
+                    </h5>
+                    
+                    <!-- Related Articles Placeholder -->
+                    <div class="related-article">
+                        <h6 class="mb-2">Como a IA está transformando o desenvolvimento</h6>
+                        <p class="text-muted small mb-2">
+                            Descubra como a inteligência artificial está revolucionando...
+                        </p>
+                        <div class="text-muted small">
+                            <i class="fas fa-calendar me-1"></i>15/09/2024
+                        </div>
+                    </div>
+                    
+                    <div class="related-article">
+                        <h6 class="mb-2">Tendências em desenvolvimento web para 2024</h6>
+                        <p class="text-muted small mb-2">
+                            As principais tecnologias que estão moldando...
+                        </p>
+                        <div class="text-muted small">
+                            <i class="fas fa-calendar me-1"></i>14/09/2024
+                        </div>
+                    </div>
+                    
+                    <div class="related-article">
+                        <h6 class="mb-2">Segurança em aplicações modernas</h6>
+                        <p class="text-muted small mb-2">
+                            Melhores práticas para manter suas aplicações...
+                        </p>
+                        <div class="text-muted small">
+                            <i class="fas fa-calendar me-1"></i>13/09/2024
+                        </div>
+                    </div>
+
+                    <!-- Newsletter Subscription -->
+                    <div class="mt-4 p-3 bg-primary text-white rounded">
+                        <h6 class="mb-3">
+                            <i class="fas fa-envelope me-2"></i>Newsletter
+                        </h6>
+                        <p class="small mb-3">Receba as últimas notícias tech diretamente no seu email!</p>
+                        <a href="/" class="btn btn-light btn-sm">
+                            <i class="fas fa-plus me-1"></i>Assinar
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4">
+        <div class="container text-center">
+            <p class="mb-0">
+                <i class="fas fa-newspaper me-2"></i>
+                TechNews &copy; 2024 - Fique por dentro das últimas novidades
+            </p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:inline="javascript">
+        const articleTitle = /*[[${article.title}]]*/ 'Artigo';
+        const articleUrl = window.location.href;
+        
+        function shareOnFacebook() {
+            const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(articleUrl)}`;
+            window.open(url, '_blank', 'width=600,height=400');
+        }
+        
+        function shareOnTwitter() {
+            const text = `Lendo: ${articleTitle}`;
+            const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(articleUrl)}`;
+            window.open(url, '_blank', 'width=600,height=400');
+        }
+        
+        function shareOnLinkedIn() {
+            const url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(articleUrl)}`;
+            window.open(url, '_blank', 'width=600,height=400');
+        }
+        
+        function shareOnWhatsApp() {
+            const text = `Confira este artigo: ${articleTitle} ${articleUrl}`;
+            const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+            window.open(url, '_blank');
+        }
+    </script>
+</body>
+</html>

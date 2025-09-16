@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${article.id != null ? 'Editar Artigo' : 'Novo Artigo'} + ' - TechNews Admin'">Novo Artigo - TechNews Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .admin-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem 0;
+        }
+        .form-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            margin-top: -50px;
+            position: relative;
+            z-index: 1;
+        }
+        .form-label {
+            font-weight: 600;
+            color: #495057;
+        }
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+        }
+        .preview-image {
+            max-width: 200px;
+            max-height: 150px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="admin-header">
+        <div class="container">
+            <h1>
+                <i class="fas fa-edit me-2"></i>
+                <span th:text="${article.id != null ? 'Editar Artigo' : 'Novo Artigo'}">Novo Artigo</span>
+            </h1>
+            <p class="mb-0">Preencha os dados do artigo</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="form-container">
+            <!-- Mensagens de Erro -->
+            <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                <span th:text="${errorMessage}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <form th:action="${article.id != null ? '/admin/articles/' + article.id + '/edit' : '/admin/articles/new'}" 
+                  method="post" th:object="${article}">
+                
+                <div class="row">
+                    <div class="col-md-8">
+                        <!-- Título -->
+                        <div class="mb-3">
+                            <label for="title" class="form-label">
+                                <i class="fas fa-heading me-2"></i>Título *
+                            </label>
+                            <input type="text" class="form-control form-control-lg" id="title" 
+                                   th:field="*{title}" required maxlength="200"
+                                   placeholder="Digite o título do artigo">
+                            <div class="form-text">Máximo 200 caracteres</div>
+                        </div>
+
+                        <!-- Resumo -->
+                        <div class="mb-3">
+                            <label for="summary" class="form-label">
+                                <i class="fas fa-align-left me-2"></i>Resumo *
+                            </label>
+                            <textarea class="form-control" id="summary" rows="3" 
+                                      th:field="*{summary}" required maxlength="500"
+                                      placeholder="Digite um resumo do artigo"></textarea>
+                            <div class="form-text">Máximo 500 caracteres</div>
+                        </div>
+
+                        <!-- Conteúdo -->
+                        <div class="mb-3">
+                            <label for="content" class="form-label">
+                                <i class="fas fa-file-text me-2"></i>Conteúdo *
+                            </label>
+                            <textarea class="form-control" id="content" rows="10" 
+                                      th:field="*{content}" required
+                                      placeholder="Digite o conteúdo completo do artigo"></textarea>
+                        </div>
+
+                        <!-- URL -->
+                        <div class="mb-3">
+                            <label for="url" class="form-label">
+                                <i class="fas fa-link me-2"></i>URL da Fonte
+                            </label>
+                            <input type="url" class="form-control" id="url" 
+                                   th:field="*{url}" maxlength="500"
+                                   placeholder="https://exemplo.com/artigo">
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <!-- Status -->
+                        <div class="mb-3">
+                            <label for="status" class="form-label">
+                                <i class="fas fa-flag me-2"></i>Status
+                            </label>
+                            <select class="form-select" id="status" th:field="*{status}">
+                                <option th:each="status : ${T(br.com.technews.model.ArticleStatus).values()}"
+                                        th:value="${status}" th:text="${status.name()}">Status</option>
+                            </select>
+                        </div>
+
+                        <!-- Categoria -->
+                        <div class="mb-3">
+                            <label for="category" class="form-label">
+                                <i class="fas fa-tags me-2"></i>Categoria
+                            </label>
+                            <input type="text" class="form-control" id="category" 
+                                   th:field="*{category}" maxlength="100"
+                                   placeholder="Ex: Tecnologia, IA, Web">
+                        </div>
+
+                        <!-- Autor -->
+                        <div class="mb-3">
+                            <label for="author" class="form-label">
+                                <i class="fas fa-user me-2"></i>Autor
+                            </label>
+                            <input type="text" class="form-control" id="author" 
+                                   th:field="*{author}" maxlength="100"
+                                   placeholder="Nome do autor">
+                        </div>
+
+                        <!-- URL da Imagem -->
+                        <div class="mb-3">
+                            <label for="imageUrl" class="form-label">
+                                <i class="fas fa-image me-2"></i>URL da Imagem
+                            </label>
+                            <input type="url" class="form-control" id="imageUrl" 
+                                   th:field="*{imageUrl}" maxlength="500"
+                                   placeholder="https://exemplo.com/imagem.jpg"
+                                   onchange="previewImage()">
+                        </div>
+
+                        <!-- Preview da Imagem -->
+                        <div class="mb-3" id="imagePreview" style="display: none;">
+                            <label class="form-label">Preview da Imagem</label>
+                            <div>
+                                <img id="previewImg" class="preview-image" alt="Preview">
+                            </div>
+                        </div>
+
+                        <!-- Domínio da Fonte -->
+                        <div class="mb-3">
+                            <label for="sourceDomain" class="form-label">
+                                <i class="fas fa-globe me-2"></i>Domínio da Fonte
+                            </label>
+                            <input type="text" class="form-control" id="sourceDomain" 
+                                   th:field="*{sourceDomain}" maxlength="100"
+                                   placeholder="exemplo.com">
+                        </div>
+
+                        <!-- Data de Publicação -->
+                        <div class="mb-3">
+                            <label for="publishedAt" class="form-label">
+                                <i class="fas fa-calendar me-2"></i>Data de Publicação
+                            </label>
+                            <input type="datetime-local" class="form-control" id="publishedAt" 
+                                   th:field="*{publishedAt}">
+                        </div>
+
+                        <!-- Publicado -->
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="published" 
+                                       th:field="*{published}">
+                                <label class="form-check-label" for="published">
+                                    <i class="fas fa-eye me-2"></i>Artigo Publicado
+                                </label>
+                            </div>
+                            <div class="form-text">Marque para tornar o artigo visível publicamente</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botões -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="d-flex justify-content-between">
+                            <a href="/admin/articles" class="btn btn-outline-secondary btn-lg">
+                                <i class="fas fa-arrow-left me-2"></i>Cancelar
+                            </a>
+                            <div>
+                                <button type="submit" name="action" value="save" class="btn btn-primary btn-lg me-2">
+                                    <i class="fas fa-save me-2"></i>Salvar
+                                </button>
+                                <button type="submit" name="action" value="saveAndPublish" class="btn btn-success btn-lg">
+                                    <i class="fas fa-upload me-2"></i>Salvar e Publicar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function previewImage() {
+            const imageUrl = document.getElementById('imageUrl').value;
+            const preview = document.getElementById('imagePreview');
+            const previewImg = document.getElementById('previewImg');
+            
+            if (imageUrl) {
+                previewImg.src = imageUrl;
+                preview.style.display = 'block';
+                
+                previewImg.onerror = function() {
+                    preview.style.display = 'none';
+                };
+            } else {
+                preview.style.display = 'none';
+            }
+        }
+
+        // Preview da imagem ao carregar a página se já houver URL
+        document.addEventListener('DOMContentLoaded', function() {
+            previewImage();
+        });
+    </script>
+</body>
+</html>
