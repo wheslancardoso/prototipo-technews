@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${trustedSource.id != null ? 'Editar Fonte Confiável - TechNews Admin' : 'Nova Fonte Confiável - TechNews Admin'}">Nova Fonte Confiável - TechNews Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .sidebar {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .sidebar .nav-link {
+            color: rgba(255,255,255,0.8);
+            padding: 0.75rem 1rem;
+            margin: 0.25rem 0;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            color: white;
+            background-color: rgba(255,255,255,0.1);
+            transform: translateX(5px);
+        }
+        .main-content {
+            background-color: #f8f9fa;
+            min-height: 100vh;
+        }
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 25px;
+            padding: 0.5rem 1.5rem;
+        }
+        .btn-outline-secondary {
+            border-radius: 25px;
+        }
+        .form-control, .form-select {
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            padding: 0.75rem 1rem;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        .form-label {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 0.5rem;
+        }
+        .invalid-feedback {
+            display: block;
+        }
+        .form-text {
+            font-size: 0.875rem;
+            color: #6c757d;
+        }
+        .preview-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+        }
+        .domain-preview {
+            background-color: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+        .required {
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse">
+                <div class="position-sticky pt-3">
+                    <div class="text-center mb-4">
+                        <h4 class="text-white">
+                            <i class="fas fa-newspaper me-2"></i>TechNews
+                        </h4>
+                        <small class="text-white-50">Painel Administrativo</small>
+                    </div>
+                    
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/dashboard">
+                                <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/articles">
+                                <i class="fas fa-newspaper me-2"></i>Artigos
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/categories">
+                                <i class="fas fa-tags me-2"></i>Categorias
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="/admin/trusted-sources">
+                                <i class="fas fa-shield-alt me-2"></i>Fontes Confiáveis
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/subscribers">
+                                <i class="fas fa-users me-2"></i>Assinantes
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                <div class="pt-3 pb-2 mb-3">
+                    <!-- Header -->
+                    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center mb-4">
+                        <h1 class="h2">
+                            <i class="fas fa-shield-alt me-2 text-primary"></i>
+                            <span th:text="${trustedSource.id != null ? 'Editar Fonte Confiável' : 'Nova Fonte Confiável'}">Nova Fonte Confiável</span>
+                        </h1>
+                        <div class="btn-toolbar mb-2 mb-md-0">
+                            <a href="/admin/trusted-sources" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Voltar
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-lg-8">
+                            <!-- Form Card -->
+                            <div class="card">
+                                <div class="card-header bg-white">
+                                    <h5 class="card-title mb-0">
+                                        <i class="fas fa-edit me-2"></i>Informações da Fonte
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <form th:action="${trustedSource.id != null ? '/admin/trusted-sources/' + trustedSource.id + '/update' : '/admin/trusted-sources/create'}" 
+                                          method="post" 
+                                          th:object="${trustedSource}" 
+                                          novalidate>
+                                        
+                                        <!-- Nome -->
+                                        <div class="mb-3">
+                                            <label for="name" class="form-label">
+                                                Nome da Fonte <span class="required">*</span>
+                                            </label>
+                                            <input type="text" 
+                                                   class="form-control" 
+                                                   th:class="${#fields.hasErrors('name')} ? 'form-control is-invalid' : 'form-control'"
+                                                   id="name" 
+                                                   th:field="*{name}" 
+                                                   placeholder="Ex: TechCrunch, Wired, Ars Technica"
+                                                   maxlength="100"
+                                                   required>
+                                            <div class="form-text">Nome amigável para identificar a fonte (máximo 100 caracteres)</div>
+                                            <div th:if="${#fields.hasErrors('name')}" class="invalid-feedback">
+                                                <span th:errors="*{name}"></span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Domínio -->
+                                        <div class="mb-3">
+                                            <label for="domainName" class="form-label">
+                                                Domínio <span class="required">*</span>
+                                            </label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">https://</span>
+                                                <input type="text" 
+                                                       class="form-control" 
+                                                       th:class="${#fields.hasErrors('domainName')} ? 'form-control is-invalid' : 'form-control'"
+                                                       id="domainName" 
+                                                       th:field="*{domainName}" 
+                                                       placeholder="exemplo.com"
+                                                       pattern="^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*$"
+                                                       maxlength="255"
+                                                       required>
+                                            </div>
+                                            <div class="form-text">Domínio da fonte sem protocolo (ex: techcrunch.com)</div>
+                                            <div th:if="${#fields.hasErrors('domainName')}" class="invalid-feedback">
+                                                <span th:errors="*{domainName}"></span>
+                                            </div>
+                                            <!-- Domain availability check -->
+                                            <div id="domainCheck" class="mt-2" style="display: none;">
+                                                <small class="text-muted">
+                                                    <i class="fas fa-spinner fa-spin me-1"></i>Verificando disponibilidade...
+                                                </small>
+                                            </div>
+                                        </div>
+
+                                        <!-- Descrição -->
+                                        <div class="mb-3">
+                                            <label for="description" class="form-label">Descrição</label>
+                                            <textarea class="form-control" 
+                                                      th:class="${#fields.hasErrors('description')} ? 'form-control is-invalid' : 'form-control'"
+                                                      id="description" 
+                                                      th:field="*{description}" 
+                                                      rows="4" 
+                                                      placeholder="Descreva brevemente o tipo de conteúdo e foco desta fonte..."
+                                                      maxlength="500"></textarea>
+                                            <div class="form-text">Descrição opcional da fonte (máximo 500 caracteres)</div>
+                                            <div th:if="${#fields.hasErrors('description')}" class="invalid-feedback">
+                                                <span th:errors="*{description}"></span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Status -->
+                                        <div class="mb-4">
+                                            <label for="active" class="form-label">Status</label>
+                                            <select class="form-select" 
+                                                    th:class="${#fields.hasErrors('active')} ? 'form-select is-invalid' : 'form-select'"
+                                                    id="active" 
+                                                    th:field="*{active}">
+                                                <option value="true">Ativa - A fonte será utilizada para validação de artigos</option>
+                                                <option value="false">Inativa - A fonte não será utilizada</option>
+                                            </select>
+                                            <div class="form-text">Fontes ativas são utilizadas para validar a confiabilidade dos artigos</div>
+                                            <div th:if="${#fields.hasErrors('active')}" class="invalid-feedback">
+                                                <span th:errors="*{active}"></span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Buttons -->
+                                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                            <a href="/admin/trusted-sources" class="btn btn-outline-secondary me-md-2">
+                                                <i class="fas fa-times me-2"></i>Cancelar
+                                            </a>
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="fas fa-save me-2"></i>
+                                                <span th:text="${trustedSource.id != null ? 'Atualizar Fonte' : 'Criar Fonte'}">Criar Fonte</span>
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4">
+                            <!-- Preview Card -->
+                            <div class="card preview-card">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <i class="fas fa-eye me-2"></i>Pré-visualização
+                                    </h5>
+                                    <div class="domain-preview">
+                                        <div class="mb-2">
+                                            <strong>Nome:</strong>
+                                            <span id="previewName" class="ms-2">-</span>
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong>Domínio:</strong>
+                                            <span id="previewDomain" class="ms-2">-</span>
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong>Status:</strong>
+                                            <span id="previewStatus" class="ms-2 badge bg-success">Ativa</span>
+                                        </div>
+                                        <div>
+                                            <strong>Descrição:</strong>
+                                            <p id="previewDescription" class="mt-1 mb-0 small">-</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Help Card -->
+                            <div class="card mt-4">
+                                <div class="card-body">
+                                    <h6 class="card-title">
+                                        <i class="fas fa-info-circle me-2 text-info"></i>Dicas
+                                    </h6>
+                                    <ul class="list-unstyled small">
+                                        <li class="mb-2">
+                                            <i class="fas fa-check text-success me-2"></i>
+                                            Use nomes descritivos e reconhecíveis
+                                        </li>
+                                        <li class="mb-2">
+                                            <i class="fas fa-check text-success me-2"></i>
+                                            Domínios devem ser válidos e acessíveis
+                                        </li>
+                                        <li class="mb-2">
+                                            <i class="fas fa-check text-success me-2"></i>
+                                            Fontes ativas são usadas na validação
+                                        </li>
+                                        <li class="mb-0">
+                                            <i class="fas fa-check text-success me-2"></i>
+                                            Descrições ajudam na organização
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Real-time preview updates
+        document.addEventListener('DOMContentLoaded', function() {
+            const nameInput = document.getElementById('name');
+            const domainInput = document.getElementById('domainName');
+            const descriptionInput = document.getElementById('description');
+            const activeSelect = document.getElementById('active');
+            
+            const previewName = document.getElementById('previewName');
+            const previewDomain = document.getElementById('previewDomain');
+            const previewDescription = document.getElementById('previewDescription');
+            const previewStatus = document.getElementById('previewStatus');
+
+            // Update preview on input
+            function updatePreview() {
+                previewName.textContent = nameInput.value || '-';
+                previewDomain.textContent = domainInput.value ? 'https://' + domainInput.value : '-';
+                previewDescription.textContent = descriptionInput.value || '-';
+                
+                const isActive = activeSelect.value === 'true';
+                previewStatus.textContent = isActive ? 'Ativa' : 'Inativa';
+                previewStatus.className = isActive ? 'ms-2 badge bg-success' : 'ms-2 badge bg-danger';
+            }
+
+            // Initial preview update
+            updatePreview();
+
+            // Add event listeners
+            nameInput.addEventListener('input', updatePreview);
+            domainInput.addEventListener('input', updatePreview);
+            descriptionInput.addEventListener('input', updatePreview);
+            activeSelect.addEventListener('change', updatePreview);
+
+            // Domain validation
+            let domainCheckTimeout;
+            domainInput.addEventListener('input', function() {
+                clearTimeout(domainCheckTimeout);
+                const domain = this.value.trim();
+                
+                if (domain && domain.length > 3) {
+                    document.getElementById('domainCheck').style.display = 'block';
+                    
+                    domainCheckTimeout = setTimeout(function() {
+                        // Simulate domain check (in real implementation, this would be an AJAX call)
+                        fetch('/admin/trusted-sources/check-domain?domain=' + encodeURIComponent(domain) + 
+                              (document.querySelector('input[name="id"]') ? '&excludeId=' + document.querySelector('input[name="id"]').value : ''))
+                            .then(response => response.json())
+                            .then(data => {
+                                const checkDiv = document.getElementById('domainCheck');
+                                if (data.available) {
+                                    checkDiv.innerHTML = '<small class="text-success"><i class="fas fa-check me-1"></i>Domínio disponível</small>';
+                                } else {
+                                    checkDiv.innerHTML = '<small class="text-danger"><i class="fas fa-times me-1"></i>Domínio já cadastrado</small>';
+                                }
+                            })
+                            .catch(() => {
+                                document.getElementById('domainCheck').style.display = 'none';
+                            });
+                    }, 500);
+                } else {
+                    document.getElementById('domainCheck').style.display = 'none';
+                }
+            });
+
+            // Form validation
+            const form = document.querySelector('form');
+            form.addEventListener('submit', function(e) {
+                if (!form.checkValidity()) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            });
+        });
+    </script>
+</body>
+</html>
