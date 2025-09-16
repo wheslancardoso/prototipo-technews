@@ -70,4 +70,15 @@ public interface NewsArticleRepository extends JpaRepository<NewsArticle, Long> 
      * Conta artigos por status
      */
     long countByStatus(ArticleStatus status);
+
+    /**
+     * Busca artigos publicados por texto no título ou conteúdo com paginação
+     */
+    Page<NewsArticle> findByPublishedTrueAndTitleContainingIgnoreCaseOrContentContainingIgnoreCaseOrderByPublishedAtDesc(
+        String titleSearch, String contentSearch, Pageable pageable);
+
+    /**
+     * Busca artigos publicados por categoria com paginação
+     */
+    Page<NewsArticle> findByPublishedTrueAndCategoryOrderByPublishedAtDesc(String category, Pageable pageable);
 }

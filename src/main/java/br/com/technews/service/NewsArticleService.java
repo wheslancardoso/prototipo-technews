@@ -118,4 +118,13 @@ public class NewsArticleService {
     public long countByStatus(ArticleStatus status) {
         return newsArticleRepository.countByStatus(status);
     }
+
+    public Page<NewsArticle> searchPublishedArticles(String searchTerm, Pageable pageable) {
+        return newsArticleRepository.findByPublishedTrueAndTitleContainingIgnoreCaseOrContentContainingIgnoreCaseOrderByPublishedAtDesc(
+            searchTerm, searchTerm, pageable);
+    }
+
+    public Page<NewsArticle> findPublishedArticlesByCategory(String category, Pageable pageable) {
+        return newsArticleRepository.findByPublishedTrueAndCategoryOrderByPublishedAtDesc(category, pageable);
+    }
 }

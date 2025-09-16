@@ -33,13 +33,15 @@ public class PublicArticleController {
             Model model) {
         
         Pageable pageable = PageRequest.of(page, size, Sort.by("publishedAt").descending());
-        Page<NewsArticle> articles = newsArticleService.findPublishedArticles(pageable);
+        Page<NewsArticle> articles;
         
-        // Filtrar por categoria se especificada
-        if (category != null && !category.trim().isEmpty()) {
-            List<NewsArticle> filteredArticles = newsArticleService.findByCategory(category.trim());
-            // Para simplificar, vamos usar todos os artigos publicados por enquanto
-            // Em uma implementação mais robusta, seria necessário criar métodos específicos no repository
+        // Aplicar filtros se especificados
+        if (search != null && !search.trim().isEmpty()) {
+            articles = newsArticleService.searchPublishedArticles(search.trim(), pageable);
+        } else if (category != null && !category.trim().isEmpty()) {
+            articles = newsArticleService.findPublishedArticlesByCategory(category.trim(), pageable);
+        } else {
+            articles = newsArticleService.findPublishedArticles(pageable);
         }
         
         model.addAttribute("articles", articles);
@@ -80,8 +82,7 @@ public class PublicArticleController {
             Model model) {
         
         Pageable pageable = PageRequest.of(page, size, Sort.by("publishedAt").descending());
-        List<NewsArticle> categoryArticles = newsArticleService.findByCategory(category);
-        Page<NewsArticle> articles = newsArticleService.findPublishedArticles(pageable);
+        Page<NewsArticle> articles = newsArticleService.findPublishedArticlesByCategory(category, pageable);
         
         model.addAttribute("articles", articles);
         model.addAttribute("currentPage", page);

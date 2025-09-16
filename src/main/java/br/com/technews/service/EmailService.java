@@ -144,19 +144,24 @@ public class EmailService {
             int failed = 0;
 
             for (Subscriber subscriber : subscribers) {
-                // Filtra artigos por categorias do assinante se ele tiver preferências
-                List<Article> articlesToSend = filterArticlesBySubscriberPreferences(subscriber, recentArticles);
-                
-                if (!articlesToSend.isEmpty()) {
-                    boolean success = sendNewsletterToSubscriber(subscriber, articlesToSend).get();
-                    if (success) {
-                        sent++;
-                    } else {
-                        failed++;
-                    }
+                try {
+                    // Filtra artigos por categorias do assinante se ele tiver preferências
+                    List<Article> articlesToSend = filterArticlesBySubscriberPreferences(subscriber, recentArticles);
                     
-                    // Pequena pausa entre envios para evitar spam
-                    Thread.sleep(100);
+                    if (!articlesToSend.isEmpty()) {
+                        boolean success = sendNewsletterToSubscriber(subscriber, articlesToSend).get();
+                        if (success) {
+                            sent++;
+                        } else {
+                            failed++;
+                        }
+                        
+                        // Pequena pausa entre envios para evitar spam
+                        Thread.sleep(100);
+                    }
+                } catch (Exception e) {
+                    log.error("Erro ao enviar newsletter para {}: {}", subscriber.getEmail(), e.getMessage());
+                    failed++;
                 }
             }
 
