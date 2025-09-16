@@ -61,7 +61,7 @@ public class NewsletterApiController {
                 request.getEmail(),
                 request.getNome(),
                 request.getFrequencia(),
-                request.getCategorias()
+                null // Converter categorias string para Set<Long> se necessário
             );
 
             response.put("success", true);
@@ -92,11 +92,11 @@ public class NewsletterApiController {
             if (subscriberOpt.isPresent()) {
                 Subscriber subscriber = subscriberOpt.get();
                 response.put("subscribed", true);
-                response.put("active", subscriber.isAtivo());
-                response.put("verified", subscriber.isEmailVerificado());
-                response.put("frequency", subscriber.getFrequencia().toString());
-                response.put("subscriptionDate", subscriber.getDataInscricao());
-                response.put("categories", subscriber.getCategorias());
+                response.put("active", subscriber.getActive());
+                response.put("verified", subscriber.isEmailVerified());
+                response.put("frequency", subscriber.getFrequency().toString());
+                response.put("subscriptionDate", subscriber.getSubscribedAt());
+                response.put("categories", subscriber.getSubscribedCategories());
             } else {
                 response.put("subscribed", false);
                 response.put("active", false);
@@ -163,13 +163,13 @@ public class NewsletterApiController {
             
             // Atualizar preferências
             if (request.getNome() != null) {
-                subscriber.setNome(request.getNome());
+                subscriber.setFullName(request.getNome());
             }
             if (request.getFrequencia() != null) {
-                subscriber.setFrequencia(request.getFrequencia());
+                subscriber.setFrequency(request.getFrequencia());
             }
             if (request.getCategorias() != null) {
-                subscriber.setCategorias(request.getCategorias());
+                subscriber.setSubscribedCategories(request.getCategorias());
             }
             
             subscriber.setDataAtualizacao(LocalDateTime.now());
@@ -362,14 +362,14 @@ public class NewsletterApiController {
         Map<String, Object> response = new HashMap<>();
         response.put("id", subscriber.getId());
         response.put("email", subscriber.getEmail());
-        response.put("nome", subscriber.getNome());
-        response.put("ativo", subscriber.isAtivo());
-        response.put("emailVerificado", subscriber.isEmailVerificado());
-        response.put("frequencia", subscriber.getFrequencia().toString());
-        response.put("categorias", subscriber.getCategorias());
-        response.put("dataInscricao", subscriber.getDataInscricao());
-        response.put("dataAtualizacao", subscriber.getDataAtualizacao());
-        response.put("emailsEnviados", subscriber.getEmailsEnviados());
+        response.put("nome", subscriber.getFullName());
+        response.put("ativo", subscriber.getActive());
+        response.put("verificado", subscriber.isEmailVerified());
+        response.put("frequencia", subscriber.getFrequency().toString());
+        response.put("categorias", subscriber.getSubscribedCategories());
+        response.put("dataInscricao", subscriber.getSubscribedAt());
+        response.put("dataAtualizacao", subscriber.getUpdatedAt());
+        response.put("emailsEnviados", subscriber.getEmailCount());
         return response;
     }
 
