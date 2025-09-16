@@ -35,7 +35,7 @@ public class PageController {
                           @RequestParam String email, 
                           RedirectAttributes redirectAttributes) {
         try {
-            subscriberService.subscribe(nome, email);
+            subscriberService.subscribe(email, nome, null, null);
             redirectAttributes.addFlashAttribute("successMessage", 
                 "Obrigado, " + nome + "! Sua inscrição foi realizada com sucesso.");
         } catch (IllegalArgumentException e) {

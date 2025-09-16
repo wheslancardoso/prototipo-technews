@@ -1,57 +1,21 @@
 package br.com.technews.config;
 
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import springfox.documentation.builders.ApiInfoBuilder;
-import springfox.documentation.builders.PathSelectors;
-import springfox.documentation.builders.RequestHandlerSelectors;
-import springfox.documentation.service.ApiInfo;
-import springfox.documentation.service.Contact;
-import springfox.documentation.spi.DocumentationType;
-import springfox.documentation.spring.web.plugins.Docket;
-import springfox.documentation.swagger2.annotations.EnableSwagger2;
+import org.springframework.context.annotation.Bean;
 
 import java.util.Arrays;
 
 /**
  * Configuração da API REST
- * Inclui configurações de CORS e documentação Swagger
+ * Inclui configurações de CORS
  */
 @Configuration
-@EnableSwagger2
 public class ApiConfig implements WebMvcConfigurer {
-
-    /**
-     * Configuração do Swagger para documentação da API
-     */
-    @Bean
-    public Docket api() {
-        return new Docket(DocumentationType.SWAGGER_2)
-                .select()
-                .apis(RequestHandlerSelectors.basePackage("br.com.technews.controller.api"))
-                .paths(PathSelectors.regex("/api.*"))
-                .build()
-                .apiInfo(apiInfo());
-    }
-
-    /**
-     * Informações da API para o Swagger
-     */
-    private ApiInfo apiInfo() {
-        return new ApiInfoBuilder()
-                .title("TechNews Newsletter API")
-                .description("API REST para gerenciamento de newsletter do TechNews")
-                .version("1.0.0")
-                .contact(new Contact("TechNews Team", "https://technews.com", "contato@technews.com"))
-                .license("MIT License")
-                .licenseUrl("https://opensource.org/licenses/MIT")
-                .build();
-    }
 
     /**
      * Configuração global de CORS

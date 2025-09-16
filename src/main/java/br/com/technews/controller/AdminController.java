@@ -35,15 +35,18 @@ public class AdminController {
             @RequestParam(defaultValue = "") String search,
             Model model) {
         
-        Page<Subscriber> subscribers = subscriberService.findAllPaginated(PageRequest.of(page, size));
+        Page<Subscriber> subscribers = subscriberService.findAll(search, null, null, PageRequest.of(page, size));
         
         model.addAttribute("subscribers", subscribers);
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", subscribers.getTotalPages());
         model.addAttribute("totalElements", subscribers.getTotalElements());
         model.addAttribute("search", search);
-        model.addAttribute("activeCount", subscriberService.countActiveSubscribers());
-        model.addAttribute("totalCount", subscriberService.countTotalSubscribers());
+        
+        // Obter estatísticas
+        SubscriberService.SubscriberStats stats = subscriberService.getStats();
+        model.addAttribute("activeCount", stats.getActive());
+        model.addAttribute("totalCount", stats.getTotal());
         
         return "admin/subscribers/list";
     }
