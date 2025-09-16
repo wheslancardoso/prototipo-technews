@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirme sua Inscrição - TechNews</title>
+    <style>
+        /* Reset styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333333;
+            background-color: #f8f9fa;
+        }
+        
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 30px;
+            text-align: center;
+            color: white;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px 30px;
+        }
+        
+        .welcome-section {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .welcome-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #28a745, #20c997);
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            font-size: 32px;
+            color: white;
+        }
+        
+        .welcome-section h2 {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .welcome-section p {
+            font-size: 16px;
+            color: #666;
+            line-height: 1.6;
+        }
+        
+        .verification-box {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            margin: 30px 0;
+            border-left: 4px solid #667eea;
+        }
+        
+        .verification-box h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        
+        .verification-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 16px;
+            margin: 20px 0;
+            transition: transform 0.2s ease;
+        }
+        
+        .verification-button:hover {
+            transform: translateY(-2px);
+            text-decoration: none;
+            color: white;
+        }
+        
+        .alternative-link {
+            margin-top: 20px;
+            padding: 15px;
+            background: #fff3cd;
+            border-radius: 8px;
+            border-left: 4px solid #ffc107;
+        }
+        
+        .alternative-link p {
+            margin: 0;
+            font-size: 14px;
+            color: #856404;
+        }
+        
+        .alternative-link a {
+            color: #667eea;
+            word-break: break-all;
+            text-decoration: none;
+        }
+        
+        .benefits {
+            margin: 40px 0;
+        }
+        
+        .benefits h3 {
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .benefits-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .benefits-list li {
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+        }
+        
+        .benefits-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .benefits-list .icon {
+            width: 24px;
+            height: 24px;
+            background: #28a745;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            color: white;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+        
+        .subscription-details {
+            background: #e3f2fd;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 30px 0;
+        }
+        
+        .subscription-details h4 {
+            color: #1976d2;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .detail-label {
+            color: #666;
+            font-weight: 500;
+        }
+        
+        .detail-value {
+            color: #333;
+            font-weight: 600;
+        }
+        
+        .footer {
+            background: #f8f9fa;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #eee;
+        }
+        
+        .footer p {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        .social-links {
+            margin: 20px 0;
+        }
+        
+        .social-links a {
+            display: inline-block;
+            margin: 0 10px;
+            width: 40px;
+            height: 40px;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 40px;
+            text-decoration: none;
+            font-size: 16px;
+        }
+        
+        .unsubscribe-link {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+        }
+        
+        .unsubscribe-link a {
+            color: #999;
+            font-size: 12px;
+            text-decoration: none;
+        }
+        
+        /* Mobile responsiveness */
+        @media (max-width: 600px) {
+            .email-container {
+                margin: 0;
+                border-radius: 0;
+            }
+            
+            .header, .content, .footer {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 24px;
+            }
+            
+            .welcome-section h2 {
+                font-size: 20px;
+            }
+            
+            .verification-button {
+                padding: 12px 30px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <h1>TechNews</h1>
+            <p>Sua fonte confiável de notícias de tecnologia</p>
+        </div>
+        
+        <!-- Content -->
+        <div class="content">
+            <!-- Welcome Section -->
+            <div class="welcome-section">
+                <div class="welcome-icon">
+                    ✉️
+                </div>
+                <h2 th:text="|Olá, ${subscriberName}!|">Olá, [Nome]!</h2>
+                <p>
+                    Obrigado por se inscrever na newsletter TechNews! Para começar a receber nossas 
+                    atualizações exclusivas, precisamos confirmar seu endereço de email.
+                </p>
+            </div>
+            
+            <!-- Verification Box -->
+            <div class="verification-box">
+                <h3>🔐 Confirme sua inscrição</h3>
+                <p>Clique no botão abaixo para verificar seu email e ativar sua inscrição:</p>
+                
+                <a th:href="${verificationUrl}" class="verification-button">
+                    Confirmar Inscrição
+                </a>
+                
+                <div class="alternative-link">
+                    <p>
+                        <strong>Não consegue clicar no botão?</strong><br>
+                        Copie e cole este link no seu navegador:<br>
+                        <a th:href="${verificationUrl}" th:text="${verificationUrl}">
+                            [Link de Verificação]
+                        </a>
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Subscription Details -->
+            <div class="subscription-details">
+                <h4>📋 Detalhes da sua inscrição</h4>
+                <div class="detail-item">
+                    <span class="detail-label">Email:</span>
+                    <span class="detail-value" th:text="${subscriberEmail}">[email@exemplo.com]</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Frequência:</span>
+                    <span class="detail-value" th:text="${frequency}">[Frequência]</span>
+                </div>
+                <div class="detail-item" th:if="${categories}">
+                    <span class="detail-label">Categorias:</span>
+                    <span class="detail-value" th:text="${categories}">[Categorias]</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Data da inscrição:</span>
+                    <span class="detail-value" th:text="${#temporals.format(subscriptionDate, 'dd/MM/yyyy HH:mm')}">[Data]</span>
+                </div>
+            </div>
+            
+            <!-- Benefits -->
+            <div class="benefits">
+                <h3>🎯 O que você receberá</h3>
+                <ul class="benefits-list">
+                    <li>
+                        <div class="icon">📰</div>
+                        <div>
+                            <strong>Notícias Curadas:</strong> As principais notícias de tecnologia selecionadas pela nossa equipe
+                        </div>
+                    </li>
+                    <li>
+                        <div class="icon">🔍</div>
+                        <div>
+                            <strong>Análises Exclusivas:</strong> Insights aprofundados sobre tendências e inovações
+                        </div>
+                    </li>
+                    <li>
+                        <div class="icon">⚡</div>
+                        <div>
+                            <strong>Atualizações Rápidas:</strong> Seja o primeiro a saber sobre lançamentos importantes
+                        </div>
+                    </li>
+                    <li>
+                        <div class="icon">🎯</div>
+                        <div>
+                            <strong>Conteúdo Personalizado:</strong> Notícias filtradas pelas suas categorias de interesse
+                        </div>
+                    </li>
+                    <li>
+                        <div class="icon">🚀</div>
+                        <div>
+                            <strong>Sem Spam:</strong> Apenas conteúdo relevante, na frequência que você escolheu
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- Important Notice -->
+            <div style="background: #fff3cd; border-radius: 8px; padding: 20px; margin: 30px 0; border-left: 4px solid #ffc107;">
+                <p style="margin: 0; color: #856404; font-size: 14px;">
+                    <strong>⏰ Importante:</strong> Este link de verificação expira em 24 horas. 
+                    Se não conseguir confirmar a tempo, você pode se inscrever novamente em nosso site.
+                </p>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <p><strong>TechNews - Tecnologia que Importa</strong></p>
+            <p>Mantendo você atualizado com as últimas novidades do mundo tech</p>
+            
+            <div class="social-links">
+                <a href="#" title="Facebook">📘</a>
+                <a href="#" title="Twitter">🐦</a>
+                <a href="#" title="LinkedIn">💼</a>
+                <a href="#" title="Instagram">📷</a>
+            </div>
+            
+            <p>
+                Precisa de ajuda? <a href="mailto:suporte@technews.com">Entre em contato</a><br>
+                Visite nosso site: <a href="https://technews.com">www.technews.com</a>
+            </p>
+            
+            <div class="unsubscribe-link">
+                <p>
+                    <a th:href="|${baseUrl}/newsletter/unsubscribe?token=${unsubscribeToken}|">
+                        Cancelar inscrição
+                    </a> | 
+                    <a th:href="|${baseUrl}/newsletter/manage?token=${manageToken}|">
+                        Gerenciar preferências
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

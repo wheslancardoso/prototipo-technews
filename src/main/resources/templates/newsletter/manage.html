@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciar Preferências - TechNews</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .manage-container {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem 0;
+        }
+        .manage-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 3rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .settings-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 2rem;
+        }
+        .error-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #dc3545, #fd7e14);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 2rem;
+        }
+        .category-card {
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .category-card:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+        .category-card.selected {
+            border-color: #667eea;
+            background-color: #f8f9ff;
+        }
+        .frequency-option {
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .frequency-option:hover {
+            border-color: #667eea;
+        }
+        .frequency-option.selected {
+            border-color: #667eea;
+            background-color: #f8f9ff;
+        }
+        .btn-primary-custom {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            padding: 12px 30px;
+            font-weight: 600;
+            border-radius: 25px;
+        }
+        .btn-outline-custom {
+            border: 2px solid #667eea;
+            color: #667eea;
+            padding: 12px 30px;
+            font-weight: 600;
+            border-radius: 25px;
+            background: transparent;
+        }
+        .btn-outline-custom:hover {
+            background: #667eea;
+            color: white;
+        }
+        .subscriber-info {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        .stats-card {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+        .section-divider {
+            border: none;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #667eea, transparent);
+            margin: 3rem 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="manage-container">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-10">
+                    <div class="manage-card">
+                        <!-- Error State -->
+                        <div th:unless="${validToken}" class="text-center">
+                            <div class="error-icon">
+                                <i class="fas fa-times fa-2x text-white"></i>
+                            </div>
+                            
+                            <h1 class="h3 mb-3 text-danger">Token Inválido</h1>
+                            
+                            <p class="text-muted mb-4" th:text="${errorMessage}">
+                                O token de gerenciamento é inválido ou expirou.
+                            </p>
+
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                                <a href="/newsletter/subscribe" class="btn btn-primary-custom">
+                                    <i class="fas fa-envelope me-2"></i>
+                                    Nova Inscrição
+                                </a>
+                                <a href="mailto:suporte@technews.com" class="btn btn-outline-custom">
+                                    <i class="fas fa-life-ring me-2"></i>
+                                    Suporte
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Valid Token - Management Interface -->
+                        <div th:if="${validToken}">
+                            <!-- Header -->
+                            <div class="text-center mb-4">
+                                <div class="settings-icon">
+                                    <i class="fas fa-cog fa-2x text-white"></i>
+                                </div>
+                                
+                                <h1 class="h3 mb-3">Gerenciar Preferências</h1>
+                                <p class="text-muted">
+                                    Personalize sua experiência com a newsletter TechNews
+                                </p>
+                            </div>
+
+                            <!-- Success/Error Messages -->
+                            <div th:if="${param.success}" class="alert alert-success border-0 mb-4">
+                                <i class="fas fa-check-circle me-2"></i>
+                                <span th:text="${successMessage}">Preferências atualizadas com sucesso!</span>
+                            </div>
+                            
+                            <div th:if="${param.error}" class="alert alert-danger border-0 mb-4">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <span th:text="${errorMessage}">Erro ao atualizar preferências.</span>
+                            </div>
+
+                            <!-- Subscriber Info -->
+                            <div class="subscriber-info" th:if="${subscriber}">
+                                <div class="row align-items-center">
+                                    <div class="col-md-8">
+                                        <h5 class="mb-3">
+                                            <i class="fas fa-user-circle me-2 text-primary"></i>
+                                            Informações da Conta
+                                        </h5>
+                                        <div class="row">
+                                            <div class="col-sm-6">
+                                                <p class="mb-2">
+                                                    <strong>Email:</strong><br>
+                                                    <span th:text="${subscriber.email}">email@exemplo.com</span>
+                                                </p>
+                                            </div>
+                                            <div class="col-sm-6">
+                                                <p class="mb-2">
+                                                    <strong>Inscrito em:</strong><br>
+                                                    <span th:text="${#temporals.format(subscriber.createdAt, 'dd/MM/yyyy')}">01/01/2024</span>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="stats-card">
+                                            <h6 class="mb-2">Emails Recebidos</h6>
+                                            <h3 class="mb-0" th:text="${subscriber.emailCount}">0</h3>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Management Form -->
+                            <form method="post" th:action="@{/newsletter/manage}" th:if="${subscriber}">
+                                <input type="hidden" name="token" th:value="${token}">
+
+                                <!-- Personal Information -->
+                                <div class="mb-4">
+                                    <h5 class="mb-3">
+                                        <i class="fas fa-id-card me-2 text-primary"></i>
+                                        Informações Pessoais
+                                    </h5>
+                                    
+                                    <div class="mb-3">
+                                        <label for="fullName" class="form-label fw-bold">Nome Completo</label>
+                                        <input type="text" class="form-control form-control-lg" id="fullName" 
+                                               name="fullName" th:value="${subscriber.fullName}" 
+                                               placeholder="Seu nome completo">
+                                    </div>
+                                </div>
+
+                                <hr class="section-divider">
+
+                                <!-- Frequency Selection -->
+                                <div class="mb-4">
+                                    <h5 class="mb-3">
+                                        <i class="fas fa-clock me-2 text-primary"></i>
+                                        Frequência de Envio
+                                    </h5>
+                                    
+                                    <div class="row g-3">
+                                        <div class="col-md-4" th:each="freq : ${frequencies}">
+                                            <div class="frequency-option" th:data-value="${freq}"
+                                                 th:classappend="${subscriber.frequency == freq} ? 'selected' : ''">
+                                                <input type="radio" name="frequency" th:value="${freq}" 
+                                                       th:id="'freq_' + ${freq}" class="d-none frequency-radio"
+                                                       th:checked="${subscriber.frequency == freq}">
+                                                <div class="text-center">
+                                                    <i class="fas fa-calendar-alt fa-2x mb-2 text-primary"></i>
+                                                    <h6 th:text="${freq.getDisplayName()}" class="mb-1">Diária</h6>
+                                                    <small class="text-muted" th:text="${freq.getDescription()}">Todos os dias</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <hr class="section-divider">
+
+                                <!-- Categories Selection -->
+                                <div class="mb-4" th:if="${categories != null and !categories.isEmpty()}">
+                                    <h5 class="mb-3">
+                                        <i class="fas fa-tags me-2 text-primary"></i>
+                                        Categorias de Interesse
+                                    </h5>
+                                    <p class="text-muted mb-3">
+                                        Selecione as categorias que mais te interessam para receber conteúdo personalizado
+                                    </p>
+                                    
+                                    <div class="row g-3">
+                                        <div class="col-md-6" th:each="category : ${categories}">
+                                            <div class="category-card" th:data-category="${category.id}"
+                                                 th:classappend="${subscriber.categories != null and subscriber.categories.contains(category)} ? 'selected' : ''">
+                                                <input type="checkbox" name="categoryIds" th:value="${category.id}" 
+                                                       th:id="'cat_' + ${category.id}" class="d-none category-checkbox"
+                                                       th:checked="${subscriber.categories != null and subscriber.categories.contains(category)}">
+                                                <div class="d-flex align-items-center">
+                                                    <i class="fas fa-folder fa-2x me-3 text-primary"></i>
+                                                    <div class="flex-grow-1">
+                                                        <h6 th:text="${category.name}" class="mb-1">Categoria</h6>
+                                                        <small class="text-muted" th:text="${category.description}">Descrição</small>
+                                                    </div>
+                                                    <i class="fas fa-check-circle ms-auto text-success category-check"
+                                                       th:classappend="${subscriber.categories == null or !subscriber.categories.contains(category)} ? 'd-none' : ''"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <hr class="section-divider">
+
+                                <!-- Action Buttons -->
+                                <div class="text-center">
+                                    <div class="d-grid gap-2 d-md-flex justify-content-md-center mb-3">
+                                        <button type="submit" class="btn btn-primary-custom btn-lg">
+                                            <i class="fas fa-save me-2"></i>
+                                            Salvar Alterações
+                                        </button>
+                                        <a href="/" class="btn btn-outline-custom">
+                                            <i class="fas fa-home me-2"></i>
+                                            Ir para o Site
+                                        </a>
+                                    </div>
+                                    
+                                    <div class="mt-4 pt-3 border-top">
+                                        <p class="text-muted mb-2">Não quer mais receber nossa newsletter?</p>
+                                        <a th:href="@{/newsletter/unsubscribe(token=${token})}" 
+                                           class="btn btn-outline-danger btn-sm">
+                                            <i class="fas fa-times me-2"></i>
+                                            Cancelar Inscrição
+                                        </a>
+                                    </div>
+                                </div>
+                            </form>
+
+                            <!-- Additional Information -->
+                            <div class="mt-5 pt-4 border-top">
+                                <div class="row text-center">
+                                    <div class="col-md-4">
+                                        <i class="fas fa-shield-alt fa-2x text-primary mb-2"></i>
+                                        <h6>Dados Seguros</h6>
+                                        <p class="small text-muted">Suas informações estão protegidas</p>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <i class="fas fa-envelope-open-text fa-2x text-primary mb-2"></i>
+                                        <h6>Conteúdo Relevante</h6>
+                                        <p class="small text-muted">Apenas o que realmente importa</p>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <i class="fas fa-times-circle fa-2x text-primary mb-2"></i>
+                                        <h6>Cancele Quando Quiser</h6>
+                                        <p class="small text-muted">Sem compromisso ou taxas</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="text-center mt-4">
+                                    <p class="small text-muted mb-0">
+                                        Precisa de ajuda? <a href="mailto:suporte@technews.com" class="text-decoration-none">Entre em contato</a>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Frequency selection
+            const frequencyOptions = document.querySelectorAll('.frequency-option');
+            const frequencyRadios = document.querySelectorAll('.frequency-radio');
+            
+            frequencyOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    // Remove selected class from all options
+                    frequencyOptions.forEach(opt => opt.classList.remove('selected'));
+                    
+                    // Add selected class to clicked option
+                    this.classList.add('selected');
+                    
+                    // Check corresponding radio button
+                    const value = this.dataset.value;
+                    const radio = document.querySelector(`input[name="frequency"][value="${value}"]`);
+                    if (radio) radio.checked = true;
+                });
+            });
+
+            // Category selection
+            const categoryCards = document.querySelectorAll('.category-card');
+            const categoryCheckboxes = document.querySelectorAll('.category-checkbox');
+            
+            categoryCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    const categoryId = this.dataset.category;
+                    const checkbox = document.querySelector(`input[name="categoryIds"][value="${categoryId}"]`);
+                    const checkIcon = this.querySelector('.category-check');
+                    
+                    if (checkbox) {
+                        checkbox.checked = !checkbox.checked;
+                        
+                        if (checkbox.checked) {
+                            this.classList.add('selected');
+                            checkIcon.classList.remove('d-none');
+                        } else {
+                            this.classList.remove('selected');
+                            checkIcon.classList.add('d-none');
+                        }
+                    }
+                });
+            });
+
+            // Form validation
+            const form = document.querySelector('form');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    const fullName = document.getElementById('fullName').value.trim();
+                    
+                    if (fullName.length < 2) {
+                        e.preventDefault();
+                        alert('Por favor, insira um nome válido com pelo menos 2 caracteres.');
+                        return false;
+                    }
+                    
+                    // Show loading state
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    if (submitBtn) {
+                        submitBtn.disabled = true;
+                        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Salvando...';
+                    }
+                });
+            }
+
+            // Auto-save draft (optional enhancement)
+            let saveTimeout;
+            const inputs = document.querySelectorAll('input[type="text"], input[type="radio"], input[type="checkbox"]');
+            
+            inputs.forEach(input => {
+                input.addEventListener('change', function() {
+                    clearTimeout(saveTimeout);
+                    saveTimeout = setTimeout(() => {
+                        // Could implement auto-save draft functionality here
+                        console.log('Preferences changed - could auto-save draft');
+                    }, 2000);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

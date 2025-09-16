@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bem-vindo à TechNews!</title>
+    <style>
+        /* Reset styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333333;
+            background-color: #f8f9fa;
+        }
+        
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 30px;
+            text-align: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="rgba(255,255,255,0.1)"/></svg>') repeat;
+            animation: float 20s infinite linear;
+        }
+        
+        @keyframes float {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+        
+        .header-content {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .header .tagline {
+            font-size: 18px;
+            opacity: 0.9;
+            margin-bottom: 20px;
+        }
+        
+        .welcome-badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            display: inline-block;
+            backdrop-filter: blur(10px);
+        }
+        
+        .content {
+            padding: 40px 30px;
+        }
+        
+        .welcome-section {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .welcome-icon {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, #28a745, #20c997);
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 25px;
+            font-size: 40px;
+            color: white;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .welcome-section h2 {
+            font-size: 28px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .welcome-section p {
+            font-size: 18px;
+            color: #666;
+            line-height: 1.6;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        .confirmation-box {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            margin: 30px 0;
+            border-left: 4px solid #28a745;
+        }
+        
+        .confirmation-box h3 {
+            color: #155724;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+        
+        .confirmation-box p {
+            color: #155724;
+            margin: 0;
+        }
+        
+        .subscription-details {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 30px 0;
+        }
+        
+        .subscription-details h4 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 18px;
+            text-align: center;
+        }
+        
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .detail-item {
+            text-align: center;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .detail-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+            display: block;
+        }
+        
+        .detail-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .detail-value {
+            font-size: 16px;
+            color: #333;
+            font-weight: 600;
+        }
+        
+        .features-section {
+            margin: 40px 0;
+        }
+        
+        .features-title {
+            text-align: center;
+            color: #333;
+            font-size: 22px;
+            margin-bottom: 30px;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+        }
+        
+        .feature-card {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+            font-size: 24px;
+            color: white;
+        }
+        
+        .feature-card h5 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        
+        .feature-card p {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .next-steps {
+            background: linear-gradient(135deg, #fff3e0 0%, #fce4ec 100%);
+            border-radius: 12px;
+            padding: 30px;
+            margin: 40px 0;
+            border-left: 4px solid #ff9800;
+        }
+        
+        .next-steps h3 {
+            color: #e65100;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .steps-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .steps-list li {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 8px;
+        }
+        
+        .step-number {
+            width: 30px;
+            height: 30px;
+            background: #ff9800;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+        
+        .step-content h6 {
+            color: #333;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        
+        .step-content p {
+            color: #666;
+            font-size: 13px;
+            margin: 0;
+        }
+        
+        .cta-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            margin: 40px 0;
+        }
+        
+        .cta-section h3 {
+            font-size: 22px;
+            margin-bottom: 15px;
+        }
+        
+        .cta-section p {
+            margin-bottom: 25px;
+            opacity: 0.9;
+            font-size: 16px;
+        }
+        
+        .cta-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .cta-button {
+            background: white;
+            color: #667eea;
+            text-decoration: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 14px;
+            transition: transform 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-2px);
+            text-decoration: none;
+            color: #667eea;
+        }
+        
+        .cta-button.secondary {
+            background: transparent;
+            color: white;
+            border: 2px solid white;
+        }
+        
+        .cta-button.secondary:hover {
+            background: white;
+            color: #667eea;
+        }
+        
+        .footer {
+            background: #f8f9fa;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #eee;
+        }
+        
+        .footer p {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        .social-links {
+            margin: 20px 0;
+        }
+        
+        .social-links a {
+            display: inline-block;
+            margin: 0 8px;
+            width: 40px;
+            height: 40px;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 40px;
+            text-decoration: none;
+            font-size: 16px;
+            transition: transform 0.2s ease;
+        }
+        
+        .social-links a:hover {
+            transform: translateY(-2px);
+        }
+        
+        .unsubscribe-section {
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+        }
+        
+        .unsubscribe-section a {
+            color: #999;
+            font-size: 12px;
+            text-decoration: none;
+            margin: 0 8px;
+        }
+        
+        /* Mobile responsiveness */
+        @media (max-width: 600px) {
+            .email-container {
+                margin: 0;
+                border-radius: 0;
+            }
+            
+            .header, .content, .footer {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 28px;
+            }
+            
+            .welcome-section h2 {
+                font-size: 24px;
+            }
+            
+            .detail-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .cta-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .cta-button {
+                width: 100%;
+                max-width: 250px;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-content">
+                <h1>TechNews</h1>
+                <p class="tagline">Sua fonte confiável de notícias de tecnologia</p>
+                <div class="welcome-badge">🎉 Bem-vindo à nossa comunidade!</div>
+            </div>
+        </div>
+        
+        <!-- Content -->
+        <div class="content">
+            <!-- Welcome Section -->
+            <div class="welcome-section">
+                <div class="welcome-icon">
+                    🚀
+                </div>
+                <h2 th:text="|Bem-vindo, ${subscriberName}!|">Bem-vindo, [Nome]!</h2>
+                <p>
+                    Estamos muito felizes em tê-lo conosco! Sua inscrição foi confirmada com sucesso 
+                    e você agora faz parte da nossa comunidade de entusiastas da tecnologia.
+                </p>
+            </div>
+            
+            <!-- Confirmation Box -->
+            <div class="confirmation-box">
+                <h3>✅ Inscrição Confirmada!</h3>
+                <p>
+                    Você receberá nossa newsletter diretamente em seu email conforme suas preferências.
+                </p>
+            </div>
+            
+            <!-- Subscription Details -->
+            <div class="subscription-details">
+                <h4>📋 Detalhes da sua inscrição</h4>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <span class="detail-icon">📧</span>
+                        <div class="detail-label">Email</div>
+                        <div class="detail-value" th:text="${subscriberEmail}">[email@exemplo.com]</div>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-icon">⏰</span>
+                        <div class="detail-label">Frequência</div>
+                        <div class="detail-value" th:text="${frequency}">[Frequência]</div>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-icon">📂</span>
+                        <div class="detail-label">Categorias</div>
+                        <div class="detail-value" th:text="${categories ?: 'Todas'}">[Categorias]</div>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-icon">📅</span>
+                        <div class="detail-label">Data de Inscrição</div>
+                        <div class="detail-value" th:text="${#temporals.format(subscriptionDate, 'dd/MM/yyyy')}">[Data]</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Features Section -->
+            <div class="features-section">
+                <h3 class="features-title">🎯 O que você pode esperar</h3>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">📰</div>
+                        <h5>Conteúdo Curado</h5>
+                        <p>Notícias selecionadas cuidadosamente pela nossa equipe de especialistas em tecnologia.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🔍</div>
+                        <h5>Análises Profundas</h5>
+                        <p>Insights exclusivos sobre tendências, produtos e inovações que moldam o futuro.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">⚡</div>
+                        <h5>Atualizações Rápidas</h5>
+                        <p>Seja o primeiro a saber sobre lançamentos importantes e breaking news do mundo tech.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🎯</div>
+                        <h5>Personalização</h5>
+                        <p>Conteúdo filtrado pelas suas categorias de interesse e frequência preferida.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Next Steps -->
+            <div class="next-steps">
+                <h3>🗺️ Próximos passos</h3>
+                <ul class="steps-list">
+                    <li>
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h6>Aguarde sua primeira newsletter</h6>
+                            <p>Você receberá nossa próxima edição conforme a frequência escolhida.</p>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h6>Explore nosso site</h6>
+                            <p>Visite nosso site para acessar mais conteúdo e análises exclusivas.</p>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h6>Personalize suas preferências</h6>
+                            <p>Ajuste suas categorias e frequência a qualquer momento através do link de gerenciamento.</p>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <h6>Compartilhe com amigos</h6>
+                            <p>Indique nossa newsletter para outros entusiastas da tecnologia!</p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- Call to Action -->
+            <div class="cta-section">
+                <h3>🌟 Comece a explorar agora!</h3>
+                <p>Não espere pela próxima newsletter. Visite nosso site e descubra as últimas notícias de tecnologia.</p>
+                <div class="cta-buttons">
+                    <a th:href="${baseUrl}" class="cta-button">
+                        <span>🏠</span>
+                        Visitar Site
+                    </a>
+                    <a th:href="|${baseUrl}/newsletter/manage?token=${manageToken}|" class="cta-button secondary">
+                        <span>⚙️</span>
+                        Gerenciar Preferências
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Tips Section -->
+            <div style="background: #e8f4fd; border-radius: 12px; padding: 25px; margin: 30px 0; border-left: 4px solid #2196f3;">
+                <h4 style="color: #1976d2; margin-bottom: 15px; text-align: center;">💡 Dicas importantes</h4>
+                <ul style="list-style: none; padding: 0; margin: 0;">
+                    <li style="margin-bottom: 10px; color: #555; font-size: 14px;">
+                        <strong>📧 Adicione-nos aos contatos:</strong> Para garantir que receba nossas newsletters, adicione nosso email aos seus contatos.
+                    </li>
+                    <li style="margin-bottom: 10px; color: #555; font-size: 14px;">
+                        <strong>📁 Verifique a pasta de spam:</strong> Às vezes nossos emails podem parar na pasta de spam ou promoções.
+                    </li>
+                    <li style="margin-bottom: 0; color: #555; font-size: 14px;">
+                        <strong>⚙️ Personalize quando quiser:</strong> Você pode alterar suas preferências ou cancelar a inscrição a qualquer momento.
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <p><strong>TechNews - Tecnologia que Importa</strong></p>
+            <p>Obrigado por se juntar à nossa comunidade de mais de 50.000 leitores!</p>
+            
+            <div class="social-links">
+                <a href="#" title="Facebook">📘</a>
+                <a href="#" title="Twitter">🐦</a>
+                <a href="#" title="LinkedIn">💼</a>
+                <a href="#" title="Instagram">📷</a>
+                <a href="#" title="YouTube">📺</a>
+            </div>
+            
+            <p>
+                Precisa de ajuda? <a href="mailto:suporte@technews.com">Entre em contato</a><br>
+                Visite nosso site: <a th:href="${baseUrl}">www.technews.com</a>
+            </p>
+            
+            <div class="unsubscribe-section">
+                <p>
+                    <a th:href="|${baseUrl}/newsletter/manage?token=${manageToken}|">
+                        Gerenciar Preferências
+                    </a> |
+                    <a th:href="|${baseUrl}/newsletter/unsubscribe?token=${unsubscribeToken}|">
+                        Cancelar Inscrição
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

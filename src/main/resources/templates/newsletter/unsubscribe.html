@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cancelar Inscrição - TechNews</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .unsubscribe-container {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 2rem 0;
+        }
+        .unsubscribe-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 3rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .sad-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #ffc107, #fd7e14);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 2rem;
+        }
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #28a745, #20c997);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 2rem;
+        }
+        .error-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #dc3545, #fd7e14);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 2rem;
+        }
+        .btn-danger-custom {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            border: none;
+            padding: 12px 30px;
+            font-weight: 600;
+            border-radius: 25px;
+        }
+        .btn-primary-custom {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            padding: 12px 30px;
+            font-weight: 600;
+            border-radius: 25px;
+        }
+        .btn-outline-custom {
+            border: 2px solid #667eea;
+            color: #667eea;
+            padding: 12px 30px;
+            font-weight: 600;
+            border-radius: 25px;
+            background: transparent;
+        }
+        .btn-outline-custom:hover {
+            background: #667eea;
+            color: white;
+        }
+        .subscriber-info {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+        .feedback-options {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+        .feedback-option {
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .feedback-option:hover {
+            border-color: #667eea;
+            background-color: #f8f9ff;
+        }
+        .feedback-option.selected {
+            border-color: #667eea;
+            background-color: #f8f9ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="unsubscribe-container">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="unsubscribe-card">
+                        <!-- Success Message -->
+                        <div th:if="${param.success}" class="text-center">
+                            <div class="success-icon">
+                                <i class="fas fa-check fa-2x text-white"></i>
+                            </div>
+                            
+                            <h1 class="h3 mb-3 text-success">Inscrição Cancelada</h1>
+                            
+                            <p class="text-muted mb-4" th:text="${successMessage}">
+                                Sua inscrição foi cancelada com sucesso. Você receberá um email de confirmação.
+                            </p>
+
+                            <div class="alert alert-info border-0 mb-4">
+                                <h6 class="mb-2"><i class="fas fa-heart me-2 text-danger"></i>Sentiremos sua falta!</h6>
+                                <p class="mb-0">
+                                    Obrigado por ter sido parte da nossa comunidade. Você pode se inscrever novamente a qualquer momento.
+                                </p>
+                            </div>
+
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                                <a href="/" class="btn btn-primary-custom">
+                                    <i class="fas fa-home me-2"></i>
+                                    Ir para o Site
+                                </a>
+                                <a href="/newsletter/subscribe" class="btn btn-outline-custom">
+                                    <i class="fas fa-envelope me-2"></i>
+                                    Inscrever-se Novamente
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Error Message -->
+                        <div th:if="${param.error and !validToken}" class="text-center">
+                            <div class="error-icon">
+                                <i class="fas fa-times fa-2x text-white"></i>
+                            </div>
+                            
+                            <h1 class="h3 mb-3 text-danger">Erro no Cancelamento</h1>
+                            
+                            <p class="text-muted mb-4" th:text="${errorMessage}">
+                                Não foi possível processar o cancelamento da inscrição.
+                            </p>
+
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                                <a href="/newsletter/subscribe" class="btn btn-primary-custom">
+                                    <i class="fas fa-envelope me-2"></i>
+                                    Nova Inscrição
+                                </a>
+                                <a href="mailto:suporte@technews.com" class="btn btn-outline-custom">
+                                    <i class="fas fa-life-ring me-2"></i>
+                                    Suporte
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Unsubscribe Form -->
+                        <div th:if="${validToken and !param.success and !param.error}" class="text-center">
+                            <div class="sad-icon">
+                                <i class="fas fa-heart-broken fa-2x text-white"></i>
+                            </div>
+                            
+                            <h1 class="h3 mb-3">Cancelar Inscrição</h1>
+                            
+                            <p class="text-muted mb-4">
+                                Lamentamos que você queira cancelar sua inscrição na nossa newsletter.
+                            </p>
+
+                            <!-- Subscriber Info -->
+                            <div class="subscriber-info text-start" th:if="${subscriber}">
+                                <h6 class="mb-3"><i class="fas fa-user me-2"></i>Informações da Inscrição</h6>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p class="mb-2">
+                                            <strong>Nome:</strong><br>
+                                            <span th:text="${subscriber.fullName}">Nome do Usuário</span>
+                                        </p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p class="mb-2">
+                                            <strong>Email:</strong><br>
+                                            <span th:text="${subscriber.email}">email@exemplo.com</span>
+                                        </p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p class="mb-2">
+                                            <strong>Frequência:</strong><br>
+                                            <span th:text="${subscriber.frequency?.displayName}">Semanal</span>
+                                        </p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p class="mb-0">
+                                            <strong>Inscrito em:</strong><br>
+                                            <span th:text="${#temporals.format(subscriber.createdAt, 'dd/MM/yyyy')}">01/01/2024</span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Feedback Options -->
+                            <div class="feedback-options text-start">
+                                <h6 class="mb-3"><i class="fas fa-comment me-2"></i>Nos ajude a melhorar (opcional)</h6>
+                                <p class="small text-muted mb-3">Por que você está cancelando sua inscrição?</p>
+                                
+                                <div class="feedback-option" data-reason="frequency">
+                                    <input type="radio" name="cancelReason" value="frequency" class="d-none">
+                                    <i class="fas fa-clock me-2"></i>
+                                    Recebo emails com muita frequência
+                                </div>
+                                
+                                <div class="feedback-option" data-reason="content">
+                                    <input type="radio" name="cancelReason" value="content" class="d-none">
+                                    <i class="fas fa-newspaper me-2"></i>
+                                    O conteúdo não é relevante para mim
+                                </div>
+                                
+                                <div class="feedback-option" data-reason="spam">
+                                    <input type="radio" name="cancelReason" value="spam" class="d-none">
+                                    <i class="fas fa-ban me-2"></i>
+                                    Considero os emails como spam
+                                </div>
+                                
+                                <div class="feedback-option" data-reason="other">
+                                    <input type="radio" name="cancelReason" value="other" class="d-none">
+                                    <i class="fas fa-ellipsis-h me-2"></i>
+                                    Outro motivo
+                                </div>
+                            </div>
+
+                            <!-- Alternative Options -->
+                            <div class="alert alert-warning border-0 mb-4">
+                                <h6 class="mb-2"><i class="fas fa-lightbulb me-2"></i>Antes de cancelar, que tal:</h6>
+                                <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                                    <a th:href="@{/newsletter/manage(token=${token})}" class="btn btn-sm btn-outline-warning">
+                                        <i class="fas fa-cog me-1"></i>
+                                        Alterar Frequência
+                                    </a>
+                                    <a th:href="@{/newsletter/manage(token=${token})}" class="btn btn-sm btn-outline-warning">
+                                        <i class="fas fa-tags me-1"></i>
+                                        Mudar Categorias
+                                    </a>
+                                </div>
+                            </div>
+
+                            <!-- Confirmation Form -->
+                            <form method="post" th:action="@{/newsletter/unsubscribe}" id="unsubscribeForm">
+                                <input type="hidden" name="token" th:value="${token}">
+                                <input type="hidden" name="reason" id="selectedReason">
+                                
+                                <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                                    <button type="button" class="btn btn-danger-custom" data-bs-toggle="modal" data-bs-target="#confirmModal">
+                                        <i class="fas fa-times me-2"></i>
+                                        Confirmar Cancelamento
+                                    </button>
+                                    <a th:href="@{/newsletter/manage(token=${token})}" class="btn btn-outline-custom">
+                                        <i class="fas fa-cog me-2"></i>
+                                        Gerenciar Preferências
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Footer -->
+                        <div class="mt-5 pt-4 border-top text-center">
+                            <p class="small text-muted mb-2">
+                                <i class="fas fa-shield-alt me-2"></i>
+                                Seus dados estão seguros conosco
+                            </p>
+                            <p class="small text-muted mb-0">
+                                Precisa de ajuda? <a href="mailto:suporte@technews.com" class="text-decoration-none">Entre em contato</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title" id="confirmModalLabel">
+                        <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                        Confirmar Cancelamento
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Tem certeza de que deseja cancelar sua inscrição na newsletter?</p>
+                    <p class="small text-muted mb-0">
+                        Esta ação não pode ser desfeita, mas você pode se inscrever novamente a qualquer momento.
+                    </p>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-arrow-left me-2"></i>
+                        Voltar
+                    </button>
+                    <button type="button" class="btn btn-danger" onclick="confirmUnsubscribe()">
+                        <i class="fas fa-times me-2"></i>
+                        Sim, Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Feedback option selection
+            const feedbackOptions = document.querySelectorAll('.feedback-option');
+            const selectedReasonInput = document.getElementById('selectedReason');
+            
+            feedbackOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    // Remove selected class from all options
+                    feedbackOptions.forEach(opt => opt.classList.remove('selected'));
+                    
+                    // Add selected class to clicked option
+                    this.classList.add('selected');
+                    
+                    // Update hidden input
+                    const reason = this.dataset.reason;
+                    if (selectedReasonInput) {
+                        selectedReasonInput.value = reason;
+                    }
+                    
+                    // Check radio button
+                    const radio = this.querySelector('input[type="radio"]');
+                    if (radio) radio.checked = true;
+                });
+            });
+        });
+
+        function confirmUnsubscribe() {
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('confirmModal'));
+            modal.hide();
+            
+            // Submit form
+            document.getElementById('unsubscribeForm').submit();
+        }
+    </script>
+</body>
+</html>

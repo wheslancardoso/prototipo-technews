@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inscrição Cancelada - TechNews</title>
+    <style>
+        /* Reset styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333333;
+            background-color: #f8f9fa;
+        }
+        
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+            padding: 40px 30px;
+            text-align: center;
+            color: white;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px 30px;
+        }
+        
+        .farewell-section {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .farewell-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #ffc107, #fd7e14);
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            font-size: 32px;
+            color: white;
+        }
+        
+        .farewell-section h2 {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .farewell-section p {
+            font-size: 16px;
+            color: #666;
+            line-height: 1.6;
+        }
+        
+        .confirmation-box {
+            background: #fff3cd;
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            margin: 30px 0;
+            border-left: 4px solid #ffc107;
+        }
+        
+        .confirmation-box h3 {
+            color: #856404;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+        
+        .confirmation-box p {
+            color: #856404;
+            margin: 0;
+        }
+        
+        .unsubscribe-details {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 30px 0;
+        }
+        
+        .unsubscribe-details h4 {
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+        
+        .detail-label {
+            color: #666;
+            font-weight: 500;
+        }
+        
+        .detail-value {
+            color: #333;
+            font-weight: 600;
+        }
+        
+        .feedback-section {
+            background: #e3f2fd;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 30px 0;
+            border-left: 4px solid #2196f3;
+        }
+        
+        .feedback-section h4 {
+            color: #1976d2;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .feedback-reasons {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .feedback-reasons li {
+            background: white;
+            margin-bottom: 8px;
+            padding: 12px 15px;
+            border-radius: 8px;
+            border: 1px solid #e3f2fd;
+            font-size: 14px;
+            color: #555;
+        }
+        
+        .feedback-reasons li:before {
+            content: "• ";
+            color: #2196f3;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+        
+        .reactivate-section {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            margin: 40px 0;
+            border-left: 4px solid #28a745;
+        }
+        
+        .reactivate-section h3 {
+            color: #155724;
+            margin-bottom: 15px;
+        }
+        
+        .reactivate-section p {
+            color: #155724;
+            margin-bottom: 20px;
+        }
+        
+        .reactivate-button {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            text-decoration: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 16px;
+            display: inline-block;
+            transition: transform 0.2s ease;
+        }
+        
+        .reactivate-button:hover {
+            transform: translateY(-2px);
+            text-decoration: none;
+            color: white;
+        }
+        
+        .alternatives-section {
+            margin: 40px 0;
+        }
+        
+        .alternatives-title {
+            text-align: center;
+            color: #333;
+            font-size: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .alternatives-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        
+        .alternative-card {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .alternative-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .alternative-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+            font-size: 20px;
+            color: white;
+        }
+        
+        .alternative-card h5 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        
+        .alternative-card p {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+        
+        .alternative-link {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .alternative-link:hover {
+            text-decoration: underline;
+        }
+        
+        .stats-section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 30px 0;
+            text-align: center;
+        }
+        
+        .stats-title {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 20px;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea;
+            display: block;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .footer {
+            background: #f8f9fa;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #eee;
+        }
+        
+        .footer p {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        .social-links {
+            margin: 20px 0;
+        }
+        
+        .social-links a {
+            display: inline-block;
+            margin: 0 8px;
+            width: 36px;
+            height: 36px;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 36px;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        /* Mobile responsiveness */
+        @media (max-width: 600px) {
+            .email-container {
+                margin: 0;
+                border-radius: 0;
+            }
+            
+            .header, .content, .footer {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 24px;
+            }
+            
+            .farewell-section h2 {
+                font-size: 20px;
+            }
+            
+            .alternatives-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <h1>TechNews</h1>
+            <p>Sentiremos sua falta</p>
+        </div>
+        
+        <!-- Content -->
+        <div class="content">
+            <!-- Farewell Section -->
+            <div class="farewell-section">
+                <div class="farewell-icon">
+                    👋
+                </div>
+                <h2 th:text="|Até logo, ${subscriberName}|">Até logo, [Nome]</h2>
+                <p>
+                    Sua inscrição na newsletter TechNews foi cancelada com sucesso. 
+                    Lamentamos vê-lo partir e esperamos que tenha aproveitado nosso conteúdo.
+                </p>
+            </div>
+            
+            <!-- Confirmation Box -->
+            <div class="confirmation-box">
+                <h3>✅ Cancelamento Confirmado</h3>
+                <p>
+                    Você não receberá mais emails da nossa newsletter. 
+                    O cancelamento foi processado em <span th:text="${#temporals.format(unsubscribeDate, 'dd/MM/yyyy \'às\' HH:mm')}">data/hora</span>.
+                </p>
+            </div>
+            
+            <!-- Unsubscribe Details -->
+            <div class="unsubscribe-details">
+                <h4>📋 Detalhes do cancelamento</h4>
+                <div class="detail-item">
+                    <span class="detail-label">Email:</span>
+                    <span class="detail-value" th:text="${subscriberEmail}">[email@exemplo.com]</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Data da inscrição:</span>
+                    <span class="detail-value" th:text="${#temporals.format(subscriptionDate, 'dd/MM/yyyy')}">[Data]</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Tempo como assinante:</span>
+                    <span class="detail-value" th:text="${subscriptionDuration}">[Duração]</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Newsletters recebidas:</span>
+                    <span class="detail-value" th:text="${emailsReceived}">[Quantidade]</span>
+                </div>
+            </div>
+            
+            <!-- Feedback Section -->
+            <div class="feedback-section" th:if="${feedbackReason}">
+                <h4>💭 Motivo do cancelamento</h4>
+                <p style="text-align: center; color: #1976d2; font-style: italic;" th:text="${feedbackReason}">
+                    [Motivo informado pelo usuário]
+                </p>
+            </div>
+            
+            <!-- Common Feedback Reasons -->
+            <div class="feedback-section" th:unless="${feedbackReason}">
+                <h4>💭 Principais motivos de cancelamento</h4>
+                <p style="text-align: center; color: #1976d2; margin-bottom: 15px;">
+                    Entendemos que as pessoas cancelam por diversos motivos:
+                </p>
+                <ul class="feedback-reasons">
+                    <li>Muitos emails na caixa de entrada</li>
+                    <li>Conteúdo não era relevante o suficiente</li>
+                    <li>Mudança de interesses profissionais</li>
+                    <li>Preferência por outras fontes de notícias</li>
+                    <li>Falta de tempo para ler</li>
+                </ul>
+            </div>
+            
+            <!-- Stats Section -->
+            <div class="stats-section">
+                <h4 class="stats-title">📊 Sua jornada conosco</h4>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <span class="stat-number" th:text="${emailsReceived ?: '0'}">12</span>
+                        <div class="stat-label">Newsletters Recebidas</div>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" th:text="${articlesRead ?: '0'}">48</span>
+                        <div class="stat-label">Artigos Lidos</div>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" th:text="${subscriptionDays ?: '0'}">90</span>
+                        <div class="stat-label">Dias Conosco</div>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" th:text="${categoriesFollowed ?: '0'}">3</span>
+                        <div class="stat-label">Categorias Seguidas</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Reactivate Section -->
+            <div class="reactivate-section">
+                <h3>💚 Mudou de ideia?</h3>
+                <p>
+                    Você pode reativar sua inscrição a qualquer momento. 
+                    Suas preferências anteriores serão mantidas.
+                </p>
+                <a th:href="|${baseUrl}/newsletter/reactivate?email=${subscriberEmail}|" class="reactivate-button">
+                    Reativar Inscrição
+                </a>
+            </div>
+            
+            <!-- Alternatives Section -->
+            <div class="alternatives-section">
+                <h3 class="alternatives-title">🌟 Outras formas de acompanhar a TechNews</h3>
+                <div class="alternatives-grid">
+                    <div class="alternative-card">
+                        <div class="alternative-icon">🌐</div>
+                        <h5>Visite Nosso Site</h5>
+                        <p>Acesse quando quiser as últimas notícias</p>
+                        <a th:href="${baseUrl}" class="alternative-link">Ir para o Site</a>
+                    </div>
+                    <div class="alternative-card">
+                        <div class="alternative-icon">📱</div>
+                        <div class="alternative-icon">📘</div>
+                        <h5>Redes Sociais</h5>
+                        <p>Siga-nos para updates rápidos</p>
+                        <a href="#" class="alternative-link">Seguir no Facebook</a>
+                    </div>
+                    <div class="alternative-card">
+                        <div class="alternative-icon">📡</div>
+                        <h5>Feed RSS</h5>
+                        <p>Assine nosso feed RSS</p>
+                        <a th:href="|${baseUrl}/rss|" class="alternative-link">Acessar RSS</a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Thank You Message -->
+            <div style="background: linear-gradient(135deg, #fff3e0 0%, #fce4ec 100%); border-radius: 12px; padding: 30px; margin: 40px 0; text-align: center; border-left: 4px solid #ff9800;">
+                <h3 style="color: #e65100; margin-bottom: 15px;">🙏 Obrigado por ter estado conosco!</h3>
+                <p style="color: #bf360c; margin: 0; font-size: 16px;">
+                    Agradecemos por ter sido parte da nossa comunidade. Sua participação foi importante para nós 
+                    e esperamos que nosso conteúdo tenha agregado valor ao seu conhecimento em tecnologia.
+                </p>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <p><strong>TechNews - Tecnologia que Importa</strong></p>
+            <p>Continuamos aqui para quando você quiser voltar!</p>
+            
+            <div class="social-links">
+                <a href="#" title="Facebook">📘</a>
+                <a href="#" title="Twitter">🐦</a>
+                <a href="#" title="LinkedIn">💼</a>
+                <a href="#" title="Instagram">📷</a>
+                <a href="#" title="YouTube">📺</a>
+            </div>
+            
+            <p>
+                Precisa de ajuda? <a href="mailto:suporte@technews.com">Entre em contato</a><br>
+                Visite nosso site: <a th:href="${baseUrl}">www.technews.com</a>
+            </p>
+            
+            <p style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #ddd; font-size: 12px; color: #999;">
+                Este email confirma o cancelamento da sua inscrição. Você não receberá mais emails promocionais, 
+                mas ainda pode receber comunicações importantes relacionadas à sua conta.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

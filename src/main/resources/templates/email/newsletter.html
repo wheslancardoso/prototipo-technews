@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="|TechNews Newsletter - ${newsletterTitle}|">TechNews Newsletter</title>
+    <style>
+        /* Reset styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333333;
+            background-color: #f8f9fa;
+        }
+        
+        .email-container {
+            max-width: 650px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 30px;
+            text-align: center;
+            color: white;
+        }
+        
+        .header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .header .tagline {
+            font-size: 16px;
+            opacity: 0.9;
+            margin-bottom: 15px;
+        }
+        
+        .header .date {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            display: inline-block;
+        }
+        
+        .content {
+            padding: 40px 30px;
+        }
+        
+        .greeting {
+            margin-bottom: 30px;
+        }
+        
+        .greeting h2 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        
+        .greeting p {
+            color: #666;
+            font-size: 16px;
+        }
+        
+        .newsletter-intro {
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 40px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .newsletter-intro h3 {
+            color: #1976d2;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+        
+        .newsletter-intro p {
+            color: #555;
+            margin: 0;
+        }
+        
+        .articles-section {
+            margin-bottom: 40px;
+        }
+        
+        .section-title {
+            color: #333;
+            font-size: 22px;
+            margin-bottom: 25px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+            display: flex;
+            align-items: center;
+        }
+        
+        .section-title .icon {
+            margin-right: 10px;
+            font-size: 24px;
+        }
+        
+        .article-card {
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            overflow: hidden;
+            transition: box-shadow 0.3s ease;
+        }
+        
+        .article-card:hover {
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .article-header {
+            padding: 20px 25px 15px;
+        }
+        
+        .article-category {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+        
+        .article-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 10px;
+            line-height: 1.3;
+        }
+        
+        .article-title a {
+            color: #333;
+            text-decoration: none;
+        }
+        
+        .article-title a:hover {
+            color: #667eea;
+        }
+        
+        .article-meta {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 15px;
+        }
+        
+        .article-meta .source {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .article-meta .date {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .article-summary {
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        
+        .article-footer {
+            background: #f8f9fa;
+            padding: 15px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .read-more {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 14px;
+            transition: transform 0.2s ease;
+        }
+        
+        .read-more:hover {
+            transform: translateY(-2px);
+            text-decoration: none;
+            color: white;
+        }
+        
+        .article-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .tag {
+            background: #e9ecef;
+            color: #495057;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+        
+        .featured-article {
+            background: linear-gradient(135deg, #fff3e0 0%, #fce4ec 100%);
+            border: 2px solid #ff9800;
+        }
+        
+        .featured-badge {
+            background: #ff9800;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 15px;
+            display: inline-block;
+        }
+        
+        .stats-section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 40px 0;
+            text-align: center;
+        }
+        
+        .stats-title {
+            color: #333;
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 28px;
+            font-weight: 700;
+            color: #667eea;
+            display: block;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .cta-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            margin: 40px 0;
+        }
+        
+        .cta-section h3 {
+            font-size: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .cta-section p {
+            margin-bottom: 20px;
+            opacity: 0.9;
+        }
+        
+        .cta-button {
+            background: white;
+            color: #667eea;
+            text-decoration: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-weight: 600;
+            display: inline-block;
+            transition: transform 0.2s ease;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-2px);
+            text-decoration: none;
+            color: #667eea;
+        }
+        
+        .footer {
+            background: #f8f9fa;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #eee;
+        }
+        
+        .footer-content {
+            margin-bottom: 20px;
+        }
+        
+        .footer p {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        .social-links {
+            margin: 20px 0;
+        }
+        
+        .social-links a {
+            display: inline-block;
+            margin: 0 8px;
+            width: 36px;
+            height: 36px;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 36px;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        .unsubscribe-section {
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+        }
+        
+        .unsubscribe-section a {
+            color: #999;
+            font-size: 12px;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+        
+        /* Mobile responsiveness */
+        @media (max-width: 600px) {
+            .email-container {
+                margin: 0;
+                border-radius: 0;
+            }
+            
+            .header, .content, .footer {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 28px;
+            }
+            
+            .article-header, .article-footer {
+                padding: 15px 20px;
+            }
+            
+            .article-title {
+                font-size: 18px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .article-footer {
+                flex-direction: column;
+                gap: 15px;
+                align-items: stretch;
+            }
+            
+            .read-more {
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <h1>TechNews</h1>
+            <p class="tagline">Sua fonte confiável de notícias de tecnologia</p>
+            <div class="date" th:text="${#temporals.format(newsletterDate, 'dd \'de\' MMMM \'de\' yyyy', new java.util.Locale('pt', 'BR'))}">
+                [Data da Newsletter]
+            </div>
+        </div>
+        
+        <!-- Content -->
+        <div class="content">
+            <!-- Greeting -->
+            <div class="greeting">
+                <h2 th:text="|Olá, ${subscriberName}!|">Olá, [Nome]!</h2>
+                <p>Aqui estão as principais notícias de tecnologia selecionadas especialmente para você.</p>
+            </div>
+            
+            <!-- Newsletter Intro -->
+            <div class="newsletter-intro">
+                <h3>📰 Newsletter desta semana</h3>
+                <p th:text="${newsletterDescription}">
+                    Nesta edição, trazemos as últimas novidades sobre inteligência artificial, 
+                    lançamentos de produtos e tendências que estão moldando o futuro da tecnologia.
+                </p>
+            </div>
+            
+            <!-- Featured Article -->
+            <div th:if="${featuredArticle}" class="articles-section">
+                <h2 class="section-title">
+                    <span class="icon">⭐</span>
+                    Destaque da Semana
+                </h2>
+                
+                <div class="article-card featured-article">
+                    <div class="article-header">
+                        <div class="featured-badge">Destaque</div>
+                        <div class="article-category" th:text="${featuredArticle.categoria.nome}">Categoria</div>
+                        <h3 class="article-title">
+                            <a th:href="${featuredArticle.url}" th:text="${featuredArticle.titulo}">Título do Artigo</a>
+                        </h3>
+                        <div class="article-meta">
+                            <div class="source">
+                                <span>🔗</span>
+                                <span th:text="${featuredArticle.fonte.nome}">Fonte</span>
+                            </div>
+                            <div class="date">
+                                <span>📅</span>
+                                <span th:text="${#temporals.format(featuredArticle.dataPublicacao, 'dd/MM/yyyy')}">Data</span>
+                            </div>
+                        </div>
+                        <p class="article-summary" th:text="${featuredArticle.resumo}">
+                            Resumo do artigo em destaque...
+                        </p>
+                    </div>
+                    <div class="article-footer">
+                        <div class="article-tags">
+                            <span class="tag" th:each="tag : ${featuredArticle.tags}" th:text="${tag}">Tag</span>
+                        </div>
+                        <a th:href="${featuredArticle.url}" class="read-more">Ler Artigo Completo</a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Regular Articles by Category -->
+            <div th:each="categoryEntry : ${articlesByCategory}" class="articles-section">
+                <h2 class="section-title">
+                    <span class="icon" th:text="${categoryEntry.key.icone}">📱</span>
+                    <span th:text="${categoryEntry.key.nome}">Categoria</span>
+                </h2>
+                
+                <div th:each="article : ${categoryEntry.value}" class="article-card">
+                    <div class="article-header">
+                        <div class="article-category" th:text="${article.categoria.nome}">Categoria</div>
+                        <h3 class="article-title">
+                            <a th:href="${article.url}" th:text="${article.titulo}">Título do Artigo</a>
+                        </h3>
+                        <div class="article-meta">
+                            <div class="source">
+                                <span>🔗</span>
+                                <span th:text="${article.fonte.nome}">Fonte</span>
+                            </div>
+                            <div class="date">
+                                <span>📅</span>
+                                <span th:text="${#temporals.format(article.dataPublicacao, 'dd/MM/yyyy')}">Data</span>
+                            </div>
+                        </div>
+                        <p class="article-summary" th:text="${article.resumo}">
+                            Resumo do artigo...
+                        </p>
+                    </div>
+                    <div class="article-footer">
+                        <div class="article-tags">
+                            <span class="tag" th:each="tag : ${article.tags}" th:text="${tag}">Tag</span>
+                        </div>
+                        <a th:href="${article.url}" class="read-more">Ler Mais</a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Newsletter Stats -->
+            <div class="stats-section">
+                <h3 class="stats-title">📊 Estatísticas desta edição</h3>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <span class="stat-number" th:text="${totalArticles}">12</span>
+                        <div class="stat-label">Artigos Selecionados</div>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" th:text="${totalSources}">8</span>
+                        <div class="stat-label">Fontes Confiáveis</div>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" th:text="${totalCategories}">5</span>
+                        <div class="stat-label">Categorias</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Call to Action -->
+            <div class="cta-section">
+                <h3>💡 Gostou do conteúdo?</h3>
+                <p>Visite nosso site para mais notícias e análises exclusivas sobre tecnologia</p>
+                <a th:href="${baseUrl}" class="cta-button">Visitar TechNews</a>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <div class="footer-content">
+                <p><strong>TechNews - Tecnologia que Importa</strong></p>
+                <p>Mantendo você atualizado com as últimas novidades do mundo tech</p>
+                
+                <div class="social-links">
+                    <a href="#" title="Facebook">📘</a>
+                    <a href="#" title="Twitter">🐦</a>
+                    <a href="#" title="LinkedIn">💼</a>
+                    <a href="#" title="Instagram">📷</a>
+                    <a href="#" title="YouTube">📺</a>
+                </div>
+                
+                <p>
+                    Precisa de ajuda? <a href="mailto:suporte@technews.com">Entre em contato</a><br>
+                    Visite nosso site: <a th:href="${baseUrl}">www.technews.com</a>
+                </p>
+            </div>
+            
+            <div class="unsubscribe-section">
+                <p>
+                    <strong>Frequência atual:</strong> <span th:text="${subscriberFrequency}">Semanal</span> |
+                    <strong>Categorias:</strong> <span th:text="${subscriberCategories}">Todas</span>
+                </p>
+                <p>
+                    <a th:href="|${baseUrl}/newsletter/manage?token=${manageToken}|">
+                        Gerenciar Preferências
+                    </a> |
+                    <a th:href="|${baseUrl}/newsletter/unsubscribe?token=${unsubscribeToken}|">
+                        Cancelar Inscrição
+                    </a> |
+                    <a th:href="|${baseUrl}/newsletter/pause?token=${pauseToken}|">
+                        Pausar Temporariamente
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
