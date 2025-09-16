@@ -1,6 +1,6 @@
 package br.com.technews.service;
 
-import br.com.technews.model.Category;
+import br.com.technews.entity.Category;
 import br.com.technews.repository.CategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;

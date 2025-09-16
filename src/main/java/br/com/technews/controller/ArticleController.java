@@ -1,7 +1,7 @@
 package br.com.technews.controller;
 
-import br.com.technews.model.NewsArticle;
-import br.com.technews.model.ArticleStatus;
+import br.com.technews.entity.NewsArticle;
+import br.com.technews.entity.ArticleStatus;
 import br.com.technews.service.NewsArticleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;

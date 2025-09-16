@@ -1,6 +1,6 @@
 package br.com.technews.controller.admin;
 
-import br.com.technews.model.TrustedSource;
+import br.com.technews.entity.TrustedSource;
 import br.com.technews.service.TrustedSourceService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;

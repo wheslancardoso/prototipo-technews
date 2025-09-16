@@ -1,6 +1,6 @@
 package br.com.technews.service;
 
-import br.com.technews.model.TrustedSource;
+import br.com.technews.entity.TrustedSource;
 import br.com.technews.repository.TrustedSourceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;

@@ -1,4 +1,4 @@
-package br.com.technews.model;
+package br.com.technews.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;

@@ -1,4 +1,4 @@
-package br.com.technews.model;
+package br.com.technews.entity;
 
 public enum ArticleStatus {
     PENDENTE_REVISAO,

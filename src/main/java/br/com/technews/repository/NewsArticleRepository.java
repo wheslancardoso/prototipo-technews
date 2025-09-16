@@ -1,7 +1,7 @@
 package br.com.technews.repository;
 
-import br.com.technews.model.NewsArticle;
-import br.com.technews.model.ArticleStatus;
+import br.com.technews.entity.NewsArticle;
+import br.com.technews.entity.ArticleStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

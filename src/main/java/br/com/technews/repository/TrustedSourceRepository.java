@@ -1,6 +1,6 @@
 package br.com.technews.repository;
 
-import br.com.technews.model.TrustedSource;
+import br.com.technews.entity.TrustedSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

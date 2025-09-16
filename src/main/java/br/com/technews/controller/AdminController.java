@@ -1,6 +1,6 @@
 package br.com.technews.controller;
 
-import br.com.technews.model.Subscriber;
+import br.com.technews.entity.Subscriber;
 import br.com.technews.service.SubscriberService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;

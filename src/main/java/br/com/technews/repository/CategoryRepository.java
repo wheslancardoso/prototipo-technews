@@ -1,6 +1,6 @@
 package br.com.technews.repository;
 
-import br.com.technews.model.Category;
+import br.com.technews.entity.Category;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
