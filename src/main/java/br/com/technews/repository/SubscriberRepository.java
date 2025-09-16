@@ -131,4 +131,22 @@ public interface SubscriberRepository extends JpaRepository<Subscriber, Long> {
     // Busca assinantes mais ativos (que mais receberam emails)
     @Query("SELECT s FROM Subscriber s WHERE s.active = true ORDER BY s.emailCount DESC")
     List<Subscriber> findMostActiveSubscribers(Pageable pageable);
+    
+    // Busca por token de gerenciamento
+    Optional<Subscriber> findByManageToken(String manageToken);
+    
+    // Busca por email e token de gerenciamento
+    Optional<Subscriber> findByEmailAndManageToken(String email, String manageToken);
+    
+    // Busca por email ou nome contendo texto (case insensitive)
+    Page<Subscriber> findByEmailContainingIgnoreCaseOrFullNameContainingIgnoreCase(String email, String fullName, Pageable pageable);
+    
+    // Busca por frequência
+    Page<Subscriber> findByFrequency(Subscriber.SubscriptionFrequency frequency, Pageable pageable);
+    
+    // Busca por status ativo
+    Page<Subscriber> findByActive(Boolean active, Pageable pageable);
+    
+    // Busca por frequência e status ativo
+    Page<Subscriber> findByFrequencyAndActive(Subscriber.SubscriptionFrequency frequency, Boolean active, Pageable pageable);
 }

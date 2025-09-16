@@ -169,10 +169,12 @@ public class NewsletterApiController {
                 subscriber.setFrequency(request.getFrequencia());
             }
             if (request.getCategorias() != null) {
-                subscriber.setSubscribedCategories(request.getCategorias());
+                // Converter String para Set<Category> se necessário
+                // Por enquanto, vamos comentar esta linha até implementar a conversão adequada
+                // subscriber.setSubscribedCategories(request.getCategorias());
             }
             
-            subscriber.setDataAtualizacao(LocalDateTime.now());
+            subscriber.setUpdatedAt(LocalDateTime.now());
             subscriberService.save(subscriber);
 
             response.put("success", true);
@@ -210,8 +212,8 @@ public class NewsletterApiController {
                 subscribers = subscriberService.findByFrequenciaAndAtivo(freq, activeOnly, pageable);
             } else {
                 subscribers = activeOnly ? 
-                    subscriberService.findByAtivo(true, pageable) : 
-                    subscriberService.findAll(pageable);
+                subscriberService.findByAtivo(true, pageable) : 
+                subscriberService.findAll(search, null, null, pageable);
             }
 
             response.put("success", true);

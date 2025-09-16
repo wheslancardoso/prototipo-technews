@@ -65,6 +65,15 @@ public class Subscriber {
     @Column(name = "unsubscribe_token", unique = true)
     private String unsubscribeToken;
     
+    @Column(name = "manage_token", unique = true)
+    private String manageToken;
+
+    @Column(name = "verified_at")
+    private LocalDateTime verifiedAt;
+
+    @Column(name = "reactivated_at")
+    private LocalDateTime reactivatedAt;
+    
     @Enumerated(EnumType.STRING)
     @Builder.Default
     @Column(nullable = false)
@@ -136,6 +145,14 @@ public class Subscriber {
     // Métodos utilitários
     public boolean isActive() {
         return active != null && active;
+    }
+    
+    public Boolean getActive() {
+        return active;
+    }
+    
+    public void setActive(Boolean active) {
+        this.active = active;
     }
     
     public boolean isEmailVerified() {

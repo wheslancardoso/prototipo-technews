@@ -1,10 +1,10 @@
 package br.com.technews.service;
 
 import br.com.technews.entity.Subscriber;
-import br.com.technews.entity.Article;
+import br.com.technews.entity.NewsArticle;
 import br.com.technews.entity.Category;
 import br.com.technews.repository.SubscriberRepository;
-import br.com.technews.repository.ArticleRepository;
+import br.com.technews.repository.NewsArticleRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,7 +34,7 @@ public class EmailService {
     private final JavaMailSender mailSender;
     private final TemplateEngine templateEngine;
     private final SubscriberRepository subscriberRepository;
-    private final ArticleRepository articleRepository;
+    private final NewsArticleRepository articleRepository;
 
     @Value("${app.mail.from}")
     private String fromEmail;
@@ -86,7 +86,7 @@ public class EmailService {
      */
     @Async
     @Transactional
-    public CompletableFuture<Boolean> sendNewsletterToSubscriber(Subscriber subscriber, List<Article> articles) {
+    public CompletableFuture<Boolean> sendNewsletterToSubscriber(Subscriber subscriber, List<NewsArticle> articles) {
         try {
             Context context = new Context(Locale.forLanguageTag("pt-BR"));
             context.setVariable("subscriber", subscriber);
@@ -130,7 +130,7 @@ public class EmailService {
     public CompletableFuture<Map<String, Integer>> sendNewsletterToAll() {
         try {
             List<Subscriber> subscribers = subscriberRepository.findActiveAndVerifiedSubscribers();
-            List<Article> recentArticles = articleRepository.findRecentPublishedArticles(
+            List<NewsArticle> recentArticles = articleRepository.findRecentPublishedArticles(
                 LocalDateTime.now().minusDays(7), 
                 org.springframework.data.domain.PageRequest.of(0, 10)
             );
@@ -146,7 +146,7 @@ public class EmailService {
             for (Subscriber subscriber : subscribers) {
                 try {
                     // Filtra artigos por categorias do assinante se ele tiver preferências
-                    List<Article> articlesToSend = filterArticlesBySubscriberPreferences(subscriber, recentArticles);
+                    List<NewsArticle> articlesToSend = filterArticlesBySubscriberPreferences(subscriber, recentArticles);
                     
                     if (!articlesToSend.isEmpty()) {
                         boolean success = sendNewsletterToSubscriber(subscriber, articlesToSend).get();
@@ -184,7 +184,7 @@ public class EmailService {
             LocalDateTime cutoffDate = calculateCutoffDateByFrequency(frequency);
             List<Subscriber> subscribers = subscriberRepository.findDueForEmailByFrequency(frequency, cutoffDate);
             
-            List<Article> recentArticles = articleRepository.findRecentPublishedArticles(
+            List<NewsArticle> recentArticles = articleRepository.findRecentPublishedArticles(
                 cutoffDate, 
                 org.springframework.data.domain.PageRequest.of(0, 15)
             );
@@ -198,7 +198,7 @@ public class EmailService {
             int failed = 0;
 
             for (Subscriber subscriber : subscribers) {
-                List<Article> articlesToSend = filterArticlesBySubscriberPreferences(subscriber, recentArticles);
+                List<NewsArticle> articlesToSend = filterArticlesBySubscriberPreferences(subscriber, recentArticles);
                 
                 if (!articlesToSend.isEmpty()) {
                     boolean success = sendNewsletterToSubscriber(subscriber, articlesToSend).get();
@@ -292,7 +292,7 @@ public class EmailService {
     /**
      * Filtra artigos baseado nas preferências do assinante
      */
-    private List<Article> filterArticlesBySubscriberPreferences(Subscriber subscriber, List<Article> articles) {
+    private List<NewsArticle> filterArticlesBySubscriberPreferences(Subscriber subscriber, List<NewsArticle> articles) {
         if (subscriber.getSubscribedCategories() == null || subscriber.getSubscribedCategories().isEmpty()) {
             return articles; // Se não tem preferências, recebe todos
         }
@@ -370,7 +370,7 @@ public class EmailService {
                 subscribers = subscriberRepository.findDueForEmailByFrequency(frequency, cutoffDate);
             }
             
-            List<Article> recentArticles = articleRepository.findRecentPublishedArticles(
+            List<NewsArticle> recentArticles = articleRepository.findRecentPublishedArticles(
                 cutoffDate, 
                 org.springframework.data.domain.PageRequest.of(0, 15)
             );
@@ -382,7 +382,7 @@ public class EmailService {
 
             int emailsSent = 0;
             for (Subscriber subscriber : subscribers) {
-                List<Article> articlesToSend = filterArticlesBySubscriberPreferences(subscriber, recentArticles);
+                List<NewsArticle> articlesToSend = filterArticlesBySubscriberPreferences(subscriber, recentArticles);
                 
                 if (!articlesToSend.isEmpty()) {
                     boolean success = sendNewsletterToSubscriber(subscriber, articlesToSend).get();

@@ -18,6 +18,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -303,14 +304,24 @@ public class SubscriberService {
         private final long active;
         private final long verified;
         private final long activeAndVerified;
+        private final long unverified;
         private final List<Object[]> frequencyStats;
+        private final List<Object[]> frequencyDistribution;
+        private final List<Object[]> categoryDistribution;
+        private final List<Object[]> recentSubscriptions;
+        private final double monthlyGrowth;
 
         public SubscriberStats(long total, long active, long verified, long activeAndVerified, List<Object[]> frequencyStats) {
             this.total = total;
             this.active = active;
             this.verified = verified;
             this.activeAndVerified = activeAndVerified;
+            this.unverified = total - verified;
             this.frequencyStats = frequencyStats;
+            this.frequencyDistribution = frequencyStats;
+            this.categoryDistribution = List.of();
+            this.recentSubscriptions = List.of();
+            this.monthlyGrowth = 0.0;
         }
 
         // Getters
@@ -318,6 +329,119 @@ public class SubscriberService {
         public long getActive() { return active; }
         public long getVerified() { return verified; }
         public long getActiveAndVerified() { return activeAndVerified; }
+        public long getUnverifiedSubscribers() { return unverified; }
         public List<Object[]> getFrequencyStats() { return frequencyStats; }
+        public List<Object[]> getFrequencyDistribution() { return frequencyDistribution; }
+        public List<Object[]> getCategoryDistribution() { return categoryDistribution; }
+        public List<Object[]> getRecentSubscriptions() { return recentSubscriptions; }
+        public double getMonthlyGrowth() { return monthlyGrowth; }
+        
+        // Métodos adicionais para compatibilidade
+        public long getTotalSubscribers() { return total; }
+        public long getActiveSubscribers() { return active; }
+        public long getVerifiedSubscribers() { return verified; }
+    }
+
+    /**
+     * Verifica se um email já está inscrito
+     */
+    public boolean isEmailSubscribed(String email) {
+        return subscriberRepository.existsByEmail(email);
+    }
+
+    /**
+     * Busca subscriber por token de gerenciamento
+     */
+    public Optional<Subscriber> findByManageToken(String token) {
+        return subscriberRepository.findByManageToken(token);
+    }
+
+    /**
+     * Desinscreve usando email e token
+     */
+    @Transactional
+    public boolean unsubscribe(String email, String token) {
+        Optional<Subscriber> subscriberOpt = subscriberRepository.findByEmailAndManageToken(email, token);
+        if (subscriberOpt.isPresent()) {
+            Subscriber subscriber = subscriberOpt.get();
+            subscriber.setActive(false);
+            subscriberRepository.save(subscriber);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Reativa uma inscrição
+     */
+    @Transactional
+    public boolean reactivateSubscription(String email) {
+        Optional<Subscriber> subscriberOpt = subscriberRepository.findByEmail(email);
+        if (subscriberOpt.isPresent()) {
+            Subscriber subscriber = subscriberOpt.get();
+            subscriber.setActive(true);
+            subscriberRepository.save(subscriber);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Atualiza preferências do subscriber
+     */
+    @Transactional
+    public void updatePreferences(String token, Subscriber.SubscriptionFrequency frequency, 
+                                 Set<Long> categoryIds, String fullName) {
+        Optional<Subscriber> subscriberOpt = subscriberRepository.findByManageToken(token);
+        if (subscriberOpt.isPresent()) {
+            Subscriber subscriber = subscriberOpt.get();
+            subscriber.setFrequency(frequency);
+            subscriber.setFullName(fullName);
+            
+            // Atualizar categorias se fornecidas
+            if (categoryIds != null && !categoryIds.isEmpty()) {
+                Set<Category> categories = categoryRepository.findAllById(categoryIds)
+                    .stream().collect(Collectors.toSet());
+                subscriber.setSubscribedCategories(categories);
+            }
+            
+            subscriberRepository.save(subscriber);
+        }
+    }
+
+    /**
+     * Busca por email ou nome contendo texto
+     */
+    public Page<Subscriber> findByEmailContainingOrNomeContaining(String email, String nome, Pageable pageable) {
+        return subscriberRepository.findByEmailContainingIgnoreCaseOrFullNameContainingIgnoreCase(email, nome, pageable);
+    }
+
+    /**
+     * Busca por frequência e status ativo
+     */
+    public Page<Subscriber> findByFrequenciaAndAtivo(Subscriber.SubscriptionFrequency frequency, Boolean active, Pageable pageable) {
+        if (frequency != null && active != null) {
+            return subscriberRepository.findByFrequencyAndActive(frequency, active, pageable);
+        } else if (frequency != null) {
+            return subscriberRepository.findByFrequency(frequency, pageable);
+        } else if (active != null) {
+            return subscriberRepository.findByActive(active, pageable);
+        } else {
+            return subscriberRepository.findAll(pageable);
+        }
+    }
+
+    /**
+     * Busca por status ativo
+     */
+    public Page<Subscriber> findByAtivo(Boolean active, Pageable pageable) {
+        return subscriberRepository.findByActive(active, pageable);
+    }
+
+    /**
+     * Obtém todos os subscribers
+     */
+    public List<Subscriber> getAllSubscribers() {
+        return subscriberRepository.findAll();
     }
 }

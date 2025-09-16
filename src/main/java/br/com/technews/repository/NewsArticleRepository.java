@@ -5,8 +5,11 @@ import br.com.technews.entity.ArticleStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -70,15 +73,20 @@ public interface NewsArticleRepository extends JpaRepository<NewsArticle, Long> 
      * Conta artigos por status
      */
     long countByStatus(ArticleStatus status);
-
+    
     /**
-     * Busca artigos publicados por texto no título ou conteúdo com paginação
+     * Busca artigos publicados recentemente
      */
-    Page<NewsArticle> findByPublishedTrueAndTitleContainingIgnoreCaseOrContentContainingIgnoreCaseOrderByPublishedAtDesc(
-        String titleSearch, String contentSearch, Pageable pageable);
-
+    @Query("SELECT n FROM NewsArticle n WHERE n.publishedAt >= :since ORDER BY n.publishedAt DESC")
+    List<NewsArticle> findRecentPublishedArticles(@Param("since") LocalDateTime since, Pageable pageable);
+    
     /**
-     * Busca artigos publicados por categoria com paginação
+     * Busca artigos publicados por título ou conteúdo contendo texto específico
+     */
+    Page<NewsArticle> findByPublishedTrueAndTitleContainingIgnoreCaseOrContentContainingIgnoreCaseOrderByPublishedAtDesc(String title, String content, Pageable pageable);
+    
+    /**
+     * Busca artigos publicados por categoria ordenados por data de publicação
      */
     Page<NewsArticle> findByPublishedTrueAndCategoryOrderByPublishedAtDesc(String category, Pageable pageable);
 }

@@ -17,6 +17,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import java.time.LocalDateTime;
+import java.util.Set;
+import java.util.HashSet;
 
 @Entity
 @Table(name = "news_articles")
@@ -83,5 +85,16 @@ public class NewsArticle {
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
+    }
+    
+    /**
+     * Retorna as categorias do artigo
+     */
+    public Set<Category> getCategories() {
+        Set<Category> categories = new HashSet<>();
+        if (categoryEntity != null) {
+            categories.add(categoryEntity);
+        }
+        return categories;
     }
 }

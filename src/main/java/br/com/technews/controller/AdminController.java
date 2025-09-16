@@ -113,7 +113,7 @@ public class AdminController {
     
     @GetMapping("/export")
     public ResponseEntity<String> exportSubscribers() {
-        List<Subscriber> subscribers = subscriberService.findAll();
+        List<Subscriber> subscribers = subscriberService.findActiveAndVerifiedSubscribers();
         StringBuilder csv = new StringBuilder();
         csv.append("ID,Nome,Email,Ativo,Data de Inscrição\n");
         
