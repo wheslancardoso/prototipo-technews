@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="'Categoria: ' + ${category.name} + ' - TechNews Admin'"></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
+                <div class="position-sticky pt-3">
+                    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+                        <span>TechNews Admin</span>
+                    </h6>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/dashboard">
+                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/articles">
+                                <i class="fas fa-newspaper"></i> Artigos
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="/admin/categories">
+                                <i class="fas fa-tags"></i> Categorias
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">
+                        <i class="fas fa-tag"></i> 
+                        <span th:text="${category.name}"></span>
+                        <span th:if="${category.active}" class="badge bg-success ms-2">Ativa</span>
+                        <span th:unless="${category.active}" class="badge bg-secondary ms-2">Inativa</span>
+                    </h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <div class="btn-group me-2">
+                            <a th:href="@{/admin/categories/edit/{id}(id=${category.id})}" class="btn btn-primary">
+                                <i class="fas fa-edit"></i> Editar
+                            </a>
+                            <form th:action="@{/admin/categories/toggle/{id}(id=${category.id})}" 
+                                  method="post" style="display: inline;">
+                                <button type="submit" 
+                                        th:class="${category.active ? 'btn btn-warning' : 'btn btn-success'}"
+                                        th:title="${category.active ? 'Desativar' : 'Ativar'}"
+                                        onclick="return confirm('Tem certeza que deseja alterar o status desta categoria?')">
+                                    <i th:class="${category.active ? 'fas fa-pause' : 'fas fa-play'}"></i>
+                                    <span th:text="${category.active ? 'Desativar' : 'Ativar'}"></span>
+                                </button>
+                            </form>
+                        </div>
+                        <a href="/admin/categories" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left"></i> Voltar
+                        </a>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Informações principais -->
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-info-circle"></i> Informações da Categoria
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6>Nome</h6>
+                                        <p class="fs-5" th:text="${category.name}"></p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6>Slug</h6>
+                                        <p><code th:text="${category.slug}"></code></p>
+                                    </div>
+                                </div>
+
+                                <div class="row" th:if="${category.description}">
+                                    <div class="col-12">
+                                        <h6>Descrição</h6>
+                                        <p th:text="${category.description}" class="text-muted"></p>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6" th:if="${category.color}">
+                                        <h6>Cor</h6>
+                                        <div class="d-flex align-items-center">
+                                            <span th:style="'background-color: ' + ${category.color} + '; width: 30px; height: 30px; display: inline-block; border-radius: 5px; border: 1px solid #ddd; margin-right: 10px;'"></span>
+                                            <code th:text="${category.color}"></code>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6>Status</h6>
+                                        <span th:if="${category.active}" class="badge bg-success fs-6">
+                                            <i class="fas fa-check"></i> Ativa
+                                        </span>
+                                        <span th:unless="${category.active}" class="badge bg-secondary fs-6">
+                                            <i class="fas fa-times"></i> Inativa
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Artigos da categoria -->
+                        <div class="card mt-4">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-newspaper"></i> Artigos desta Categoria
+                                </h5>
+                                <span class="badge bg-primary" th:text="${category.articles != null ? category.articles.size() : 0}"></span>
+                            </div>
+                            <div class="card-body">
+                                <div th:if="${category.articles != null && !category.articles.empty}">
+                                    <div class="table-responsive">
+                                        <table class="table table-sm">
+                                            <thead>
+                                                <tr>
+                                                    <th>Título</th>
+                                                    <th>Status</th>
+                                                    <th>Publicado</th>
+                                                    <th>Criado em</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr th:each="article : ${category.articles}">
+                                                    <td>
+                                                        <a th:href="@{/admin/articles/view/{id}(id=${article.id})}" 
+                                                           th:text="${article.title}" class="text-decoration-none"></a>
+                                                    </td>
+                                                    <td>
+                                                        <span th:text="${article.status}" 
+                                                              th:class="'badge ' + (${article.status == 'PUBLICADO'} ? 'bg-success' : 
+                                                                      ${article.status == 'RASCUNHO'} ? 'bg-secondary' : 'bg-warning')"></span>
+                                                    </td>
+                                                    <td>
+                                                        <span th:if="${article.published}" class="text-success">
+                                                            <i class="fas fa-check"></i> Sim
+                                                        </span>
+                                                        <span th:unless="${article.published}" class="text-muted">
+                                                            <i class="fas fa-times"></i> Não
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <small th:text="${#temporals.format(article.createdAt, 'dd/MM/yyyy')}" class="text-muted"></small>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div th:if="${category.articles == null || category.articles.empty}" class="text-center py-4">
+                                    <i class="fas fa-newspaper fa-2x text-muted mb-2"></i>
+                                    <p class="text-muted">Nenhum artigo encontrado nesta categoria.</p>
+                                    <a href="/admin/articles/new" class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-plus"></i> Criar Primeiro Artigo
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sidebar com estatísticas -->
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="card-title mb-0">
+                                    <i class="fas fa-chart-bar"></i> Estatísticas
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row text-center">
+                                    <div class="col-6">
+                                        <div class="border-end">
+                                            <h4 class="text-primary" th:text="${category.articles != null ? category.articles.size() : 0}"></h4>
+                                            <small class="text-muted">Total de Artigos</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <h4 class="text-success" th:text="${#lists.size(#lists.select(category.articles, article.published))}"></h4>
+                                        <small class="text-muted">Publicados</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mt-3">
+                            <div class="card-header">
+                                <h6 class="card-title mb-0">
+                                    <i class="fas fa-clock"></i> Histórico
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <small class="text-muted">Criado em:</small><br>
+                                    <span th:text="${#temporals.format(category.createdAt, 'dd/MM/yyyy HH:mm')}"></span>
+                                </div>
+                                
+                                <div th:if="${category.updatedAt}">
+                                    <small class="text-muted">Última atualização:</small><br>
+                                    <span th:text="${#temporals.format(category.updatedAt, 'dd/MM/yyyy HH:mm')}"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Preview da categoria -->
+                        <div class="card mt-3" th:if="${category.color}">
+                            <div class="card-header">
+                                <h6 class="card-title mb-0">
+                                    <i class="fas fa-eye"></i> Preview
+                                </h6>
+                            </div>
+                            <div class="card-body text-center">
+                                <div class="badge fs-6 p-3" th:style="'background-color: ' + ${category.color}" 
+                                     th:text="${category.name}"></div>
+                                <p class="small text-muted mt-2">Como aparece no site público</p>
+                            </div>
+                        </div>
+
+                        <!-- Ações rápidas -->
+                        <div class="card mt-3">
+                            <div class="card-header">
+                                <h6 class="card-title mb-0">
+                                    <i class="fas fa-bolt"></i> Ações Rápidas
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-grid gap-2">
+                                    <a th:href="@{/admin/categories/edit/{id}(id=${category.id})}" class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-edit"></i> Editar Categoria
+                                    </a>
+                                    <a href="/admin/articles/new" class="btn btn-outline-success btn-sm">
+                                        <i class="fas fa-plus"></i> Novo Artigo
+                                    </a>
+                                    <a th:href="@{/articles/category/{slug}(slug=${category.slug})}" 
+                                       class="btn btn-outline-info btn-sm" target="_blank">
+                                        <i class="fas fa-external-link-alt"></i> Ver no Site
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

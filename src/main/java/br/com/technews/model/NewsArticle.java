@@ -29,6 +29,11 @@ public class NewsArticle {
     @Column(name = "author", length = 100)
     private String author;
     
+    // Relacionamento com categoria
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    private Category categoryEntity;
+    
     @Column(name = "category", length = 50)
     private String category;
     
