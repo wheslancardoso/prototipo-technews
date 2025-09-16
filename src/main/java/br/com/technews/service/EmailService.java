@@ -348,6 +348,64 @@ public class EmailService {
     }
 
     /**
+     * Envia newsletter para assinantes por frequência e categorias específicas
+     */
+    @Async
+    @Transactional
+    public int sendNewsletterToSubscribers(Subscriber.SubscriptionFrequency frequency, 
+                                         String categoryIds, 
+                                         boolean testMode) {
+        try {
+            LocalDateTime cutoffDate = calculateCutoffDateByFrequency(frequency);
+            List<Subscriber> subscribers;
+            
+            if (testMode) {
+                // Em modo teste, pega apenas alguns assinantes
+                subscribers = subscriberRepository.findActiveAndVerifiedSubscribers()
+                    .stream()
+                    .filter(s -> s.getFrequency() == frequency)
+                    .limit(5)
+                    .collect(Collectors.toList());
+            } else {
+                subscribers = subscriberRepository.findDueForEmailByFrequency(frequency, cutoffDate);
+            }
+            
+            List<Article> recentArticles = articleRepository.findRecentPublishedArticles(
+                cutoffDate, 
+                org.springframework.data.domain.PageRequest.of(0, 15)
+            );
+
+            if (recentArticles.isEmpty()) {
+                log.info("Nenhum artigo recente encontrado para frequência: {}", frequency);
+                return 0;
+            }
+
+            int emailsSent = 0;
+            for (Subscriber subscriber : subscribers) {
+                List<Article> articlesToSend = filterArticlesBySubscriberPreferences(subscriber, recentArticles);
+                
+                if (!articlesToSend.isEmpty()) {
+                    boolean success = sendNewsletterToSubscriber(subscriber, articlesToSend).get();
+                    if (success) {
+                        emailsSent++;
+                    }
+                    
+                    // Pausa entre envios
+                    Thread.sleep(100);
+                }
+            }
+
+            log.info("Newsletter enviada para {} assinantes (frequência: {}, modo teste: {})", 
+                    emailsSent, frequency, testMode);
+            return emailsSent;
+
+        } catch (Exception e) {
+            log.error("Erro ao enviar newsletter: {}", e.getMessage());
+            return 0;
+        }
+    }
+
+    /**
      * Testa configuração de email
      */
     public boolean testEmailConfiguration() {
