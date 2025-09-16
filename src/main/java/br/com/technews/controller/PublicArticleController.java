@@ -1,4 +1,4 @@
-package com.technews.controller;
+package br.com.technews.controller;
 
 import br.com.technews.model.NewsArticle;
 import br.com.technews.service.NewsArticleService;
@@ -19,7 +19,7 @@ import java.util.Optional;
 
 @Controller
 @RequestMapping("/articles")
-public class ArticleController {
+public class PublicArticleController {
 
     @Autowired
     private NewsArticleService newsArticleService;
