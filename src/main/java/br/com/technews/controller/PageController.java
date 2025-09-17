@@ -20,14 +20,24 @@ public class PageController {
     
     @GetMapping("/")
     public String home(Model model) {
-        List<Subscriber> subscribers = subscriberService.getAllSubscribers();
-        model.addAttribute("subscriberCount", subscribers.size());
+        try {
+            List<Subscriber> subscribers = subscriberService.getAllSubscribers();
+            model.addAttribute("subscriberCount", subscribers.size());
+        } catch (Exception e) {
+            // Se houver erro ao buscar subscribers, define count como 0
+            model.addAttribute("subscriberCount", 0);
+        }
         return "index";
     }
 
     @GetMapping("/admin")
     public String adminDashboard() {
         return "redirect:/admin/articles";
+    }
+    
+    @GetMapping("/login")
+    public String login() {
+        return "login";
     }
     
     @PostMapping("/subscribe")
