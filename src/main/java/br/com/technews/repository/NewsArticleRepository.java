@@ -5,6 +5,7 @@ import br.com.technews.entity.ArticleStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -79,13 +80,9 @@ public interface NewsArticleRepository extends JpaRepository<NewsArticle, Long> 
     /**
      * Remove artigos não publicados criados antes de uma data específica
      */
+    @Modifying
     @Query("DELETE FROM NewsArticle n WHERE n.published = false AND n.createdAt < :cutoffDate")
     int deleteByPublishedFalseAndCreatedAtBefore(@Param("cutoffDate") LocalDateTime cutoffDate);
-
-    /**
-     * Busca artigos por fonte
-     */
-    List<NewsArticle> findBySourceDomain(String sourceDomain);
 
     /**
      * Busca artigos criados após uma data específica
