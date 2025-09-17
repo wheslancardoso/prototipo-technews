@@ -119,9 +119,40 @@ public class NewsArticleService {
         return newsArticleRepository.countByStatus(status);
     }
 
+    // Métodos adicionais para integração com GNews API
+
+    /**
+     * Verifica se já existe um artigo com a URL especificada
+     */
+    public boolean existsByUrl(String url) {
+        return newsArticleRepository.existsByUrl(url);
+    }
+
+    /**
+     * Remove artigos não publicados mais antigos que o número de dias especificado
+     */
+    public int deleteOldUnpublishedArticles(int daysOld) {
+        LocalDateTime cutoffDate = LocalDateTime.now().minusDays(daysOld);
+        return newsArticleRepository.deleteByPublishedFalseAndCreatedAtBefore(cutoffDate);
+    }
+
+    /**
+     * Busca artigos por fonte
+     */
+    public List<NewsArticle> findBySource(String source) {
+        return newsArticleRepository.findBySourceDomain(source);
+    }
+
+    /**
+     * Busca artigos criados após uma data específica
+     */
+    public List<NewsArticle> findByCreatedAtAfter(LocalDateTime date) {
+        return newsArticleRepository.findByCreatedAtAfter(date);
+    }
+
     public Page<NewsArticle> searchPublishedArticles(String searchTerm, Pageable pageable) {
         return newsArticleRepository.findByPublishedTrueAndTitleContainingIgnoreCaseOrContentContainingIgnoreCaseOrderByPublishedAtDesc(
-            searchTerm, searchTerm, pageable);
+            searchTerm, pageable);
     }
 
     public Page<NewsArticle> findPublishedArticlesByCategory(String category, Pageable pageable) {

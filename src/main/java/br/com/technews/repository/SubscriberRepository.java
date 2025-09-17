@@ -139,7 +139,10 @@ public interface SubscriberRepository extends JpaRepository<Subscriber, Long> {
     Optional<Subscriber> findByEmailAndManageToken(String email, String manageToken);
     
     // Busca por email ou nome contendo texto (case insensitive)
-    Page<Subscriber> findByEmailContainingIgnoreCaseOrFullNameContainingIgnoreCase(String email, String fullName, Pageable pageable);
+    @Query("SELECT s FROM Subscriber s WHERE " +
+           "LOWER(s.email) LIKE LOWER(CONCAT('%', :email, '%')) OR " +
+           "LOWER(s.fullName) LIKE LOWER(CONCAT('%', :fullName, '%'))")
+    Page<Subscriber> findByEmailContainingIgnoreCaseOrFullNameContainingIgnoreCase(@Param("email") String email, @Param("fullName") String fullName, Pageable pageable);
     
     // Busca por frequência
     Page<Subscriber> findByFrequency(Subscriber.SubscriptionFrequency frequency, Pageable pageable);

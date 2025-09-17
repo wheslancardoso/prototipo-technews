@@ -23,7 +23,8 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     /**
      * Busca categoria por nome (case insensitive)
      */
-    Optional<Category> findByNameIgnoreCase(String name);
+    @Query("SELECT c FROM Category c WHERE LOWER(c.name) = LOWER(:name)")
+    Optional<Category> findByNameIgnoreCase(@Param("name") String name);
     
     /**
      * Busca todas as categorias ativas

@@ -73,17 +73,46 @@ public interface NewsArticleRepository extends JpaRepository<NewsArticle, Long> 
      * Conta artigos por status
      */
     long countByStatus(ArticleStatus status);
-    
+
+    // Métodos adicionais para integração com GNews API
+
+    /**
+     * Remove artigos não publicados criados antes de uma data específica
+     */
+    @Query("DELETE FROM NewsArticle n WHERE n.published = false AND n.createdAt < :cutoffDate")
+    int deleteByPublishedFalseAndCreatedAtBefore(@Param("cutoffDate") LocalDateTime cutoffDate);
+
+    /**
+     * Busca artigos por fonte
+     */
+    List<NewsArticle> findBySourceDomain(String sourceDomain);
+
+    /**
+     * Busca artigos criados após uma data específica
+     */
+    List<NewsArticle> findByCreatedAtAfter(LocalDateTime date);
+
+    /**
+     * Busca artigos por título contendo texto (case insensitive)
+     */
+    @Query("SELECT n FROM NewsArticle n WHERE LOWER(n.title) LIKE LOWER(CONCAT('%', :title, '%'))")
+    List<NewsArticle> findByTitleContainingIgnoreCase(@Param("title") String title);
+
+    /**
+     * Busca artigos publicados com busca por título ou conteúdo
+     */
+    @Query("SELECT n FROM NewsArticle n WHERE n.published = true AND " +
+           "(LOWER(n.title) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
+           "LOWER(n.content) LIKE LOWER(CONCAT('%', :searchTerm, '%'))) " +
+           "ORDER BY n.publishedAt DESC")
+    Page<NewsArticle> findByPublishedTrueAndTitleContainingIgnoreCaseOrContentContainingIgnoreCaseOrderByPublishedAtDesc(
+            @Param("searchTerm") String searchTerm, Pageable pageable);
+
     /**
      * Busca artigos publicados recentemente
      */
     @Query("SELECT n FROM NewsArticle n WHERE n.publishedAt >= :since ORDER BY n.publishedAt DESC")
     List<NewsArticle> findRecentPublishedArticles(@Param("since") LocalDateTime since, Pageable pageable);
-    
-    /**
-     * Busca artigos publicados por título ou conteúdo contendo texto específico
-     */
-    Page<NewsArticle> findByPublishedTrueAndTitleContainingIgnoreCaseOrContentContainingIgnoreCaseOrderByPublishedAtDesc(String title, String content, Pageable pageable);
     
     /**
      * Busca artigos publicados por categoria ordenados por data de publicação
