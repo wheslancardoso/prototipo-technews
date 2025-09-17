@@ -30,13 +30,22 @@ public class ArticleController {
     public String listArticles(@RequestParam(defaultValue = "0") int page,
                               @RequestParam(defaultValue = "10") int size,
                               Model model) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<NewsArticle> articles = newsArticleService.findAll(pageable);
-        
-        model.addAttribute("articles", articles);
-        model.addAttribute("currentPage", page);
-        model.addAttribute("totalPages", articles.getTotalPages());
-        model.addAttribute("totalElements", articles.getTotalElements());
+        try {
+            Pageable pageable = PageRequest.of(page, size);
+            Page<NewsArticle> articles = newsArticleService.findAll(pageable);
+            
+            model.addAttribute("articles", articles);
+            model.addAttribute("currentPage", page);
+            model.addAttribute("totalPages", articles.getTotalPages());
+            model.addAttribute("totalElements", articles.getTotalElements());
+        } catch (Exception e) {
+            // Em caso de erro, criar uma página vazia
+            model.addAttribute("articles", Page.empty());
+            model.addAttribute("currentPage", 0);
+            model.addAttribute("totalPages", 0);
+            model.addAttribute("totalElements", 0L);
+            model.addAttribute("error", "Erro ao carregar artigos: " + e.getMessage());
+        }
         
         return "admin/articles/list";
     }

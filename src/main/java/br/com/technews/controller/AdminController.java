@@ -35,18 +35,30 @@ public class AdminController {
             @RequestParam(defaultValue = "") String search,
             Model model) {
         
-        Page<Subscriber> subscribers = subscriberService.findAll(search, null, null, PageRequest.of(page, size));
-        
-        model.addAttribute("subscribers", subscribers);
-        model.addAttribute("currentPage", page);
-        model.addAttribute("totalPages", subscribers.getTotalPages());
-        model.addAttribute("totalElements", subscribers.getTotalElements());
-        model.addAttribute("search", search);
-        
-        // Obter estatísticas
-        SubscriberService.SubscriberStats stats = subscriberService.getStats();
-        model.addAttribute("activeCount", stats.getActive());
-        model.addAttribute("totalCount", stats.getTotal());
+        try {
+            Page<Subscriber> subscribers = subscriberService.findAll(search, null, null, PageRequest.of(page, size));
+            
+            model.addAttribute("subscribers", subscribers);
+            model.addAttribute("currentPage", page);
+            model.addAttribute("totalPages", subscribers.getTotalPages());
+            model.addAttribute("totalElements", subscribers.getTotalElements());
+            model.addAttribute("search", search);
+            
+            // Obter estatísticas
+            SubscriberService.SubscriberStats stats = subscriberService.getStats();
+            model.addAttribute("activeCount", stats.getActive());
+            model.addAttribute("totalCount", stats.getTotal());
+        } catch (Exception e) {
+            // Em caso de erro, criar uma página vazia
+            model.addAttribute("subscribers", Page.empty());
+            model.addAttribute("currentPage", 0);
+            model.addAttribute("totalPages", 0);
+            model.addAttribute("totalElements", 0L);
+            model.addAttribute("search", search);
+            model.addAttribute("activeCount", 0L);
+            model.addAttribute("totalCount", 0L);
+            model.addAttribute("error", "Erro ao carregar assinantes: " + e.getMessage());
+        }
         
         return "admin/subscribers/list";
     }
