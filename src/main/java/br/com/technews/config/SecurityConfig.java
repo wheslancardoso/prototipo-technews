@@ -21,7 +21,8 @@ public class SecurityConfig {
         http
             .authorizeHttpRequests(authz -> authz
                 .requestMatchers("/", "/subscribe", "/unsubscribe/**", "/verify/**", 
-                               "/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
+                               "/css/**", "/js/**", "/images/**", "/webjars/**",
+                               "/api/**").permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
