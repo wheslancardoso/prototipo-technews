@@ -225,4 +225,157 @@ public class Subscriber {
                 ", subscribedAt=" + subscribedAt +
                 '}';
     }
+    
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getVerificationToken() {
+        return verificationToken;
+    }
+
+    public void setVerificationToken(String verificationToken) {
+        this.verificationToken = verificationToken;
+    }
+
+    public LocalDateTime getVerificationTokenExpiresAt() {
+        return verificationTokenExpiresAt;
+    }
+
+    public void setVerificationTokenExpiresAt(LocalDateTime verificationTokenExpiresAt) {
+        this.verificationTokenExpiresAt = verificationTokenExpiresAt;
+    }
+
+    public SubscriptionFrequency getFrequency() {
+        return frequency;
+    }
+
+    public void setFrequency(SubscriptionFrequency frequency) {
+        this.frequency = frequency;
+    }
+
+    public String getUnsubscribeToken() {
+        return unsubscribeToken;
+    }
+
+    public void setUnsubscribeToken(String unsubscribeToken) {
+        this.unsubscribeToken = unsubscribeToken;
+    }
+
+    public Set<Category> getSubscribedCategories() {
+        return subscribedCategories;
+    }
+
+    public void setSubscribedCategories(Set<Category> subscribedCategories) {
+        this.subscribedCategories = subscribedCategories;
+    }
+    
+    // Getters e Setters adicionais necessários
+    public Long getId() {
+        return id;
+    }
+    
+    public void setId(Long id) {
+        this.id = id;
+    }
+    
+    public String getFullName() {
+        return fullName;
+    }
+    
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+    }
+    
+    public LocalDateTime getLastEmailSentAt() {
+        return lastEmailSentAt;
+    }
+
+    public void setLastEmailSentAt(LocalDateTime lastEmailSentAt) {
+        this.lastEmailSentAt = lastEmailSentAt;
+    }
+
+    public LocalDateTime getSubscribedAt() {
+        return subscribedAt;
+    }
+
+    public void setSubscribedAt(LocalDateTime subscribedAt) {
+        this.subscribedAt = subscribedAt;
+    }
+    
+    public LocalDateTime getVerifiedAt() {
+        return verifiedAt;
+    }
+    
+    public void setVerifiedAt(LocalDateTime verifiedAt) {
+        this.verifiedAt = verifiedAt;
+    }
+    
+    public LocalDateTime getReactivatedAt() {
+        return reactivatedAt;
+    }
+    
+    public void setReactivatedAt(LocalDateTime reactivatedAt) {
+        this.reactivatedAt = reactivatedAt;
+    }
+    
+    public Integer getEmailCount() {
+        return emailCount;
+    }
+    
+    public void setEmailCount(Integer emailCount) {
+        this.emailCount = emailCount;
+    }
+    
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+    
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+    
+    public LocalDateTime getUnsubscribedAt() {
+        return unsubscribedAt;
+    }
+    
+    public void setUnsubscribedAt(LocalDateTime unsubscribedAt) {
+        this.unsubscribedAt = unsubscribedAt;
+    }
+    
+    public String getManageToken() {
+        return manageToken;
+    }
+    
+    public void setManageToken(String manageToken) {
+        this.manageToken = manageToken;
+    }
+    
+    public String getSubscriptionIp() {
+        return subscriptionIp;
+    }
+    
+    public void setSubscriptionIp(String subscriptionIp) {
+        this.subscriptionIp = subscriptionIp;
+    }
+    
+    public String getSubscriptionUserAgent() {
+        return subscriptionUserAgent;
+    }
+    
+    public void setSubscriptionUserAgent(String subscriptionUserAgent) {
+        this.subscriptionUserAgent = subscriptionUserAgent;
+    }
+    
+    public Boolean getEmailVerified() {
+        return emailVerified;
+    }
+    
+    public void setEmailVerified(Boolean emailVerified) {
+        this.emailVerified = emailVerified;
+    }
 }

@@ -27,6 +27,11 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     Optional<Category> findByNameIgnoreCase(@Param("name") String name);
     
     /**
+     * Busca categoria por nome exato
+     */
+    Optional<Category> findByName(String name);
+    
+    /**
      * Busca todas as categorias ativas
      */
     List<Category> findByActiveTrue();

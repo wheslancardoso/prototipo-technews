@@ -1,5 +1,7 @@
 package br.com.technews.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import br.com.technews.entity.Subscriber;
 import br.com.technews.entity.Category;
 import br.com.technews.repository.SubscriberRepository;
@@ -25,6 +27,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SubscriberService {
 
+    private static final Logger log = LoggerFactory.getLogger(SubscriberService.class);
     private final SubscriberRepository subscriberRepository;
     private final CategoryRepository categoryRepository;
     private final EmailService emailService;

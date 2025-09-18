@@ -51,6 +51,11 @@ public interface NewsArticleRepository extends JpaRepository<NewsArticle, Long> 
     List<NewsArticle> findByStatusOrderByPublishedAtDesc(ArticleStatus status);
     
     /**
+     * Busca os 10 artigos mais recentes por data de publicação
+     */
+    List<NewsArticle> findTop10ByOrderByPublishedAtDesc();
+    
+    /**
      * Busca artigos publicados ordenados por data de publicação
      */
     List<NewsArticle> findByPublishedTrueOrderByPublishedAtDesc();

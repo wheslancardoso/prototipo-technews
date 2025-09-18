@@ -7,6 +7,8 @@ import br.com.technews.repository.SubscriberRepository;
 import br.com.technews.repository.NewsArticleRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -30,6 +32,8 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class EmailService {
+
+    private static final Logger log = LoggerFactory.getLogger(EmailService.class);
 
     private final JavaMailSender mailSender;
     private final TemplateEngine templateEngine;
@@ -404,6 +408,64 @@ public class EmailService {
             return 0;
         }
     }
+
+    /**
+     * Envia newsletter diária com artigos específicos
+     */
+    @Async
+    @Transactional
+    public CompletableFuture<Map<String, Integer>> sendDailyNewsletter(List<NewsArticle> articles) {
+        log.info("Iniciando envio da newsletter diária com {} artigos", articles.size());
+        
+        Map<String, Integer> result = Map.of(
+            "sent", 0,
+            "failed", 0,
+            "total", 0
+        );
+        
+        try {
+            List<Subscriber> activeSubscribers = subscriberRepository.findByActiveTrue();
+            
+            if (activeSubscribers.isEmpty()) {
+                log.info("Nenhum assinante ativo encontrado");
+                return CompletableFuture.completedFuture(result);
+            }
+            
+            int sent = 0;
+            int failed = 0;
+            
+            for (Subscriber subscriber : activeSubscribers) {
+                try {
+                    CompletableFuture<Boolean> future = sendNewsletterToSubscriber(subscriber, articles);
+                    Boolean success = future.get();
+                    if (success) {
+                        sent++;
+                        log.debug("Newsletter enviada para: {}", subscriber.getEmail());
+                    } else {
+                        failed++;
+                    }
+                } catch (Exception e) {
+                    failed++;
+                    log.error("Erro ao enviar newsletter para {}: {}", subscriber.getEmail(), e.getMessage());
+                }
+            }
+            
+            result = Map.of(
+                "sent", sent,
+                "failed", failed,
+                "total", sent + failed
+            );
+            
+            log.info("Newsletter diária enviada: {} sucessos, {} falhas", sent, failed);
+            return CompletableFuture.completedFuture(result);
+            
+        } catch (Exception e) {
+            log.error("Erro ao enviar newsletter diária: {}", e.getMessage());
+            return CompletableFuture.completedFuture(result);
+        }
+    }
+
+
 
     /**
      * Testa configuração de email

@@ -87,7 +87,8 @@ public class TrustedSourceController {
      */
     @GetMapping("/new")
     public String newForm(Model model) {
-        model.addAttribute("trustedSource", new TrustedSource());
+        TrustedSource trustedSource = new TrustedSource();
+        model.addAttribute("trustedSource", trustedSource);
         model.addAttribute("isEdit", false);
         return "admin/trusted-sources/form";
     }

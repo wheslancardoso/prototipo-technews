@@ -88,6 +88,16 @@ public class NewsArticle {
     }
     
     /**
+     * Retorna a categoria do artigo como string
+     */
+    public String getCategory() {
+        if (categoryEntity != null) {
+            return categoryEntity.getName();
+        }
+        return category;
+    }
+    
+    /**
      * Retorna as categorias do artigo
      */
     public Set<Category> getCategories() {
@@ -96,5 +106,130 @@ public class NewsArticle {
             categories.add(categoryEntity);
         }
         return categories;
+    }
+    
+    // Getters e Setters necessários
+    public Long getId() {
+        return id;
+    }
+    
+    public void setId(Long id) {
+        this.id = id;
+    }
+    
+    public String getTitle() {
+        return title;
+    }
+    
+    public void setTitle(String title) {
+        this.title = title;
+    }
+    
+    public String getContent() {
+        return content;
+    }
+    
+    public void setContent(String content) {
+        this.content = content;
+    }
+    
+    public String getSummary() {
+        return summary;
+    }
+    
+    public void setSummary(String summary) {
+        this.summary = summary;
+    }
+    
+    public String getAuthor() {
+        return author;
+    }
+    
+    public void setAuthor(String author) {
+        this.author = author;
+    }
+    
+    public Category getCategoryEntity() {
+        return categoryEntity;
+    }
+    
+    public void setCategoryEntity(Category categoryEntity) {
+        this.categoryEntity = categoryEntity;
+    }
+    
+    public void setCategory(String category) {
+        this.category = category;
+    }
+    
+    public String getUrl() {
+        return url;
+    }
+    
+    public void setUrl(String url) {
+        this.url = url;
+    }
+    
+    public String getImageUrl() {
+        return imageUrl;
+    }
+    
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+    
+    public String getSourceDomain() {
+        return sourceDomain;
+    }
+    
+    public void setSourceDomain(String sourceDomain) {
+        this.sourceDomain = sourceDomain;
+    }
+    
+    public String getSource() {
+        return sourceDomain;
+    }
+    
+    public void setSource(String source) {
+        this.sourceDomain = source;
+    }
+    
+    public Boolean getPublished() {
+        return published;
+    }
+    
+    public void setPublished(Boolean published) {
+        this.published = published;
+    }
+    
+    public LocalDateTime getPublishedAt() {
+        return publishedAt;
+    }
+    
+    public void setPublishedAt(LocalDateTime publishedAt) {
+        this.publishedAt = publishedAt;
+    }
+    
+    public ArticleStatus getStatus() {
+        return status;
+    }
+    
+    public void setStatus(ArticleStatus status) {
+        this.status = status;
+    }
+    
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+    
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+    
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+    
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }
