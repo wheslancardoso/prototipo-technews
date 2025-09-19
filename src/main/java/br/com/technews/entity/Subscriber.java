@@ -76,7 +76,7 @@ public class Subscriber {
     
     @Enumerated(EnumType.STRING)
     @Builder.Default
-    @Column(nullable = false)
+    @Column(name = "subscription_frequency", nullable = false)
     private SubscriptionFrequency frequency = SubscriptionFrequency.WEEKLY;
     
     @ManyToMany(fetch = FetchType.LAZY)
