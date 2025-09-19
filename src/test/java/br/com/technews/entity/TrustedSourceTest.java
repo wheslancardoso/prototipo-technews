@@ -25,12 +25,12 @@ class TrustedSourceTest {
 
         // When
         trustedSource.setName(name);
-        trustedSource.setDomain(domain);
+        trustedSource.setDomainName(domain);
         trustedSource.setDescription(description);
 
         // Then
         assertThat(trustedSource.getName()).isEqualTo(name);
-        assertThat(trustedSource.getDomain()).isEqualTo(domain);
+        assertThat(trustedSource.getDomainName()).isEqualTo(domain);
         assertThat(trustedSource.getDescription()).isEqualTo(description);
         assertThat(trustedSource.getId()).isNull();
         assertThat(trustedSource.isActive()).isTrue(); // Default should be true
@@ -46,12 +46,12 @@ class TrustedSourceTest {
         // When
         trustedSource.setId(id);
         trustedSource.setName(name);
-        trustedSource.setDomain(domain);
+        trustedSource.setDomainName(domain);
 
         // Then
         assertThat(trustedSource.getId()).isEqualTo(id);
         assertThat(trustedSource.getName()).isEqualTo(name);
-        assertThat(trustedSource.getDomain()).isEqualTo(domain);
+        assertThat(trustedSource.getDomainName()).isEqualTo(domain);
     }
 
     @Test
@@ -62,12 +62,12 @@ class TrustedSourceTest {
 
         // When
         trustedSource.setName(name);
-        trustedSource.setDomain(domain);
+        trustedSource.setDomainName(domain);
         trustedSource.setActive(false);
 
         // Then
         assertThat(trustedSource.getName()).isEqualTo(name);
-        assertThat(trustedSource.getDomain()).isEqualTo(domain);
+        assertThat(trustedSource.getDomainName()).isEqualTo(domain);
         assertThat(trustedSource.isActive()).isFalse();
     }
 
@@ -77,12 +77,12 @@ class TrustedSourceTest {
         TrustedSource source1 = new TrustedSource();
         source1.setId(1L);
         source1.setName("Test Source");
-        source1.setDomain("test.com");
+        source1.setDomainName("test.com");
 
         TrustedSource source2 = new TrustedSource();
         source2.setId(1L);
         source2.setName("Test Source");
-        source2.setDomain("test.com");
+        source2.setDomainName("test.com");
 
         // Then
         assertThat(source1).isEqualTo(source2);
@@ -94,7 +94,7 @@ class TrustedSourceTest {
         // Given
         trustedSource.setId(1L);
         trustedSource.setName("The Verge");
-        trustedSource.setDomain("theverge.com");
+        trustedSource.setDomainName("theverge.com");
 
         // When
         String toString = trustedSource.toString();
@@ -109,12 +109,12 @@ class TrustedSourceTest {
     void testTrustedSourceWithNullValues() {
         // Given/When
         trustedSource.setName(null);
-        trustedSource.setDomain(null);
+        trustedSource.setDomainName(null);
         trustedSource.setDescription(null);
 
         // Then
         assertThat(trustedSource.getName()).isNull();
-        assertThat(trustedSource.getDomain()).isNull();
+        assertThat(trustedSource.getDomainName()).isNull();
         assertThat(trustedSource.getDescription()).isNull();
     }
 
@@ -125,10 +125,10 @@ class TrustedSourceTest {
         String invalidDomain = "not-a-domain";
 
         // When
-        trustedSource.setDomain(validDomain);
+        trustedSource.setDomainName(validDomain);
 
         // Then
-        assertThat(trustedSource.getDomain()).isEqualTo(validDomain);
+        assertThat(trustedSource.getDomainName()).isEqualTo(validDomain);
         
         // Note: In a real scenario, you might want to add domain validation
         // This test just ensures the setter works correctly

@@ -36,7 +36,7 @@ class NewsArticleTest {
         article.setUrl(url);
         article.setSource(source);
         article.setPublishedAt(publishedAt);
-        article.setCategory(category);
+        article.setCategoryEntity(category);
 
         // Then
         assertThat(article.getTitle()).isEqualTo(title);
@@ -44,7 +44,7 @@ class NewsArticleTest {
         assertThat(article.getUrl()).isEqualTo(url);
         assertThat(article.getSource()).isEqualTo(source);
         assertThat(article.getPublishedAt()).isEqualTo(publishedAt);
-        assertThat(article.getCategory()).isEqualTo(category);
+        assertThat(article.getCategoryEntity()).isEqualTo(category);
         assertThat(article.getId()).isNull();
     }
 
@@ -104,11 +104,11 @@ class NewsArticleTest {
         techCategory.setName("Tech");
 
         // When
-        article.setCategory(techCategory);
+        article.setCategoryEntity(techCategory);
 
         // Then
-        assertThat(article.getCategory()).isEqualTo(techCategory);
-        assertThat(article.getCategory().getName()).isEqualTo("Tech");
+        assertThat(article.getCategoryEntity()).isEqualTo(techCategory);
+        assertThat(article.getCategoryEntity().getName()).isEqualTo("Tech");
     }
 
     @Test

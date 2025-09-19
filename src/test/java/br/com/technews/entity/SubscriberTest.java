@@ -18,6 +18,15 @@ class SubscriberTest {
     @BeforeEach
     void setUp() {
         subscriber = new Subscriber();
+        subscriber.setId(1L);
+        subscriber.setEmail("test@example.com");
+        subscriber.setFullName("Test User");
+        subscriber.setActive(true);
+        subscriber.setEmailVerified(false);
+        subscriber.setFrequency(Subscriber.SubscriptionFrequency.WEEKLY);
+        subscriber.setSubscribedAt(LocalDateTime.now());
+        subscriber.setUpdatedAt(LocalDateTime.now());
+        
         category = new Category();
         category.setId(1L);
         category.setName("Tecnologia");
@@ -25,22 +34,14 @@ class SubscriberTest {
 
     @Test
     void testSubscriberCreation() {
-        // Given
-        String email = "test@example.com";
-        String nome = "João Silva";
-        Subscriber.SubscriptionFrequency frequency = Subscriber.SubscriptionFrequency.WEEKLY;
-
-        // When
-        subscriber.setEmail(email);
-        subscriber.setNome(nome);
-        subscriber.setFrequencia(frequency);
-
-        // Then
-        assertThat(subscriber.getEmail()).isEqualTo(email);
-        assertThat(subscriber.getNome()).isEqualTo(nome);
-        assertThat(subscriber.getFrequencia()).isEqualTo(frequency);
-        assertThat(subscriber.getId()).isNull();
-        assertThat(subscriber.isActive()).isTrue(); // Default should be true
+        assertThat(subscriber.getId()).isEqualTo(1L);
+        assertThat(subscriber.getEmail()).isEqualTo("test@example.com");
+        assertThat(subscriber.getFullName()).isEqualTo("Test User");
+        assertThat(subscriber.isActive()).isTrue();
+        assertThat(subscriber.isEmailVerified()).isFalse();
+        assertThat(subscriber.getFrequency()).isEqualTo(Subscriber.SubscriptionFrequency.WEEKLY);
+        assertThat(subscriber.getSubscribedAt()).isNotNull();
+        assertThat(subscriber.getUpdatedAt()).isNotNull();
     }
 
     @Test
@@ -52,12 +53,12 @@ class SubscriberTest {
 
         // When
         subscriber.setEmail(email);
-        subscriber.setCategorias(categories);
+        subscriber.setSubscribedCategories(categories);
 
         // Then
         assertThat(subscriber.getEmail()).isEqualTo(email);
-        assertThat(subscriber.getCategorias()).hasSize(1);
-        assertThat(subscriber.getCategorias()).contains(category);
+        assertThat(subscriber.getSubscribedCategories()).hasSize(1);
+        assertThat(subscriber.getSubscribedCategories()).contains(category);
     }
 
     @Test
@@ -103,21 +104,21 @@ class SubscriberTest {
         // Then
         assertThat(subscriber.getEmail()).isEqualTo(email);
         assertThat(subscriber.getVerificationToken()).isEqualTo(token);
-        assertThat(subscriber.isVerified()).isFalse(); // Default should be false
+        assertThat(subscriber.isEmailVerified()).isFalse(); // Default should be false
     }
 
     @Test
-    void testSubscriberVerification() {
+    void testEmailVerification() {
         // Given
         String email = "verified@test.com";
 
         // When
         subscriber.setEmail(email);
-        subscriber.setVerified(true);
+        subscriber.setEmailVerified(true);
 
         // Then
         assertThat(subscriber.getEmail()).isEqualTo(email);
-        assertThat(subscriber.isVerified()).isTrue();
+        assertThat(subscriber.isEmailVerified()).isTrue();
     }
 
     @Test
@@ -133,7 +134,7 @@ class SubscriberTest {
         // Given
         subscriber.setId(1L);
         subscriber.setEmail("test@example.com");
-        subscriber.setNome("Test User");
+        subscriber.setFullName("Test User");
 
         // When
         String toString = subscriber.toString();
@@ -144,15 +145,51 @@ class SubscriberTest {
     }
 
     @Test
+    void testSetId() {
+        subscriber.setId(2L);
+        assertThat(subscriber.getId()).isEqualTo(2L);
+    }
+
+    @Test
+    void testSetEmail() {
+        subscriber.setEmail("new@example.com");
+        assertThat(subscriber.getEmail()).isEqualTo("new@example.com");
+    }
+
+    @Test
+    void testSetFullName() {
+        subscriber.setFullName("New Name");
+        assertThat(subscriber.getFullName()).isEqualTo("New Name");
+    }
+
+    @Test
+    void testActivateDeactivate() {
+        subscriber.deactivate();
+        assertThat(subscriber.isActive()).isFalse();
+        
+        subscriber.activate();
+        assertThat(subscriber.isActive()).isTrue();
+    }
+
+    @Test
+    void testEmailVerificationMethods() {
+        assertThat(subscriber.isEmailVerified()).isFalse();
+        
+        subscriber.verifyEmail();
+        assertThat(subscriber.isEmailVerified()).isTrue();
+    }
+
+    @Test
     void testSubscriberCreatedAtTimestamp() {
         // Given
         LocalDateTime beforeCreation = LocalDateTime.now().minusSeconds(1);
         
         // When
         Subscriber newSubscriber = new Subscriber();
+        newSubscriber.setSubscribedAt(LocalDateTime.now());
         LocalDateTime afterCreation = LocalDateTime.now().plusSeconds(1);
 
         // Then - createdAt should be set automatically if using @PrePersist
-        assertThat(newSubscriber.getCreatedAt()).isBetween(beforeCreation, afterCreation);
+        assertThat(newSubscriber.getSubscribedAt()).isBetween(beforeCreation, afterCreation);
     }
 }

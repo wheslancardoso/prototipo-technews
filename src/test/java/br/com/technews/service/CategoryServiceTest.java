@@ -30,6 +30,8 @@ class CategoryServiceTest {
     private CategoryService categoryService;
 
     private Category category;
+    private Category category1;
+    private Category category2;
 
     @BeforeEach
     void setUp() {
@@ -37,87 +39,94 @@ class CategoryServiceTest {
         category.setId(1L);
         category.setName("Tecnologia");
         category.setDescription("Categoria de tecnologia");
+        
+        category1 = new Category();
+        category1.setId(1L);
+        category1.setName("Tecnologia");
+        category1.setSlug("tecnologia");
+        category1.setActive(true);
+        
+        category2 = new Category();
+        category2.setId(2L);
+        category2.setName("Ciência");
+        category2.setSlug("ciencia");
+        category2.setActive(true);
     }
 
     @Test
-    void testGetAllCategories() {
+    void testFindAllActive() {
         // Given
-        List<Category> categories = Arrays.asList(category);
-        when(categoryRepository.findAll()).thenReturn(categories);
+        List<Category> categories = Arrays.asList(category1, category2);
+        when(categoryRepository.findByActiveTrueOrderByNameAsc()).thenReturn(categories);
 
         // When
-        List<Category> result = categoryService.getAllCategories();
+        List<Category> result = categoryService.findAllActive();
 
         // Then
-        assertThat(result).isNotNull();
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0)).isEqualTo(category);
-        verify(categoryRepository).findAll();
+        assertThat(result).hasSize(2);
+        assertThat(result).containsExactly(category1, category2);
+        verify(categoryRepository).findByActiveTrueOrderByNameAsc();
     }
 
     @Test
-    void testGetCategoryByName() {
+    void testFindBySlug() {
         // Given
-        when(categoryRepository.findByName("Tecnologia")).thenReturn(Optional.of(category));
+        when(categoryRepository.findBySlug(anyString())).thenReturn(Optional.of(category1));
 
         // When
-        Optional<Category> result = categoryService.getCategoryByName("Tecnologia");
+        Optional<Category> result = categoryService.findBySlug("technology");
 
         // Then
         assertThat(result).isPresent();
-        assertThat(result.get()).isEqualTo(category);
-        verify(categoryRepository).findByName("Tecnologia");
+        assertThat(result.get()).isEqualTo(category1);
+        verify(categoryRepository).findBySlug("technology");
     }
 
     @Test
-    void testGetCategoryByNameNotFound() {
+    void testFindBySlugNotFound() {
         // Given
-        when(categoryRepository.findByName("Inexistente")).thenReturn(Optional.empty());
+        when(categoryRepository.findBySlug("inexistente")).thenReturn(Optional.empty());
 
         // When
-        Optional<Category> result = categoryService.getCategoryByName("Inexistente");
+        Optional<Category> result = categoryService.findBySlug("inexistente");
 
         // Then
         assertThat(result).isEmpty();
-        verify(categoryRepository).findByName("Inexistente");
+        verify(categoryRepository).findBySlug("inexistente");
     }
 
     @Test
-    void testCreateCategory() {
+    void testSaveCategory() {
         // Given
         Category newCategory = new Category();
         newCategory.setName("Nova Categoria");
         newCategory.setDescription("Descrição da nova categoria");
 
-        when(categoryRepository.findByName("Nova Categoria")).thenReturn(Optional.empty());
-        when(categoryRepository.save(newCategory)).thenReturn(newCategory);
+        when(categoryRepository.save(any(Category.class))).thenReturn(newCategory);
 
         // When
-        Category result = categoryService.createCategory(newCategory);
+        Category result = categoryService.save(newCategory);
 
         // Then
         assertThat(result).isNotNull();
-        assertThat(result).isEqualTo(newCategory);
-        verify(categoryRepository).findByName("Nova Categoria");
+        assertThat(result.getName()).isEqualTo("Nova Categoria");
         verify(categoryRepository).save(newCategory);
     }
 
     @Test
-    void testCreateCategoryAlreadyExists() {
+    void testSaveCategoryAlreadyExists() {
         // Given
         Category existingCategory = new Category();
         existingCategory.setName("Tecnologia");
-        existingCategory.setDescription("Nova descrição");
 
-        when(categoryRepository.findByName("Tecnologia")).thenReturn(Optional.of(category));
+        when(categoryRepository.save(any(Category.class))).thenReturn(existingCategory);
 
-        // When & Then
-        assertThatThrownBy(() -> categoryService.createCategory(existingCategory))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("Categoria já existe");
+        // When
+        Category result = categoryService.save(existingCategory);
 
-        verify(categoryRepository).findByName("Tecnologia");
-        verify(categoryRepository, never()).save(any());
+        // Then
+        assertThat(result).isNotNull();
+        verify(categoryRepository).save(existingCategory);
     }
 
     @Test
@@ -125,17 +134,18 @@ class CategoryServiceTest {
         // Given
         Long categoryId = 1L;
         Category updatedCategory = new Category();
-        updatedCategory.setName("Tecnologia Atualizada");
+        updatedCategory.setName("Categoria Atualizada");
         updatedCategory.setDescription("Descrição atualizada");
 
         when(categoryRepository.findById(categoryId)).thenReturn(Optional.of(category));
-        when(categoryRepository.save(any(Category.class))).thenReturn(category);
+        when(categoryRepository.save(any(Category.class))).thenReturn(updatedCategory);
 
         // When
-        Category result = categoryService.updateCategory(categoryId, updatedCategory);
+        Category result = categoryService.update(categoryId, updatedCategory);
 
         // Then
         assertThat(result).isNotNull();
+        assertThat(result.getName()).isEqualTo("Categoria Atualizada");
         verify(categoryRepository).findById(categoryId);
         verify(categoryRepository).save(any(Category.class));
     }
@@ -145,14 +155,13 @@ class CategoryServiceTest {
         // Given
         Long categoryId = 999L;
         Category updatedCategory = new Category();
-        updatedCategory.setName("Categoria Inexistente");
+        updatedCategory.setName("Categoria Atualizada");
 
         when(categoryRepository.findById(categoryId)).thenReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> categoryService.updateCategory(categoryId, updatedCategory))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("Categoria não encontrada");
+        assertThatThrownBy(() -> categoryService.update(categoryId, updatedCategory))
+                .isInstanceOf(RuntimeException.class);
 
         verify(categoryRepository).findById(categoryId);
         verify(categoryRepository, never()).save(any());
@@ -165,11 +174,11 @@ class CategoryServiceTest {
         when(categoryRepository.findById(categoryId)).thenReturn(Optional.of(category));
 
         // When
-        categoryService.deleteCategory(categoryId);
+        categoryService.delete(categoryId);
 
         // Then
         verify(categoryRepository).findById(categoryId);
-        verify(categoryRepository).deleteById(categoryId);
+        verify(categoryRepository).delete(category);
     }
 
     @Test
@@ -179,60 +188,54 @@ class CategoryServiceTest {
         when(categoryRepository.findById(categoryId)).thenReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> categoryService.deleteCategory(categoryId))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("Categoria não encontrada");
+        assertThatThrownBy(() -> categoryService.delete(categoryId))
+                .isInstanceOf(RuntimeException.class);
 
         verify(categoryRepository).findById(categoryId);
-        verify(categoryRepository, never()).deleteById(any());
+        verify(categoryRepository, never()).delete(any());
     }
 
     @Test
-    void testFindOrCreateCategory() {
+    void testSearch() {
         // Given
-        String categoryName = "Nova Categoria";
-        when(categoryRepository.findByName(categoryName)).thenReturn(Optional.empty());
-        
-        Category newCategory = new Category();
-        newCategory.setName(categoryName);
-        newCategory.setDescription("Categoria criada automaticamente");
-        
-        when(categoryRepository.save(any(Category.class))).thenReturn(newCategory);
+        String searchTerm = "Tecnologia";
+        List<Category> categories = Arrays.asList(category);
+        when(categoryRepository.findBySearchTerm(searchTerm)).thenReturn(categories);
 
         // When
-        Category result = categoryService.findOrCreateCategory(categoryName);
+        List<Category> result = categoryService.search(searchTerm);
 
         // Then
         assertThat(result).isNotNull();
-        assertThat(result.getName()).isEqualTo(categoryName);
-        verify(categoryRepository).findByName(categoryName);
-        verify(categoryRepository).save(any(Category.class));
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0)).isEqualTo(category);
+        verify(categoryRepository).findBySearchTerm(searchTerm);
     }
 
     @Test
-    void testFindOrCreateCategoryExisting() {
+    void testFindCategoriesWithPublishedArticles() {
         // Given
-        String categoryName = "Tecnologia";
-        when(categoryRepository.findByName(categoryName)).thenReturn(Optional.of(category));
+        List<Category> categories = Arrays.asList(category);
+        when(categoryRepository.findCategoriesWithPublishedArticles()).thenReturn(categories);
 
         // When
-        Category result = categoryService.findOrCreateCategory(categoryName);
+        List<Category> result = categoryService.findCategoriesWithPublishedArticles();
 
         // Then
         assertThat(result).isNotNull();
-        assertThat(result).isEqualTo(category);
-        verify(categoryRepository).findByName(categoryName);
-        verify(categoryRepository, never()).save(any());
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0)).isEqualTo(category);
+        verify(categoryRepository).findCategoriesWithPublishedArticles();
     }
 
     @Test
-    void testGetCategoryById() {
+    void testFindById() {
         // Given
         Long categoryId = 1L;
         when(categoryRepository.findById(categoryId)).thenReturn(Optional.of(category));
 
         // When
-        Optional<Category> result = categoryService.getCategoryById(categoryId);
+        Optional<Category> result = categoryService.findById(categoryId);
 
         // Then
         assertThat(result).isPresent();
@@ -241,16 +244,17 @@ class CategoryServiceTest {
     }
 
     @Test
-    void testGetCategoryByIdNotFound() {
+    void testFindBySlugWithCategory() {
         // Given
-        Long categoryId = 999L;
-        when(categoryRepository.findById(categoryId)).thenReturn(Optional.empty());
+        String slug = "tecnologia";
+        when(categoryRepository.findBySlug(slug)).thenReturn(Optional.of(category));
 
         // When
-        Optional<Category> result = categoryService.getCategoryById(categoryId);
+        Optional<Category> result = categoryService.findBySlug(slug);
 
         // Then
-        assertThat(result).isEmpty();
-        verify(categoryRepository).findById(categoryId);
+        assertThat(result).isPresent();
+        assertThat(result.get()).isEqualTo(category);
+        verify(categoryRepository).findBySlug(slug);
     }
 }

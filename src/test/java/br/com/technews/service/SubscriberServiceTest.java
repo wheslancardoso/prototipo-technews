@@ -95,7 +95,7 @@ class SubscriberServiceTest {
     }
 
     @Test
-    void testFindByEmail() {
+    void testFindByEmailWithSubscriber() {
         // Given
         String email = "test@example.com";
         when(subscriberRepository.findByEmail(email)).thenReturn(Optional.of(subscriber));

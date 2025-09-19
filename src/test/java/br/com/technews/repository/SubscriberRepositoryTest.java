@@ -8,9 +8,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import static org.assertj.core.api.Assertions.*;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -26,6 +30,9 @@ class SubscriberRepositoryTest {
 
     @Autowired
     private SubscriberRepository subscriberRepository;
+
+    @Autowired
+    private CategoryRepository categoryRepository;
 
     private Category category1;
     private Category category2;
@@ -55,7 +62,7 @@ class SubscriberRepositoryTest {
         // Then
         assertThat(found).isPresent();
         assertThat(found.get().getEmail()).isEqualTo("test@example.com");
-        assertThat(found.get().getName()).isEqualTo("João Silva");
+        assertThat(found.get().getFullName()).isEqualTo("João Silva");
     }
 
     @Test
@@ -115,58 +122,67 @@ class SubscriberRepositoryTest {
     }
 
     @Test
-    void testFindByActiveTrueAndFrequency() {
+    void testFindByFrequencyAndActive() {
         // Given
+        PageRequest pageRequest = PageRequest.of(0, 10);
+        
         Subscriber dailySubscriber = createSubscriber("daily@example.com", "Daily User");
         dailySubscriber.setActive(true);
-        dailySubscriber.setFrequency(SubscriptionFrequency.DAILY);
+        dailySubscriber.setFrequency(Subscriber.SubscriptionFrequency.DAILY);
 
         Subscriber weeklySubscriber = createSubscriber("weekly@example.com", "Weekly User");
         weeklySubscriber.setActive(true);
-        weeklySubscriber.setFrequency(SubscriptionFrequency.WEEKLY);
+        weeklySubscriber.setFrequency(Subscriber.SubscriptionFrequency.WEEKLY);
 
-        Subscriber inactiveDailySubscriber = createSubscriber("inactive@example.com", "Inactive Daily");
-        inactiveDailySubscriber.setActive(false);
-        inactiveDailySubscriber.setFrequency(SubscriptionFrequency.DAILY);
+        Subscriber inactiveSubscriber = createSubscriber("inactive@example.com", "Inactive User");
+        inactiveSubscriber.setActive(false);
+        inactiveSubscriber.setFrequency(Subscriber.SubscriptionFrequency.DAILY);
 
-        entityManager.persist(dailySubscriber);
-        entityManager.persist(weeklySubscriber);
-        entityManager.persist(inactiveDailySubscriber);
-        entityManager.flush();
+        subscriberRepository.saveAll(Arrays.asList(dailySubscriber, weeklySubscriber, inactiveSubscriber));
 
         // When
-        List<Subscriber> dailyActiveSubscribers = subscriberRepository.findByActiveTrueAndFrequency(SubscriptionFrequency.DAILY);
+        Page<Subscriber> dailyActiveSubscribers = subscriberRepository.findByFrequencyAndActive(Subscriber.SubscriptionFrequency.DAILY, true, pageRequest);
 
         // Then
-        assertThat(dailyActiveSubscribers).hasSize(1);
-        assertThat(dailyActiveSubscribers.get(0).getEmail()).isEqualTo("daily@example.com");
-        assertThat(dailyActiveSubscribers.get(0).getFrequency()).isEqualTo(SubscriptionFrequency.DAILY);
+        assertThat(dailyActiveSubscribers.getContent()).hasSize(1);
+        assertThat(dailyActiveSubscribers.getContent().get(0).getEmail()).isEqualTo("daily@example.com");
+        assertThat(dailyActiveSubscribers.getContent().get(0).getFrequency()).isEqualTo(Subscriber.SubscriptionFrequency.DAILY);
     }
 
     @Test
-    void testFindByCategoriesContaining() {
+    void testFindActiveVerifiedByCategory() {
         // Given
-        Subscriber subscriber1 = createSubscriber("sub1@example.com", "Subscriber 1");
-        subscriber1.setCategories(Set.of(category1));
+        Category category1 = createCategory("Technology");
+        Category category2 = createCategory("Sports");
+        
+        Subscriber subscriber1 = createSubscriber("tech@example.com", "Tech User");
+        subscriber1.setActive(true);
+        subscriber1.setEmailVerified(true);
+        subscriber1.setSubscribedCategories(new HashSet<>());
+        subscriber1.addCategory(category1);
 
-        Subscriber subscriber2 = createSubscriber("sub2@example.com", "Subscriber 2");
-        subscriber2.setCategories(Set.of(category1, category2));
+        Subscriber subscriber2 = createSubscriber("sports@example.com", "Sports User");
+        subscriber2.setActive(true);
+        subscriber2.setEmailVerified(true);
+        subscriber2.setSubscribedCategories(new HashSet<>());
+        subscriber2.addCategory(category2);
 
-        Subscriber subscriber3 = createSubscriber("sub3@example.com", "Subscriber 3");
-        subscriber3.setCategories(Set.of(category2));
+        Subscriber inactiveSubscriber = createSubscriber("inactive@example.com", "Inactive User");
+        inactiveSubscriber.setActive(false);
+        inactiveSubscriber.setEmailVerified(true);
+        inactiveSubscriber.setSubscribedCategories(new HashSet<>());
+        inactiveSubscriber.addCategory(category1);
 
-        entityManager.persist(subscriber1);
-        entityManager.persist(subscriber2);
-        entityManager.persist(subscriber3);
-        entityManager.flush();
+        categoryRepository.saveAll(Arrays.asList(category1, category2));
+        subscriberRepository.saveAll(Arrays.asList(subscriber1, subscriber2, inactiveSubscriber));
 
         // When
-        List<Subscriber> techSubscribers = subscriberRepository.findByCategoriesContaining(category1);
+        List<Subscriber> techSubscribers = subscriberRepository.findActiveVerifiedByCategory(category1);
 
         // Then
-        assertThat(techSubscribers).hasSize(2);
-        assertThat(techSubscribers).extracting(Subscriber::getEmail)
-                .containsExactlyInAnyOrder("sub1@example.com", "sub2@example.com");
+        assertThat(techSubscribers).hasSize(1);
+        assertThat(techSubscribers.get(0).getEmail()).isEqualTo("tech@example.com");
+        assertThat(techSubscribers.get(0).isSubscribedToCategory(category1)).isTrue();
     }
 
     @Test
@@ -180,8 +196,8 @@ class SubscriberRepositoryTest {
         // Then
         assertThat(saved.getId()).isNotNull();
         assertThat(saved.getEmail()).isEqualTo("new@example.com");
-        assertThat(saved.getName()).isEqualTo("Novo Usuário");
-        assertThat(saved.getCreatedAt()).isNotNull();
+        assertThat(saved.getFullName()).isEqualTo("Novo Usuário");
+        assertThat(saved.getSubscribedAt()).isNotNull();
     }
 
     @Test
@@ -206,24 +222,32 @@ class SubscriberRepositoryTest {
         Subscriber saved = entityManager.persistAndFlush(subscriber);
 
         // When
-        saved.setName("Nome Atualizado");
+        saved.setFullName("Nome Atualizado");
         saved.setFrequency(SubscriptionFrequency.WEEKLY);
         Subscriber updated = subscriberRepository.save(saved);
 
         // Then
         assertThat(updated.getId()).isEqualTo(saved.getId());
-        assertThat(updated.getName()).isEqualTo("Nome Atualizado");
+        assertThat(updated.getFullName()).isEqualTo("Nome Atualizado");
         assertThat(updated.getFrequency()).isEqualTo(SubscriptionFrequency.WEEKLY);
     }
 
     private Subscriber createSubscriber(String email, String name) {
         Subscriber subscriber = new Subscriber();
         subscriber.setEmail(email);
-        subscriber.setName(name);
+        subscriber.setFullName(name);
         subscriber.setActive(true);
         subscriber.setFrequency(SubscriptionFrequency.DAILY);
-        subscriber.setCreatedAt(LocalDateTime.now());
-        subscriber.setCategories(Set.of(category1));
+        // subscribedAt is automatically set by @CreationTimestamp
+        subscriber.setSubscribedCategories(new HashSet<>(Set.of(category1)));
         return subscriber;
+    }
+
+    private Category createCategory(String name) {
+        Category category = new Category();
+        category.setName(name);
+        category.setSlug(name.toLowerCase());
+        category.setActive(true);
+        return category;
     }
 }

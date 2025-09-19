@@ -2,9 +2,11 @@ package br.com.technews.repository;
 
 import br.com.technews.entity.Category;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.test.annotation.DirtiesContext;
 import static org.assertj.core.api.Assertions.*;
 
 import java.util.List;
@@ -14,6 +16,7 @@ import java.util.Optional;
  * Testes de integração para CategoryRepository
  */
 @DataJpaTest
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 class CategoryRepositoryTest {
 
     @Autowired
@@ -21,6 +24,13 @@ class CategoryRepositoryTest {
 
     @Autowired
     private CategoryRepository categoryRepository;
+
+    @BeforeEach
+    void setUp() {
+        // Limpar dados existentes
+        entityManager.getEntityManager().createQuery("DELETE FROM Category").executeUpdate();
+        entityManager.flush();
+    }
 
     @Test
     void testFindByName() {
@@ -52,7 +62,7 @@ class CategoryRepositoryTest {
     void testSaveCategory() {
         // Given
         Category category = new Category();
-        category.setName("Inteligência Artificial");
+        category.setName("Inteligência Artificial Teste");
         category.setDescription("Notícias sobre IA");
 
         // When
@@ -60,7 +70,7 @@ class CategoryRepositoryTest {
 
         // Then
         assertThat(saved.getId()).isNotNull();
-        assertThat(saved.getName()).isEqualTo("Inteligência Artificial");
+        assertThat(saved.getName()).isEqualTo("Inteligência Artificial Teste");
         assertThat(saved.getDescription()).isEqualTo("Notícias sobre IA");
     }
 

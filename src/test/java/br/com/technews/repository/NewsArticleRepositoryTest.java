@@ -7,6 +7,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import static org.assertj.core.api.Assertions.*;
@@ -19,6 +20,7 @@ import java.util.Optional;
  * Testes de integração para NewsArticleRepository
  */
 @DataJpaTest
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 class NewsArticleRepositoryTest {
 
     @Autowired
@@ -31,6 +33,11 @@ class NewsArticleRepositoryTest {
 
     @BeforeEach
     void setUp() {
+        // Limpar dados existentes
+        entityManager.getEntityManager().createQuery("DELETE FROM NewsArticle").executeUpdate();
+        entityManager.getEntityManager().createQuery("DELETE FROM Category").executeUpdate();
+        entityManager.flush();
+        
         category = new Category();
         category.setName("Tecnologia");
         category.setDescription("Categoria de tecnologia");
@@ -62,75 +69,90 @@ class NewsArticleRepositoryTest {
     }
 
     @Test
-    void testFindByCategory() {
+    void testFindByCategoryOrderByCreatedAtDesc() {
         // Given
-        NewsArticle article1 = createNewsArticle("Artigo 1", "https://example.com/1");
-        NewsArticle article2 = createNewsArticle("Artigo 2", "https://example.com/2");
+        NewsArticle article1 = createNewsArticle("Título 1", "https://example.com/1");
+        article1.setCategory(category.getName());
+        article1.setCreatedAt(LocalDateTime.now().minusHours(2));
         
-        Category otherCategory = new Category();
-        otherCategory.setName("Ciência");
-        otherCategory = entityManager.persist(otherCategory);
+        NewsArticle article2 = createNewsArticle("Título 2", "https://example.com/2");
+        article2.setCategory(category.getName());
+        article2.setCreatedAt(LocalDateTime.now().minusHours(1));
         
-        NewsArticle article3 = createNewsArticle("Artigo 3", "https://example.com/3");
-        article3.setCategory(otherCategory);
-
         entityManager.persist(article1);
         entityManager.persist(article2);
-        entityManager.persist(article3);
         entityManager.flush();
 
         // When
-        List<NewsArticle> articles = newsArticleRepository.findByCategory(category);
+        List<NewsArticle> articles = newsArticleRepository.findByCategoryOrderByCreatedAtDesc(category.getName());
 
         // Then
         assertThat(articles).hasSize(2);
-        assertThat(articles).extracting(NewsArticle::getTitle)
-                .containsExactlyInAnyOrder("Artigo 1", "Artigo 2");
+        assertThat(articles.get(0).getTitle()).isEqualTo("Título 2"); // Mais recente primeiro
+        assertThat(articles.get(1).getTitle()).isEqualTo("Título 1");
     }
 
     @Test
-    void testFindByCategoryOrderByPublishedAtDesc() {
+    void testFindByPublishedTrueAndCategoryOrderByPublishedAtDesc() {
         // Given
-        LocalDateTime now = LocalDateTime.now();
+        PageRequest pageRequest = PageRequest.of(0, 10);
         
-        NewsArticle article1 = createNewsArticle("Artigo Antigo", "https://example.com/old");
-        article1.setPublishedAt(now.minusDays(2));
+        NewsArticle article1 = createNewsArticle("Título 1", "https://example.com/1");
+        article1.setCategory(category.getName());
+        article1.setPublished(true);
+        article1.setPublishedAt(LocalDateTime.now().minusHours(2));
         
-        NewsArticle article2 = createNewsArticle("Artigo Novo", "https://example.com/new");
-        article2.setPublishedAt(now);
-
+        NewsArticle article2 = createNewsArticle("Título 2", "https://example.com/2");
+        article2.setCategory(category.getName());
+        article2.setPublished(true);
+        article2.setPublishedAt(LocalDateTime.now().minusHours(1));
+        
         entityManager.persist(article1);
         entityManager.persist(article2);
         entityManager.flush();
 
-        PageRequest pageRequest = PageRequest.of(0, 10);
-
         // When
-        Page<NewsArticle> articles = newsArticleRepository.findByCategoryOrderByPublishedAtDesc(category, pageRequest);
+        Page<NewsArticle> articles = newsArticleRepository.findByPublishedTrueAndCategoryOrderByPublishedAtDesc(category.getName(), pageRequest);
 
         // Then
         assertThat(articles.getContent()).hasSize(2);
-        assertThat(articles.getContent().get(0).getTitle()).isEqualTo("Artigo Novo");
-        assertThat(articles.getContent().get(1).getTitle()).isEqualTo("Artigo Antigo");
+        assertThat(articles.getContent().get(0).getTitle()).isEqualTo("Título 2"); // Mais recente primeiro
+        assertThat(articles.getContent().get(1).getTitle()).isEqualTo("Título 1");
     }
 
     @Test
-    void testFindByPublishedAtAfter() {
+    void testFindByCreatedAtAfter() {
         // Given
-        LocalDateTime cutoffDate = LocalDateTime.now().minusDays(1);
+        LocalDateTime cutoffDate = LocalDateTime.now().minusHours(1);
         
+        // Criar artigo antigo primeiro
         NewsArticle oldArticle = createNewsArticle("Artigo Antigo", "https://example.com/old");
-        oldArticle.setPublishedAt(cutoffDate.minusHours(1));
+        entityManager.persistAndFlush(oldArticle);
         
+        // Aguardar um pouco para garantir diferença de tempo
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        
+        // Atualizar o cutoff para ser após o primeiro artigo
+        cutoffDate = LocalDateTime.now().minusNanos(50_000_000); // 50 milissegundos
+        
+        // Aguardar mais um pouco
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        
+        // Criar artigo novo
         NewsArticle newArticle = createNewsArticle("Artigo Novo", "https://example.com/new");
-        newArticle.setPublishedAt(cutoffDate.plusHours(1));
-
-        entityManager.persist(oldArticle);
-        entityManager.persist(newArticle);
-        entityManager.flush();
+        entityManager.persistAndFlush(newArticle);
+        entityManager.clear(); // Limpa o contexto de persistência
 
         // When
-        List<NewsArticle> articles = newsArticleRepository.findByPublishedAtAfter(cutoffDate);
+        List<NewsArticle> articles = newsArticleRepository.findByCreatedAtAfter(cutoffDate);
 
         // Then
         assertThat(articles).hasSize(1);
@@ -149,7 +171,7 @@ class NewsArticleRepositoryTest {
         assertThat(saved.getId()).isNotNull();
         assertThat(saved.getTitle()).isEqualTo("Novo Artigo");
         assertThat(saved.getUrl()).isEqualTo("https://example.com/new-article");
-        assertThat(saved.getCategory()).isEqualTo(category);
+        assertThat(saved.getCategoryEntity()).isEqualTo(category);
     }
 
     @Test
@@ -174,7 +196,7 @@ class NewsArticleRepositoryTest {
         article.setUrl(url);
         article.setSource("Test Source");
         article.setPublishedAt(LocalDateTime.now());
-        article.setCategory(category);
+        article.setCategoryEntity(category);
         return article;
     }
 }

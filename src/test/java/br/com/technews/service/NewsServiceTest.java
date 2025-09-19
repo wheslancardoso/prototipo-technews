@@ -2,6 +2,7 @@ package br.com.technews.service;
 
 import br.com.technews.entity.Category;
 import br.com.technews.entity.NewsArticle;
+import br.com.technews.entity.ArticleStatus;
 import br.com.technews.repository.CategoryRepository;
 import br.com.technews.repository.NewsArticleRepository;
 import br.com.technews.service.NewsArticleService;
@@ -38,11 +39,8 @@ class NewsServiceTest {
     @Mock
     private CategoryRepository categoryRepository;
 
-    @Mock
-    private NewsScrapingService newsScrapingService;
-
     @InjectMocks
-    private NewsArticleService newsService;
+    private NewsArticleService newsArticleService;
 
     private Category category;
     private NewsArticle newsArticle;
@@ -61,7 +59,7 @@ class NewsServiceTest {
         newsArticle.setUrl("https://example.com/news/1");
         newsArticle.setSource("Test Source");
         newsArticle.setPublishedAt(LocalDateTime.now());
-        newsArticle.setCategory(category);
+        newsArticle.setCategory(category.getName());
     }
 
     @Test
@@ -74,7 +72,7 @@ class NewsServiceTest {
         when(newsArticleRepository.findAll(pageable)).thenReturn(page);
 
         // When
-        Page<NewsArticle> result = newsService.getAllNews(pageable);
+        Page<NewsArticle> result = newsArticleService.findAll(pageable);
 
         // Then
         assertThat(result).isNotNull();
@@ -84,166 +82,135 @@ class NewsServiceTest {
     }
 
     @Test
-    void testGetNewsByCategory() {
+    void testFindByCategory() {
         // Given
-        Pageable pageable = PageRequest.of(0, 10);
-        List<NewsArticle> articles = Arrays.asList(newsArticle);
-        Page<NewsArticle> page = new PageImpl<>(articles, pageable, 1);
-
-        when(categoryRepository.findByName("Tecnologia")).thenReturn(Optional.of(category));
-        when(newsArticleRepository.findByCategoryOrderByPublishedAtDesc(category, pageable)).thenReturn(page);
-
-        // When
-        Page<NewsArticle> result = newsService.getNewsByCategory("Tecnologia", pageable);
-
-        // Then
-        assertThat(result).isNotNull();
-        assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().get(0)).isEqualTo(newsArticle);
-        verify(categoryRepository).findByName("Tecnologia");
-        verify(newsArticleRepository).findByCategoryOrderByPublishedAtDesc(category, pageable);
-    }
-
-    @Test
-    void testGetNewsByCategoryNotFound() {
-        // Given
-        Pageable pageable = PageRequest.of(0, 10);
-        when(categoryRepository.findByName("Inexistente")).thenReturn(Optional.empty());
-
-        // When & Then
-        assertThatThrownBy(() -> newsService.getNewsByCategory("Inexistente", pageable))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("Categoria não encontrada");
-
-        verify(categoryRepository).findByName("Inexistente");
-        verify(newsArticleRepository, never()).findByCategoryOrderByPublishedAtDesc(any(), any());
-    }
-
-    @Test
-    void testGetRecentNews() {
-        // Given
-        LocalDateTime cutoffDate = LocalDateTime.now().minusDays(7);
+        String categoryName = "Tecnologia";
         List<NewsArticle> articles = Arrays.asList(newsArticle);
 
-        when(newsArticleRepository.findByPublishedAtAfter(any(LocalDateTime.class))).thenReturn(articles);
+        when(newsArticleRepository.findByCategoryOrderByCreatedAtDesc(categoryName)).thenReturn(articles);
 
         // When
-        List<NewsArticle> result = newsService.getRecentNews(7);
+        List<NewsArticle> result = newsArticleService.findByCategory(categoryName);
 
         // Then
         assertThat(result).isNotNull();
         assertThat(result).hasSize(1);
         assertThat(result.get(0)).isEqualTo(newsArticle);
-        verify(newsArticleRepository).findByPublishedAtAfter(any(LocalDateTime.class));
+        verify(newsArticleRepository).findByCategoryOrderByCreatedAtDesc(categoryName);
     }
 
     @Test
-    void testFetchAndSaveNews() {
+    void testFindByCategoryEmpty() {
         // Given
-        String query = "technology";
-        List<NewsArticle> scrapedArticles = Arrays.asList(newsArticle);
-
-        when(newsScrapingService.scrapeNews(query)).thenReturn(scrapedArticles);
-        when(newsArticleRepository.findByUrl(newsArticle.getUrl())).thenReturn(Optional.empty());
-        when(newsArticleRepository.save(newsArticle)).thenReturn(newsArticle);
+        String categoryName = "Inexistente";
+        when(newsArticleRepository.findByCategoryOrderByCreatedAtDesc(categoryName)).thenReturn(Arrays.asList());
 
         // When
-        Map<String, Object> result = newsService.fetchAndSaveNews(query);
+        List<NewsArticle> result = newsArticleService.findByCategory(categoryName);
 
         // Then
         assertThat(result).isNotNull();
-        assertThat(result.get("success")).isEqualTo(true);
-        assertThat(result.get("newArticlesSaved")).isEqualTo(1);
-        assertThat(result.get("totalFound")).isEqualTo(1);
-        assertThat(result.get("query")).isEqualTo(query);
+        assertThat(result).isEmpty();
+        verify(newsArticleRepository).findByCategoryOrderByCreatedAtDesc(categoryName);
+    }
 
-        verify(newsScrapingService).scrapeNews(query);
-        verify(newsArticleRepository).findByUrl(newsArticle.getUrl());
+    @Test
+    void testFindByCreatedAtAfter() {
+        // Given
+        LocalDateTime cutoffDate = LocalDateTime.now().minusDays(7);
+        List<NewsArticle> articles = Arrays.asList(newsArticle);
+
+        when(newsArticleRepository.findByCreatedAtAfter(cutoffDate)).thenReturn(articles);
+
+        // When
+        List<NewsArticle> result = newsArticleService.findByCreatedAtAfter(cutoffDate);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0)).isEqualTo(newsArticle);
+        verify(newsArticleRepository).findByCreatedAtAfter(cutoffDate);
+    }
+
+    @Test
+    void testCreateNewsArticle() {
+        // Given
+        when(newsArticleRepository.save(any(NewsArticle.class))).thenReturn(newsArticle);
+
+        // When
+        NewsArticle result = newsArticleService.create(newsArticle);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getTitle()).isEqualTo(newsArticle.getTitle());
         verify(newsArticleRepository).save(newsArticle);
     }
 
     @Test
-    void testFetchAndSaveNewsWithDuplicates() {
+    void testCreateNewsArticleWithDuplicateUrl() {
         // Given
-        String query = "technology";
-        List<NewsArticle> scrapedArticles = Arrays.asList(newsArticle);
-
-        when(newsScrapingService.scrapeNews(query)).thenReturn(scrapedArticles);
-        when(newsArticleRepository.findByUrl(newsArticle.getUrl())).thenReturn(Optional.of(newsArticle));
+        when(newsArticleRepository.save(any(NewsArticle.class))).thenReturn(newsArticle);
 
         // When
-        Map<String, Object> result = newsService.fetchAndSaveNews(query);
+        NewsArticle result = newsArticleService.create(newsArticle);
 
         // Then
         assertThat(result).isNotNull();
-        assertThat(result.get("success")).isEqualTo(true);
-        assertThat(result.get("newArticlesSaved")).isEqualTo(0);
-        assertThat(result.get("totalFound")).isEqualTo(1);
-        assertThat(result.get("query")).isEqualTo(query);
-
-        verify(newsScrapingService).scrapeNews(query);
-        verify(newsArticleRepository).findByUrl(newsArticle.getUrl());
-        verify(newsArticleRepository, never()).save(any());
+        assertThat(result.getStatus()).isEqualTo(ArticleStatus.PENDENTE_REVISAO);
+        assertThat(result.getPublished()).isFalse();
+        verify(newsArticleRepository).save(newsArticle);
     }
 
     @Test
-    void testFetchAndSaveNewsWithException() {
+    void testCreateNewsArticleWithException() {
         // Given
-        String query = "technology";
-        when(newsScrapingService.scrapeNews(query)).thenThrow(new RuntimeException("Scraping failed"));
+        when(newsArticleRepository.save(any(NewsArticle.class))).thenThrow(new RuntimeException("Save failed"));
 
-        // When
-        Map<String, Object> result = newsService.fetchAndSaveNews(query);
-
-        // Then
-        assertThat(result).isNotNull();
-        assertThat(result.get("success")).isEqualTo(false);
-        assertThat(result.get("message")).asString().contains("Erro ao buscar notícias");
-
-        verify(newsScrapingService).scrapeNews(query);
-        verify(newsArticleRepository, never()).save(any());
+        // When & Then
+        assertThatThrownBy(() -> newsArticleService.create(newsArticle))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage("Save failed");
     }
 
     @Test
     void testSaveNewsArticle() {
         // Given
-        when(newsArticleRepository.save(newsArticle)).thenReturn(newsArticle);
+        when(newsArticleRepository.save(any(NewsArticle.class))).thenReturn(newsArticle);
 
         // When
-        NewsArticle result = newsService.saveNewsArticle(newsArticle);
+        NewsArticle result = newsArticleService.save(newsArticle);
 
         // Then
         assertThat(result).isNotNull();
-        assertThat(result).isEqualTo(newsArticle);
+        assertThat(result.getTitle()).isEqualTo(newsArticle.getTitle());
         verify(newsArticleRepository).save(newsArticle);
     }
 
     @Test
-    void testFindByUrl() {
+    void testExistsByUrl() {
         // Given
         String url = "https://example.com/news/1";
-        when(newsArticleRepository.findByUrl(url)).thenReturn(Optional.of(newsArticle));
+        when(newsArticleRepository.existsByUrl(url)).thenReturn(true);
 
         // When
-        Optional<NewsArticle> result = newsService.findByUrl(url);
+        boolean result = newsArticleService.existsByUrl(url);
 
         // Then
-        assertThat(result).isPresent();
-        assertThat(result.get()).isEqualTo(newsArticle);
-        verify(newsArticleRepository).findByUrl(url);
+        assertThat(result).isTrue();
+        verify(newsArticleRepository).existsByUrl(url);
     }
 
     @Test
-    void testFindByUrlNotFound() {
+    void testExistsByUrlNotFound() {
         // Given
         String url = "https://example.com/nonexistent";
-        when(newsArticleRepository.findByUrl(url)).thenReturn(Optional.empty());
+        when(newsArticleRepository.existsByUrl(url)).thenReturn(false);
 
         // When
-        Optional<NewsArticle> result = newsService.findByUrl(url);
+        boolean result = newsArticleService.existsByUrl(url);
 
         // Then
-        assertThat(result).isEmpty();
-        verify(newsArticleRepository).findByUrl(url);
+        assertThat(result).isFalse();
+        verify(newsArticleRepository).existsByUrl(url);
     }
 }
