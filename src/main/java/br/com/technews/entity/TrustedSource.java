@@ -12,6 +12,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import jakarta.validation.constraints.Pattern;
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Entity
 @Table(name = "trusted_sources")
@@ -151,5 +152,21 @@ public class TrustedSource {
                 ", domainName='" + domainName + '\'' +
                 ", active=" + active +
                 '}';
+    }
+    
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        TrustedSource that = (TrustedSource) o;
+        return Objects.equals(id, that.id) &&
+               Objects.equals(name, that.name) &&
+               Objects.equals(domainName, that.domainName) &&
+               Objects.equals(active, that.active);
+    }
+    
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, name, domainName, active);
     }
 }

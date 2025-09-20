@@ -76,13 +76,14 @@ public class AdminController {
     }
     
     @GetMapping("/{id}/edit")
-    public String editSubscriber(@PathVariable Long id, Model model) {
+    public String editSubscriber(@PathVariable Long id, Model model, RedirectAttributes redirectAttributes) {
         try {
             Optional<Subscriber> subscriberOpt = subscriberService.findById(id);
             Subscriber subscriber = subscriberOpt.orElseThrow(() -> new RuntimeException("Subscriber not found"));
             model.addAttribute("subscriber", subscriber);
             return "admin/subscribers/form";
         } catch (RuntimeException e) {
+            redirectAttributes.addFlashAttribute("error", "Assinante não encontrado!");
             return "redirect:/admin/subscribers";
         }
     }
@@ -138,7 +139,7 @@ public class AdminController {
         }
         
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.TEXT_PLAIN);
+        headers.setContentType(new MediaType("text", "csv", java.nio.charset.StandardCharsets.UTF_8));
         headers.setContentDispositionFormData("attachment", "subscribers.csv");
         
         return ResponseEntity.ok()

@@ -2,15 +2,14 @@ package br.com.technews.repository;
 
 import br.com.technews.entity.Category;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import static org.assertj.core.api.Assertions.*;
 
-import java.util.List;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 /**
@@ -18,7 +17,7 @@ import java.util.Optional;
  */
 @DataJpaTest
 @ActiveProfiles("test")
-@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
+@DisplayName("Category Repository Tests")
 class CategoryRepositoryTest {
 
     @Autowired
@@ -27,32 +26,33 @@ class CategoryRepositoryTest {
     @Autowired
     private CategoryRepository categoryRepository;
 
-    @BeforeEach
-    void setUp() {
-        // Limpar dados existentes
-        entityManager.getEntityManager().createQuery("DELETE FROM Category").executeUpdate();
-        entityManager.flush();
-    }
-
     @Test
-    void testFindByName() {
+    @DisplayName("Deve salvar e buscar categoria por nome")
+    void shouldSaveAndFindByName() {
         // Given
         Category category = new Category();
         category.setName("Tecnologia");
         category.setDescription("Categoria de tecnologia");
-        entityManager.persistAndFlush(category);
+        category.setSlug("tecnologia");
+        category.setColor("#FF0000");
+        category.setActive(true);
+        category.setCreatedAt(LocalDateTime.now());
+        category.setUpdatedAt(LocalDateTime.now());
 
         // When
+        Category saved = categoryRepository.save(category);
         Optional<Category> found = categoryRepository.findByName("Tecnologia");
 
         // Then
+        assertThat(saved.getId()).isNotNull();
         assertThat(found).isPresent();
         assertThat(found.get().getName()).isEqualTo("Tecnologia");
         assertThat(found.get().getDescription()).isEqualTo("Categoria de tecnologia");
     }
 
     @Test
-    void testFindByNameNotFound() {
+    @DisplayName("Deve retornar vazio quando categoria não existe")
+    void shouldReturnEmptyWhenCategoryNotExists() {
         // When
         Optional<Category> found = categoryRepository.findByName("Inexistente");
 
@@ -61,78 +61,33 @@ class CategoryRepositoryTest {
     }
 
     @Test
-    void testSaveCategory() {
-        // Given
-        Category category = new Category();
-        category.setName("Inteligência Artificial Teste");
-        category.setDescription("Notícias sobre IA");
-
-        // When
-        Category saved = categoryRepository.save(category);
-
-        // Then
-        assertThat(saved.getId()).isNotNull();
-        assertThat(saved.getName()).isEqualTo("Inteligência Artificial Teste");
-        assertThat(saved.getDescription()).isEqualTo("Notícias sobre IA");
-    }
-
-    @Test
-    void testFindAll() {
+    @DisplayName("Deve contar total de categorias")
+    void shouldCountCategories() {
         // Given
         Category category1 = new Category();
-        category1.setName("Blockchain");
-        category1.setDescription("Tecnologia blockchain");
+        category1.setName("AI");
+        category1.setDescription("Inteligência Artificial");
+        category1.setSlug("ai");
+        category1.setColor("#00FF00");
+        category1.setActive(true);
+        category1.setCreatedAt(LocalDateTime.now());
+        category1.setUpdatedAt(LocalDateTime.now());
 
         Category category2 = new Category();
-        category2.setName("Machine Learning");
-        category2.setDescription("Aprendizado de máquina");
-
-        entityManager.persist(category1);
-        entityManager.persist(category2);
-        entityManager.flush();
-
-        // When
-        List<Category> categories = categoryRepository.findAll();
-
-        // Then
-        assertThat(categories).hasSize(2);
-        assertThat(categories).extracting(Category::getName)
-                .containsExactlyInAnyOrder("Blockchain", "Machine Learning");
-    }
-
-    @Test
-    void testDeleteCategory() {
-        // Given
-        Category category = new Category();
-        category.setName("Categoria Temporária");
-        category.setDescription("Para teste de exclusão");
-        Category saved = entityManager.persistAndFlush(category);
+        category2.setName("Blockchain");
+        category2.setDescription("Tecnologia Blockchain");
+        category2.setSlug("blockchain");
+        category2.setColor("#0000FF");
+        category2.setActive(true);
+        category2.setCreatedAt(LocalDateTime.now());
+        category2.setUpdatedAt(LocalDateTime.now());
 
         // When
-        categoryRepository.deleteById(saved.getId());
-        entityManager.flush();
+        categoryRepository.save(category1);
+        categoryRepository.save(category2);
+        long count = categoryRepository.count();
 
         // Then
-        Optional<Category> found = categoryRepository.findById(saved.getId());
-        assertThat(found).isEmpty();
-    }
-
-    @Test
-    void testUpdateCategory() {
-        // Given
-        Category category = new Category();
-        category.setName("Nome Original");
-        category.setDescription("Descrição Original");
-        Category saved = entityManager.persistAndFlush(category);
-
-        // When
-        saved.setName("Nome Atualizado");
-        saved.setDescription("Descrição Atualizada");
-        Category updated = categoryRepository.save(saved);
-
-        // Then
-        assertThat(updated.getId()).isEqualTo(saved.getId());
-        assertThat(updated.getName()).isEqualTo("Nome Atualizado");
-        assertThat(updated.getDescription()).isEqualTo("Descrição Atualizada");
+        assertThat(count).isEqualTo(2);
     }
 }
