@@ -70,14 +70,15 @@ public class DashboardController {
     @GetMapping("/newsletter")
     public String newsletter(Model model) {
         try {
-            // Estatísticas de newsletter
-            model.addAttribute("totalSubscribers", subscriberService.countAll());
-            model.addAttribute("activeSubscribers", subscriberService.countActive());
+            // Estatísticas básicas
+        SubscriberService.SubscriberStats stats = subscriberService.getStats();
+        model.addAttribute("totalSubscribers", stats.getTotal());
+        model.addAttribute("activeSubscribers", stats.getActive());
             model.addAttribute("totalCategories", categoryService.count());
             
             // Artigos recentes para newsletter
             model.addAttribute("recentArticles", newsArticleService.findRecentArticles(10));
-            model.addAttribute("categories", categoryService.findAll());
+            model.addAttribute("categories", categoryService.findAllActive());
             
             // Templates disponíveis
             model.addAttribute("templates", templateService.findAllActive());
