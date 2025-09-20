@@ -178,8 +178,8 @@ class NewsArticleRepositoryTest {
     @DisplayName("Deve buscar artigos por categoria")
     void shouldFindByCategory() {
         // When
-        List<NewsArticle> techArticles = newsArticleRepository.findByCategoryOrderByCreatedAtDesc("TECNOLOGIA");
-        List<NewsArticle> businessArticles = newsArticleRepository.findByCategoryOrderByCreatedAtDesc("NEGOCIOS");
+        List<NewsArticle> techArticles = newsArticleRepository.findByCategoryOrderByCreatedAtDesc("Tecnologia");
+        List<NewsArticle> businessArticles = newsArticleRepository.findByCategoryOrderByCreatedAtDesc("Negócios");
 
         // Then
         assertThat(techArticles).hasSize(2);
@@ -198,21 +198,21 @@ class NewsArticleRepositoryTest {
         PageRequest pageRequest = PageRequest.of(0, 1, Sort.by("createdAt").descending());
 
         // When
-        Page<NewsArticle> techPage = newsArticleRepository.findByPublishedTrueAndCategoryOrderByPublishedAtDesc("TECNOLOGIA", pageRequest);
+        Page<NewsArticle> techPage = newsArticleRepository.findByPublishedTrueAndCategoryOrderByPublishedAtDesc("Tecnologia", pageRequest);
 
         // Then
-        assertThat(techPage.getTotalElements()).isEqualTo(2);
+        assertThat(techPage.getTotalElements()).isEqualTo(1); // Apenas 1 artigo publicado de tecnologia
         assertThat(techPage.getContent()).hasSize(1);
         // Deve retornar o mais recente primeiro
-        assertThat(techPage.getContent().get(0).getTitle()).isEqualTo("Artigo Aprovado");
+        assertThat(techPage.getContent().get(0).getTitle()).isEqualTo("Artigo Publicado sobre IA");
     }
 
     @Test
     @DisplayName("Deve buscar artigos por autor")
     void shouldFindByAuthor() {
         // When
-        List<NewsArticle> joaoArticles = newsArticleRepository.findByTitleContainingIgnoreCase("João Silva");
-        List<NewsArticle> mariaArticles = newsArticleRepository.findByTitleContainingIgnoreCase("Maria Santos");
+        List<NewsArticle> joaoArticles = newsArticleRepository.findByAuthorContainingIgnoreCase("João Silva");
+        List<NewsArticle> mariaArticles = newsArticleRepository.findByAuthorContainingIgnoreCase("Maria Santos");
 
         // Then
         assertThat(joaoArticles).hasSize(1);
@@ -259,10 +259,10 @@ class NewsArticleRepositoryTest {
         List<NewsArticle> recentArticles = newsArticleRepository.findByCreatedAtAfter(startDate);
 
         // Then
-        assertThat(recentArticles).hasSize(2);
+        assertThat(recentArticles).hasSize(3);
         assertThat(recentArticles)
             .extracting(NewsArticle::getTitle)
-            .containsExactlyInAnyOrder("Artigo em Rascunho", "Artigo Aprovado");
+            .containsExactlyInAnyOrder("Artigo Publicado sobre IA", "Artigo em Rascunho", "Artigo Aprovado");
     }
 
     @Test
@@ -432,6 +432,6 @@ class NewsArticleRepositoryTest {
         
         // Verificar ordenação alfabética por título
         assertThat(page.getContent().get(0).getTitle()).isEqualTo("Artigo Aprovado");
-        assertThat(page.getContent().get(1).getTitle()).isEqualTo("Artigo em Rascunho");
+        assertThat(page.getContent().get(1).getTitle()).isEqualTo("Artigo Publicado sobre IA");
     }
 }

@@ -101,6 +101,12 @@ public interface NewsArticleRepository extends JpaRepository<NewsArticle, Long> 
     List<NewsArticle> findByTitleContainingIgnoreCase(@Param("title") String title);
 
     /**
+     * Busca artigos por autor contendo texto (case insensitive)
+     */
+    @Query("SELECT n FROM NewsArticle n WHERE LOWER(n.author) LIKE LOWER(CONCAT('%', :author, '%'))")
+    List<NewsArticle> findByAuthorContainingIgnoreCase(@Param("author") String author);
+
+    /**
      * Busca artigos publicados com busca por título ou conteúdo
      */
     @Query("SELECT n FROM NewsArticle n WHERE n.published = true AND " +

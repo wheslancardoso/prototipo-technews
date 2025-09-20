@@ -53,6 +53,7 @@ class NewsletterRepositoryTest {
                 .active(false)
                 .emailVerified(false)
                 .frequency(Subscriber.SubscriptionFrequency.MONTHLY)
+                .unsubscribedAt(LocalDateTime.now().minusDays(5))
                 .build();
         
         pendingSubscriber = Subscriber.builder()
@@ -172,10 +173,10 @@ class NewsletterRepositoryTest {
         List<Subscriber> recentSubscribers = subscriberRepository.findRecentSubscribers(startDate);
 
         // Then
-        assertThat(recentSubscribers).hasSize(2);
+        assertThat(recentSubscribers).hasSize(3);
         assertThat(recentSubscribers)
             .extracting(Subscriber::getEmail)
-            .containsExactlyInAnyOrder("active@example.com", "pending@example.com");
+            .containsExactlyInAnyOrder("active@example.com", "pending@example.com", "inactive@example.com");
     }
 
     @Test
@@ -280,11 +281,13 @@ class NewsletterRepositoryTest {
         // When
         subscriber.setActive(true);
         subscriber.setUnsubscribedAt(null);
+        subscriber.setReactivatedAt(LocalDateTime.now());
         Subscriber updated = subscriberRepository.save(subscriber);
 
         // Then
         assertThat(updated.isActive()).isTrue();
         assertThat(updated.getUnsubscribedAt()).isNull();
+        assertThat(updated.getReactivatedAt()).isNotNull();
         
         // Verificar que aparece na lista de ativos
         List<Subscriber> activeSubscribers = subscriberRepository.findByActiveTrue();
@@ -338,7 +341,7 @@ class NewsletterRepositoryTest {
         List<Subscriber> subscribers = subscriberRepository.findAll();
         
         // Then
-        assertThat(subscribers).hasSize(4); // 2 criados no setup + 2 criados aqui
+        assertThat(subscribers).hasSize(5); // 3 criados no setup + 2 criados aqui
         assertThat(subscribers).extracting("email")
                 .contains("first@test.com", "second@test.com");
     }

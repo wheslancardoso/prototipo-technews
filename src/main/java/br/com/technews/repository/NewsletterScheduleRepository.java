@@ -37,7 +37,7 @@ public interface NewsletterScheduleRepository extends JpaRepository<NewsletterSc
     /**
      * Busca agendamentos recentes com paginação
      */
-    @Query("SELECT ns FROM NewsletterSchedule ns ORDER BY ns.createdAt DESC")
+    @Query("SELECT ns FROM NewsletterSchedule ns ORDER BY ns.createdDate DESC")
     Page<NewsletterSchedule> findRecentSchedules(Pageable pageable);
 
     /**
@@ -61,7 +61,7 @@ public interface NewsletterScheduleRepository extends JpaRepository<NewsletterSc
     /**
      * Busca agendamentos por data específica
      */
-    @Query("SELECT ns FROM NewsletterSchedule ns WHERE DATE(ns.scheduledDate) = DATE(:date)")
+    @Query("SELECT ns FROM NewsletterSchedule ns WHERE CAST(ns.scheduledDate AS date) = CAST(:date AS date)")
     List<NewsletterSchedule> findByScheduledDate(@Param("date") LocalDateTime date);
 
     /**
@@ -92,19 +92,19 @@ public interface NewsletterScheduleRepository extends JpaRepository<NewsletterSc
     /**
      * Busca agendamentos do dia atual
      */
-    @Query("SELECT s FROM NewsletterSchedule s WHERE DATE(s.scheduledDate) = CURRENT_DATE ORDER BY s.scheduledDate ASC")
+    @Query("SELECT s FROM NewsletterSchedule s WHERE CAST(s.scheduledDate AS date) = CURRENT_DATE ORDER BY s.scheduledDate ASC")
     List<NewsletterSchedule> findTodaySchedules();
 
     /**
      * Busca agendamentos da semana atual
      */
-    @Query("SELECT s FROM NewsletterSchedule s WHERE YEARWEEK(s.scheduledDate) = YEARWEEK(CURRENT_DATE) ORDER BY s.scheduledDate ASC")
+    @Query("SELECT s FROM NewsletterSchedule s WHERE EXTRACT(WEEK FROM s.scheduledDate) = EXTRACT(WEEK FROM CURRENT_DATE) AND EXTRACT(YEAR FROM s.scheduledDate) = EXTRACT(YEAR FROM CURRENT_DATE) ORDER BY s.scheduledDate ASC")
     List<NewsletterSchedule> findWeekSchedules();
 
     /**
      * Busca agendamentos do mês atual
      */
-    @Query("SELECT s FROM NewsletterSchedule s WHERE YEAR(s.scheduledDate) = YEAR(CURRENT_DATE) AND MONTH(s.scheduledDate) = MONTH(CURRENT_DATE) ORDER BY s.scheduledDate ASC")
+    @Query("SELECT s FROM NewsletterSchedule s WHERE EXTRACT(YEAR FROM s.scheduledDate) = EXTRACT(YEAR FROM CURRENT_DATE) AND EXTRACT(MONTH FROM s.scheduledDate) = EXTRACT(MONTH FROM CURRENT_DATE) ORDER BY s.scheduledDate ASC")
     List<NewsletterSchedule> findMonthSchedules();
 
     /**
@@ -113,13 +113,8 @@ public interface NewsletterScheduleRepository extends JpaRepository<NewsletterSc
     List<NewsletterSchedule> findByTemplateKey(String templateKey);
 
     /**
-     * Busca agendamentos criados por usuário
-     */
-    List<NewsletterSchedule> findByCreatedBy(String createdBy);
-
-    /**
      * Busca agendamentos com falha para reprocessamento
      */
-    @Query("SELECT s FROM NewsletterSchedule s WHERE s.status = 'FAILED' AND s.retryCount < 3 ORDER BY s.scheduledDate ASC")
+    @Query("SELECT s FROM NewsletterSchedule s WHERE s.status = 'FAILED' ORDER BY s.scheduledDate ASC")
     List<NewsletterSchedule> findFailedSchedulesForRetry();
 }
