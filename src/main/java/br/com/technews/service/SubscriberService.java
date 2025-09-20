@@ -447,4 +447,15 @@ public class SubscriberService {
     public List<Subscriber> getAllSubscribers() {
         return subscriberRepository.findAll();
     }
+
+    /**
+     * Busca assinantes recentes (últimos X)
+     */
+    public List<Subscriber> findRecentSubscribers(int limit) {
+        LocalDateTime cutoffDate = LocalDateTime.now().minusDays(30); // últimos 30 dias
+        return subscriberRepository.findRecentSubscribers(cutoffDate)
+                .stream()
+                .limit(limit)
+                .toList();
+    }
 }

@@ -150,6 +150,23 @@ public class NewsArticleService {
         return newsArticleRepository.findByCreatedAtAfter(date);
     }
 
+    /**
+     * Busca artigos por título contendo texto (case insensitive)
+     */
+    public List<NewsArticle> findByTitleContaining(String title) {
+        return newsArticleRepository.findByTitleContainingIgnoreCase(title);
+    }
+
+    /**
+     * Busca artigos recentes (limitado)
+     */
+    public List<NewsArticle> findRecentArticles(int limit) {
+        return newsArticleRepository.findTop10ByOrderByPublishedAtDesc()
+                .stream()
+                .limit(limit)
+                .toList();
+    }
+
     public Page<NewsArticle> searchPublishedArticles(String searchTerm, Pageable pageable) {
         return newsArticleRepository.findByPublishedTrueAndTitleContainingIgnoreCaseOrContentContainingIgnoreCaseOrderByPublishedAtDesc(
             searchTerm, pageable);
