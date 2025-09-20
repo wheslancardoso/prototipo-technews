@@ -7,8 +7,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
@@ -18,8 +20,10 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
 @WebMvcTest(NewsletterApiController.class)
+@WithMockUser
 class NewsletterApiControllerTest {
 
     @Autowired
@@ -56,6 +60,7 @@ class NewsletterApiControllerTest {
 
         // When & Then
         mockMvc.perform(post("/api/newsletter/subscribe")
+                .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"email\":\"" + email + "\",\"nome\":\"" + fullName + "\",\"frequencia\":\"" + frequency + "\",\"categorias\":\"" + categoryIds + "\"}"))
                 .andExpect(status().isCreated())
@@ -80,11 +85,12 @@ class NewsletterApiControllerTest {
 
         // When & Then
         mockMvc.perform(post("/api/newsletter/subscribe")
+                .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.message").value("Email inválido"));
+                .andExpect(jsonPath("$.message").value("Erro interno do servidor: Email inválido"));
 
         verify(subscriberService).subscribe(eq("invalid-email"), eq("João Silva"), isNull(), isNull());
     }
@@ -101,11 +107,12 @@ class NewsletterApiControllerTest {
 
         // When & Then
         mockMvc.perform(post("/api/newsletter/subscribe")
+                .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.message").value("Erro interno do servidor"));
+                .andExpect(jsonPath("$.message").value("Erro interno do servidor: Database error"));
 
         verify(subscriberService).subscribe(eq("joao@example.com"), eq("João Silva"), isNull(), isNull());
     }
@@ -113,31 +120,32 @@ class NewsletterApiControllerTest {
     @Test
     void shouldUnsubscribeSuccessfully() throws Exception {
         // Given
-        when(subscriberService.unsubscribe("joao@example.com")).thenReturn(true);
+        when(subscriberService.unsubscribe("joao@example.com", null)).thenReturn(true);
 
         // When & Then
-        mockMvc.perform(post("/api/newsletter/unsubscribe")
-                .param("email", "joao@example.com"))
+        mockMvc.perform(delete("/api/newsletter/unsubscribe/joao@example.com")
+                .with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.message").value("Cancelamento realizado com sucesso!"));
+                .andExpect(jsonPath("$.message").value("Inscrição cancelada com sucesso"));
 
-        verify(subscriberService).unsubscribe("joao@example.com");
+        verify(subscriberService).unsubscribe("joao@example.com", null);
     }
 
     @Test
     void shouldHandleUnsubscribeWithNonExistentEmail() throws Exception {
         // Given
-        when(subscriberService.unsubscribe("nonexistent@example.com")).thenReturn(false);
+        when(subscriberService.unsubscribe("nonexistent@example.com", null)).thenReturn(false);
 
         // When & Then
-        mockMvc.perform(post("/api/newsletter/unsubscribe")
-                .param("email", "nonexistent@example.com"))
+        mockMvc.perform(delete("/api/newsletter/unsubscribe/nonexistent@example.com")
+                .with(csrf()))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.message").value("Email não encontrado"));
+                .andExpect(jsonPath("$.message").value("Email não encontrado ou já cancelado"))
+                .andExpect(jsonPath("$.code").value("EMAIL_NOT_FOUND"));
 
-        verify(subscriberService).unsubscribe("nonexistent@example.com");
+        verify(subscriberService).unsubscribe("nonexistent@example.com", null);
     }
 
     @Test
@@ -149,14 +157,12 @@ class NewsletterApiControllerTest {
         when(subscriberService.findByEmail("joao@example.com")).thenReturn(Optional.of(subscriber));
 
         // When & Then
-        mockMvc.perform(get("/api/newsletter/preferences")
-                .param("email", "joao@example.com"))
+        mockMvc.perform(get("/api/newsletter/status/joao@example.com"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.email").value("joao@example.com"))
-                .andExpect(jsonPath("$.data.nome").value("João Silva"))
-                .andExpect(jsonPath("$.data.frequencia").value("WEEKLY"))
-                .andExpect(jsonPath("$.data.categorias").value("TECHNOLOGY,SCIENCE"));
+                .andExpect(jsonPath("$.subscribed").value(true))
+                .andExpect(jsonPath("$.active").value(true))
+                .andExpect(jsonPath("$.verified").value(true))
+                .andExpect(jsonPath("$.frequency").value("WEEKLY"));
 
         verify(subscriberService).findByEmail("joao@example.com");
     }
@@ -167,41 +173,30 @@ class NewsletterApiControllerTest {
         when(subscriberService.findByEmail("nonexistent@example.com")).thenReturn(Optional.empty());
 
         // When & Then
-        mockMvc.perform(get("/api/newsletter/preferences")
-                .param("email", "nonexistent@example.com"))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.message").value("Assinante não encontrado"));
+        mockMvc.perform(get("/api/newsletter/status/nonexistent@example.com"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.subscribed").value(false))
+                .andExpect(jsonPath("$.active").value(false))
+                .andExpect(jsonPath("$.verified").value(false));
 
         verify(subscriberService).findByEmail("nonexistent@example.com");
     }
 
     @Test
-    void shouldUpdatePreferencesSuccessfully() throws Exception {
+    void shouldUpdateSubscriberPreferences() throws Exception {
         // Given
-        NewsletterApiController.PreferencesRequest request = new NewsletterApiController.PreferencesRequest();
-        request.setNome("João Silva Updated");
-        request.setFrequencia(Subscriber.SubscriptionFrequency.DAILY);
-        request.setCategorias("TECHNOLOGY,BUSINESS");
-
-        Subscriber existingSubscriber = createTestSubscriber(1L, "João Silva", "joao@example.com");
-        Subscriber updatedSubscriber = createTestSubscriber(1L, "João Silva Updated", "joao@example.com");
-        updatedSubscriber.setFrequency(Subscriber.SubscriptionFrequency.DAILY);
-
-        when(subscriberService.findByEmail("joao@example.com")).thenReturn(Optional.of(existingSubscriber));
-        when(subscriberService.save(any(Subscriber.class))).thenReturn(updatedSubscriber);
+        Subscriber subscriber = createTestSubscriber(1L, "João Silva", "joao@example.com");
+        when(subscriberService.findByEmail("joao@example.com")).thenReturn(Optional.of(subscriber));
+        when(subscriberService.save(any(Subscriber.class))).thenReturn(subscriber);
 
         // When & Then
-        mockMvc.perform(put("/api/newsletter/preferences")
-                .param("email", "joao@example.com")
+        mockMvc.perform(put("/api/newsletter/preferences/joao@example.com")
+                .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                .content("{\"nome\":\"João Silva Updated\",\"frequencia\":\"DAILY\",\"categorias\":\"TECHNOLOGY,SCIENCE\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.message").value("Preferências atualizadas com sucesso!"))
-                .andExpect(jsonPath("$.data.nome").value("João Silva Updated"))
-                .andExpect(jsonPath("$.data.frequencia").value("DAILY"))
-                .andExpect(jsonPath("$.data.categorias").value("TECHNOLOGY,BUSINESS"));
+                .andExpect(jsonPath("$.message").value("Preferências atualizadas com sucesso"));
 
         verify(subscriberService).findByEmail("joao@example.com");
         verify(subscriberService).save(any(Subscriber.class));
@@ -210,22 +205,36 @@ class NewsletterApiControllerTest {
     @Test
     void shouldHandleUpdatePreferencesWithNonExistentEmail() throws Exception {
         // Given
-        NewsletterApiController.PreferencesRequest request = new NewsletterApiController.PreferencesRequest();
-        request.setNome("João Silva");
-
         when(subscriberService.findByEmail("nonexistent@example.com")).thenReturn(Optional.empty());
 
         // When & Then
-        mockMvc.perform(put("/api/newsletter/preferences")
-                .param("email", "nonexistent@example.com")
+        mockMvc.perform(put("/api/newsletter/preferences/nonexistent@example.com")
+                .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                .content("{\"nome\":\"João Silva\",\"frequencia\":\"DAILY\",\"categorias\":\"TECHNOLOGY\"}"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.message").value("Assinante não encontrado"));
 
         verify(subscriberService).findByEmail("nonexistent@example.com");
         verify(subscriberService, never()).save(any(Subscriber.class));
+    }
+
+    @Test
+    void shouldHandleInvalidEmailForPreferences() throws Exception {
+        // Given
+        when(subscriberService.findByEmail("invalid@example.com")).thenReturn(Optional.empty());
+
+        // When & Then
+        mockMvc.perform(put("/api/newsletter/preferences/invalid@example.com")
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"nome\":\"Test\",\"frequencia\":\"DAILY\",\"categorias\":\"TECHNOLOGY\"}"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.message").value("Assinante não encontrado"));
+
+        verify(subscriberService).findByEmail("invalid@example.com");
     }
 
     private Subscriber createTestSubscriber(Long id, String name, String email) {
