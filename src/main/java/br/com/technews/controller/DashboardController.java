@@ -4,6 +4,8 @@ import br.com.technews.service.NewsArticleService;
 import br.com.technews.service.SubscriberService;
 import br.com.technews.service.CategoryService;
 import br.com.technews.service.TrustedSourceService;
+import br.com.technews.service.EmailService;
+import br.com.technews.service.NewsletterTemplateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -28,6 +30,12 @@ public class DashboardController {
     
     @Autowired
     private TrustedSourceService trustedSourceService;
+    
+    @Autowired
+    private EmailService emailService;
+    
+    @Autowired
+    private NewsletterTemplateService templateService;
 
     @GetMapping("/dashboard")
     public String dashboard(Model model) {
@@ -57,5 +65,34 @@ public class DashboardController {
         }
         
         return "admin/dashboard";
+    }
+    
+    @GetMapping("/newsletter")
+    public String newsletter(Model model) {
+        try {
+            // Estatísticas de newsletter
+            model.addAttribute("totalSubscribers", subscriberService.countAll());
+            model.addAttribute("activeSubscribers", subscriberService.countActive());
+            model.addAttribute("totalCategories", categoryService.count());
+            
+            // Artigos recentes para newsletter
+            model.addAttribute("recentArticles", newsArticleService.findRecentArticles(10));
+            model.addAttribute("categories", categoryService.findAll());
+            
+            // Templates disponíveis
+            model.addAttribute("templates", templateService.findAllActive());
+            
+            // Histórico de envios (simulado por enquanto)
+            model.addAttribute("lastNewsletterSent", "Não enviado ainda");
+            model.addAttribute("scheduledNewsletters", 0);
+            
+        } catch (Exception e) {
+            model.addAttribute("error", "Erro ao carregar dados da newsletter: " + e.getMessage());
+            model.addAttribute("totalSubscribers", 0L);
+            model.addAttribute("activeSubscribers", 0L);
+            model.addAttribute("totalCategories", 0L);
+        }
+        
+        return "admin/newsletter";
     }
 }

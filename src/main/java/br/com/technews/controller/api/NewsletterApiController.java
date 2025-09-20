@@ -416,6 +416,11 @@ public class NewsletterApiController {
         private Subscriber.SubscriptionFrequency frequency;
         private String categoryIds;
         private boolean testMode = false;
+        private String template = "default";
+        private String subject;
+        private boolean schedule = false;
+        private String scheduleDate;
+        private String scheduleTime;
 
         // Getters e Setters
         public Subscriber.SubscriptionFrequency getFrequency() { return frequency; }
@@ -426,6 +431,21 @@ public class NewsletterApiController {
         
         public boolean isTestMode() { return testMode; }
         public void setTestMode(boolean testMode) { this.testMode = testMode; }
+        
+        public String getTemplate() { return template; }
+        public void setTemplate(String template) { this.template = template; }
+        
+        public String getSubject() { return subject; }
+        public void setSubject(String subject) { this.subject = subject; }
+        
+        public boolean isSchedule() { return schedule; }
+        public void setSchedule(boolean schedule) { this.schedule = schedule; }
+        
+        public String getScheduleDate() { return scheduleDate; }
+        public void setScheduleDate(String scheduleDate) { this.scheduleDate = scheduleDate; }
+        
+        public String getScheduleTime() { return scheduleTime; }
+        public void setScheduleTime(String scheduleTime) { this.scheduleTime = scheduleTime; }
     }
 
     public static class ReactivateRequest {

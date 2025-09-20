@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciamento de Newsletter - TechNews Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --info-color: #17a2b8;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .sidebar {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            min-height: 100vh;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+
+        .sidebar .nav-link {
+            color: rgba(255,255,255,0.8);
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin: 2px 10px;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link.active {
+            background-color: rgba(255,255,255,0.2);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .main-content {
+            padding: 30px;
+        }
+
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            border-radius: 15px 15px 0 0 !important;
+            padding: 20px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            border: none;
+            border-radius: 25px;
+            padding: 10px 25px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .stats-card {
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .newsletter-preview {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+        }
+
+        .schedule-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid var(--info-color);
+        }
+
+        .template-card {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .template-card:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .template-card.selected {
+            border-color: var(--primary-color);
+            background-color: rgba(102, 126, 234, 0.1);
+        }
+
+        .loading {
+            display: none;
+        }
+
+        .btn.loading .btn-text {
+            display: none;
+        }
+
+        .btn.loading .loading {
+            display: inline;
+        }
+
+        .frequency-badge {
+            font-size: 0.8em;
+            padding: 4px 8px;
+            border-radius: 12px;
+        }
+
+        .frequency-daily { background-color: #28a745; color: white; }
+        .frequency-weekly { background-color: #17a2b8; color: white; }
+        .frequency-monthly { background-color: #6f42c1; color: white; }
+
+        .subscriber-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 20px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse">
+                <div class="position-sticky pt-3">
+                    <div class="text-center mb-4">
+                        <h4 class="text-white">TechNews</h4>
+                        <small class="text-white-50">Painel Administrativo</small>
+                    </div>
+                    
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/dashboard">
+                                <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/articles">
+                                <i class="fas fa-newspaper me-2"></i>Artigos
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/categories">
+                                <i class="fas fa-tags me-2"></i>Categorias
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/subscribers">
+                                <i class="fas fa-users me-2"></i>Assinantes
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="/admin/newsletter">
+                                <i class="fas fa-envelope me-2"></i>Newsletter
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/trusted-sources">
+                                <i class="fas fa-shield-alt me-2"></i>Fontes Confiáveis
+                            </a>
+                        </li>
+                    </ul>
+                    
+                    <hr class="text-white">
+                    
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/">
+                                <i class="fas fa-home me-2"></i>Ver Site
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/logout">
+                                <i class="fas fa-sign-out-alt me-2"></i>Sair
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">
+                        <i class="fas fa-envelope me-3"></i>Gerenciamento de Newsletter
+                    </h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#sendNewsletterModal">
+                            <i class="fas fa-paper-plane me-2"></i>Enviar Newsletter
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Estatísticas -->
+                <div class="subscriber-stats">
+                    <div class="stat-item">
+                        <div class="stat-number" th:text="${totalSubscribers ?: 0}">0</div>
+                        <div class="stat-label">Total de Assinantes</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" th:text="${activeSubscribers ?: 0}">0</div>
+                        <div class="stat-label">Assinantes Ativos</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" th:text="${emailsSentThisMonth ?: 0}">0</div>
+                        <div class="stat-label">Emails Enviados (Mês)</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" th:text="${openRate ?: '0%'}">0%</div>
+                        <div class="stat-label">Taxa de Abertura</div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Envio Rápido -->
+                    <div class="col-lg-6 mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-rocket me-2"></i>Envio Rápido
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <form id="quickSendForm">
+                                    <div class="mb-3">
+                                        <label for="frequency" class="form-label">Frequência</label>
+                                        <select class="form-select" id="frequency" name="frequency" required>
+                                            <option value="">Selecione a frequência</option>
+                                            <option value="DAILY">Diária</option>
+                                            <option value="WEEKLY">Semanal</option>
+                                            <option value="MONTHLY">Mensal</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="categories" class="form-label">Categorias (opcional)</label>
+                                        <select class="form-select" id="categories" name="categories" multiple>
+                                            <option th:each="category : ${categories}" 
+                                                    th:value="${category.id}" 
+                                                    th:text="${category.name}">Categoria</option>
+                                        </select>
+                                        <small class="text-muted">Deixe vazio para todas as categorias</small>
+                                    </div>
+                                    <div class="mb-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="testMode" name="testMode">
+                                            <label class="form-check-label" for="testMode">
+                                                Modo de teste (apenas 5 assinantes)
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary w-100" id="quickSendBtn">
+                                        <span class="btn-text">
+                                            <i class="fas fa-paper-plane me-2"></i>Enviar Agora
+                                        </span>
+                                        <span class="loading">
+                                            <i class="fas fa-spinner fa-spin me-2"></i>Enviando...
+                                        </span>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Agendamentos -->
+                    <div class="col-lg-6 mb-4">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-calendar-alt me-2"></i>Agendamentos
+                                </h5>
+                                <button class="btn btn-sm btn-light" data-bs-toggle="modal" data-bs-target="#scheduleModal">
+                                    <i class="fas fa-plus me-1"></i>Novo
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div id="scheduledItems">
+                                    <div class="schedule-item">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <strong>Newsletter Semanal</strong>
+                                                <br>
+                                                <small class="text-muted">
+                                                    <i class="fas fa-clock me-1"></i>Segundas às 08:00
+                                                </small>
+                                            </div>
+                                            <div>
+                                                <span class="frequency-badge frequency-weekly">Semanal</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="schedule-item">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <strong>Newsletter Diária</strong>
+                                                <br>
+                                                <small class="text-muted">
+                                                    <i class="fas fa-clock me-1"></i>Todos os dias às 08:00
+                                                </small>
+                                            </div>
+                                            <div>
+                                                <span class="frequency-badge frequency-daily">Diária</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Templates -->
+                <div class="row">
+                    <div class="col-12 mb-4">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-palette me-2"></i>Templates de Newsletter
+                                </h5>
+                                <button class="btn btn-sm btn-light" data-bs-toggle="modal" data-bs-target="#templateModal">
+                                    <i class="fas fa-plus me-1"></i>Novo Template
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4 mb-3" th:each="template : ${templates}">
+                                        <div class="card template-card" th:classappend="${template.isDefault} ? 'selected' : ''">
+                                            <div class="card-body text-center">
+                                                <i class="fas fa-newspaper fa-3x text-primary mb-3" 
+                                                   th:classappend="${template.templateKey == 'grid'} ? 'fa-th-large text-info' : (${template.templateKey == 'mobile'} ? 'fa-mobile-alt text-success' : '')"></i>
+                                                <h6 th:text="${template.name}">Template</h6>
+                                                <p class="text-muted small" th:text="${template.description}">Descrição</p>
+                                                <button class="btn btn-sm btn-outline-primary" th:data-template="${template.templateKey}">
+                                                    <i class="fas fa-eye me-1"></i>Visualizar
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Fallback se não houver templates -->
+                                    <div class="col-md-4 mb-3" th:if="${#lists.isEmpty(templates)}">
+                                        <div class="card template-card selected">
+                                            <div class="card-body text-center">
+                                                <i class="fas fa-newspaper fa-3x text-primary mb-3"></i>
+                                                <h6>Template Padrão</h6>
+                                                <p class="text-muted small">Layout clássico com artigos em lista</p>
+                                                <button class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-eye me-1"></i>Visualizar
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Histórico de Envios -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-history me-2"></i>Histórico de Envios
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Data/Hora</th>
+                                                <th>Frequência</th>
+                                                <th>Assinantes</th>
+                                                <th>Enviados</th>
+                                                <th>Taxa de Sucesso</th>
+                                                <th>Ações</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>
+                                                    <small class="text-muted">Hoje, 08:00</small>
+                                                </td>
+                                                <td>
+                                                    <span class="frequency-badge frequency-daily">Diária</span>
+                                                </td>
+                                                <td>1,234</td>
+                                                <td>1,230</td>
+                                                <td>
+                                                    <span class="badge bg-success">99.7%</span>
+                                                </td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-primary">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-info">
+                                                        <i class="fas fa-redo"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <small class="text-muted">Ontem, 08:00</small>
+                                                </td>
+                                                <td>
+                                                    <span class="frequency-badge frequency-daily">Diária</span>
+                                                </td>
+                                                <td>1,232</td>
+                                                <td>1,228</td>
+                                                <td>
+                                                    <span class="badge bg-success">99.6%</span>
+                                                </td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-primary">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-info">
+                                                        <i class="fas fa-redo"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Modal de Envio de Newsletter -->
+    <div class="modal fade" id="sendNewsletterModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-paper-plane me-2"></i>Enviar Newsletter
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="sendNewsletterForm">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="modalFrequency" class="form-label">Frequência *</label>
+                                <select class="form-select" id="modalFrequency" name="frequency" required>
+                                    <option value="">Selecione a frequência</option>
+                                    <option value="DAILY">Diária</option>
+                                    <option value="WEEKLY">Semanal</option>
+                                    <option value="MONTHLY">Mensal</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="modalTemplate" class="form-label">Template</label>
+                                <select class="form-select" id="modalTemplate" name="template">
+                                    <option th:each="template : ${templates}" 
+                                            th:value="${template.templateKey}" 
+                                            th:text="${template.name}"
+                                            th:selected="${template.isDefault}">Template</option>
+                                    <!-- Fallback se não houver templates -->
+                                    <option value="default" th:if="${#lists.isEmpty(templates)}">Template Padrão</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="modalCategories" class="form-label">Categorias</label>
+                            <select class="form-select" id="modalCategories" name="categories" multiple>
+                                <option th:each="category : ${categories}" 
+                                        th:value="${category.id}" 
+                                        th:text="${category.name}">Categoria</option>
+                            </select>
+                            <small class="text-muted">Segure Ctrl para selecionar múltiplas categorias</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="modalSubject" class="form-label">Assunto Personalizado</label>
+                            <input type="text" class="form-control" id="modalSubject" name="subject" 
+                                   placeholder="Deixe vazio para usar o assunto padrão">
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="modalTestMode" name="testMode">
+                                <label class="form-check-label" for="modalTestMode">
+                                    Modo de teste (enviar apenas para 5 assinantes)
+                                </label>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="modalSchedule" name="schedule">
+                                <label class="form-check-label" for="modalSchedule">
+                                    Agendar envio
+                                </label>
+                            </div>
+                        </div>
+                        <div id="scheduleOptions" class="mb-3" style="display: none;">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label for="scheduleDate" class="form-label">Data</label>
+                                    <input type="date" class="form-control" id="scheduleDate" name="scheduleDate">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="scheduleTime" class="form-label">Horário</label>
+                                    <input type="time" class="form-control" id="scheduleTime" name="scheduleTime">
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" form="sendNewsletterForm" class="btn btn-primary" id="modalSendBtn">
+                        <span class="btn-text">
+                            <i class="fas fa-paper-plane me-2"></i>Enviar Newsletter
+                        </span>
+                        <span class="loading">
+                            <i class="fas fa-spinner fa-spin me-2"></i>Enviando...
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Toggle schedule options
+        document.getElementById('modalSchedule').addEventListener('change', function() {
+            const scheduleOptions = document.getElementById('scheduleOptions');
+            scheduleOptions.style.display = this.checked ? 'block' : 'none';
+        });
+
+        // Quick send form
+        document.getElementById('quickSendForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            sendNewsletter(this, 'quickSendBtn');
+        });
+
+        // Modal send form
+        document.getElementById('sendNewsletterForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            sendNewsletter(this, 'modalSendBtn');
+        });
+
+        function sendNewsletter(form, btnId) {
+            const btn = document.getElementById(btnId);
+            const formData = new FormData(form);
+            
+            // Show loading state
+            btn.classList.add('loading');
+            btn.disabled = true;
+
+            const data = {
+                frequency: formData.get('frequency'),
+                categoryIds: Array.from(formData.getAll('categories')).join(','),
+                testMode: formData.has('testMode'),
+                template: formData.get('template') || 'default',
+                subject: formData.get('subject') || '',
+                schedule: formData.has('schedule'),
+                scheduleDate: formData.get('scheduleDate'),
+                scheduleTime: formData.get('scheduleTime')
+            };
+
+            fetch('/api/newsletter/send', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('success', `Newsletter enviada com sucesso! ${data.emailsSent} emails enviados.`);
+                    if (btnId === 'modalSendBtn') {
+                        bootstrap.Modal.getInstance(document.getElementById('sendNewsletterModal')).hide();
+                    }
+                    form.reset();
+                } else {
+                    showAlert('danger', 'Erro ao enviar newsletter: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('danger', 'Erro ao enviar newsletter. Tente novamente.');
+            })
+            .finally(() => {
+                // Hide loading state
+                btn.classList.remove('loading');
+                btn.disabled = false;
+            });
+        }
+
+        function showAlert(type, message) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            const container = document.querySelector('.main-content');
+            container.insertBefore(alertDiv, container.firstChild);
+            
+            // Auto-dismiss after 5 seconds
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
+                }
+            }, 5000);
+        }
+
+        // Template selection
+        document.querySelectorAll('.template-card').forEach(card => {
+            card.addEventListener('click', function() {
+                document.querySelectorAll('.template-card').forEach(c => c.classList.remove('selected'));
+                this.classList.add('selected');
+            });
+        });
+    </script>
+</body>
+</html>
