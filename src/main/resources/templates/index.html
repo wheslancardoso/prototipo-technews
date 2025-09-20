@@ -6,101 +6,352 @@
     <title>TechNews - Newsletter de Tecnologia</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --accent-color: #667eea;
+            --text-dark: #2d3748;
+            --text-light: #718096;
+            --border-radius: 16px;
+            --shadow-soft: 0 10px 40px rgba(0,0,0,0.1);
+            --shadow-hover: 0 20px 60px rgba(0,0,0,0.15);
         }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--primary-gradient);
+            min-height: 100vh;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            line-height: 1.6;
+        }
+
         .hero-section {
+            padding: 100px 0 80px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><defs><radialGradient id="a" cx="50%" cy="50%"><stop offset="0%" stop-color="rgba(255,255,255,0.1)"/><stop offset="100%" stop-color="rgba(255,255,255,0)"/></radialGradient></defs><circle cx="200" cy="200" r="100" fill="url(%23a)"/><circle cx="800" cy="300" r="150" fill="url(%23a)"/><circle cx="400" cy="700" r="120" fill="url(%23a)"/></svg>') no-repeat center center;
+            background-size: cover;
+            opacity: 0.3;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero-title {
+            font-size: 4rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .hero-subtitle {
+            font-size: 1.4rem;
+            font-weight: 300;
+            margin-bottom: 3rem;
+            opacity: 0.95;
+            animation: fadeInUp 1s ease-out 0.2s both;
+        }
+
+        .subscription-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-soft);
+            transition: all 0.4s ease;
+            animation: fadeInUp 1s ease-out 0.4s both;
+        }
+
+        .subscription-card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .card-body {
+            padding: 3rem !important;
+        }
+
+        .card-title {
+            color: var(--text-dark);
+            font-weight: 600;
+            font-size: 1.8rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: var(--text-dark);
+            margin-bottom: 0.8rem;
+        }
+
+        .form-control {
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 1rem 1.2rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        .form-control:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            background: white;
+            transform: translateY(-2px);
+        }
+
+        .input-group-text {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 12px 0 0 12px;
+            padding: 1rem 1.2rem;
+        }
+
+        .btn-primary {
+            background: var(--primary-gradient);
+            border: none;
+            border-radius: 12px;
+            padding: 1rem 2rem;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-primary:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .features-section {
             padding: 80px 0;
+            position: relative;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: var(--border-radius);
+            padding: 2.5rem 2rem;
+            text-align: center;
+            transition: all 0.4s ease;
+            height: 100%;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .feature-icon {
+            font-size: 3.5rem;
+            margin-bottom: 1.5rem;
+            background: var(--secondary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .feature-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
             color: white;
         }
-        .card {
-            border: none;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+
+        .feature-description {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1rem;
+            line-height: 1.6;
         }
-        .btn-primary {
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            border: none;
-            border-radius: 25px;
-            padding: 12px 30px;
-            font-weight: 600;
-            transition: transform 0.3s ease;
+
+        .admin-section {
+            padding: 60px 0;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
         }
-        .btn-primary:hover {
+
+        .btn-outline-primary {
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            background: transparent;
+            border-radius: 12px;
+            padding: 1rem 2rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-outline-primary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.5);
+            color: white;
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
-        .feature-icon {
-            font-size: 3rem;
-            color: #667eea;
-            margin-bottom: 1rem;
-        }
+
         .alert {
-            border-radius: 10px;
+            border-radius: 12px;
             border: none;
+            padding: 1.2rem 1.5rem;
+            margin-bottom: 2rem;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            color: white;
+        }
+
+        .alert-danger {
+            background: linear-gradient(135deg, #f56565, #e53e3e);
+            color: white;
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.5rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 1.1rem;
+            }
+            
+            .card-body {
+                padding: 2rem !important;
+            }
+            
+            .feature-card {
+                margin-bottom: 2rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .hero-section {
+                padding: 60px 0 40px;
+            }
+            
+            .hero-title {
+                font-size: 2rem;
+            }
+            
+            .card-body {
+                padding: 1.5rem !important;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <!-- Hero Section -->
-        <div class="hero-section text-center">
-            <h1 class="display-4 fw-bold mb-4">
-                <i class="fas fa-newspaper me-3"></i>TechNews
-            </h1>
-            <p class="lead mb-5">Receba as últimas notícias de tecnologia diretamente no seu email</p>
-            
-            <!-- Subscription Form -->
-            <div class="row justify-content-center">
-                <div class="col-md-6">
-                    <div class="card">
-                        <div class="card-body p-5">
-                            <h3 class="card-title text-dark mb-4">
-                                <i class="fas fa-envelope me-2"></i>Inscreva-se
-                            </h3>
-                            
-                            <!-- Success Message -->
-                            <div th:if="${successMessage}" class="alert alert-success" role="alert">
-                                <i class="fas fa-check-circle me-2"></i>
-                                <span th:text="${successMessage}"></span>
-                            </div>
-                            
-                            <!-- Error Message -->
-                            <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
-                                <i class="fas fa-exclamation-circle me-2"></i>
-                                <span th:text="${errorMessage}"></span>
-                            </div>
-                            
-                            <form th:action="@{/subscribe}" method="post">
-                                <div class="mb-3">
-                                    <label for="nome" class="form-label">Nome Completo</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text">
-                                            <i class="fas fa-user"></i>
-                                        </span>
-                                        <input type="text" class="form-control" id="nome" name="nome" 
-                                               th:value="${nome}" placeholder="Digite seu nome completo" required>
-                                    </div>
+        <div class="hero-section">
+            <div class="hero-content text-center">
+                <h1 class="hero-title">
+                    <i class="fas fa-newspaper me-3"></i>TechNews
+                </h1>
+                <p class="hero-subtitle">
+                    Receba as últimas notícias de tecnologia diretamente no seu email.<br>
+                    Conteúdo curado por especialistas, entregue com qualidade.
+                </p>
+                
+                <!-- Subscription Form -->
+                <div class="row justify-content-center">
+                    <div class="col-lg-5 col-md-7">
+                        <div class="subscription-card">
+                            <div class="card-body">
+                                <h3 class="card-title text-center">
+                                    <i class="fas fa-envelope me-2"></i>Inscreva-se Gratuitamente
+                                </h3>
+                                
+                                <!-- Success Message -->
+                                <div th:if="${successMessage}" class="alert alert-success" role="alert">
+                                    <i class="fas fa-check-circle me-2"></i>
+                                    <span th:text="${successMessage}"></span>
                                 </div>
                                 
-                                <div class="mb-4">
-                                    <label for="email" class="form-label">Email</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text">
-                                            <i class="fas fa-envelope"></i>
-                                        </span>
-                                        <input type="email" class="form-control" id="email" name="email" 
-                                               th:value="${email}" placeholder="Digite seu melhor email" required>
-                                    </div>
+                                <!-- Error Message -->
+                                <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
+                                    <i class="fas fa-exclamation-circle me-2"></i>
+                                    <span th:text="${errorMessage}"></span>
                                 </div>
                                 
-                                <button type="submit" class="btn btn-primary w-100">
-                                    <i class="fas fa-paper-plane me-2"></i>Inscrever-se
-                                </button>
-                            </form>
+                                <form th:action="@{/subscribe}" method="post">
+                                    <div class="mb-4">
+                                        <label for="nome" class="form-label">Nome Completo</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">
+                                                <i class="fas fa-user"></i>
+                                            </span>
+                                            <input type="text" class="form-control" id="nome" name="nome" 
+                                                   th:value="${nome}" placeholder="Digite seu nome completo" required>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <label for="email" class="form-label">Email</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">
+                                                <i class="fas fa-envelope"></i>
+                                            </span>
+                                            <input type="email" class="form-control" id="email" name="email" 
+                                                   th:value="${email}" placeholder="Digite seu melhor email" required>
+                                        </div>
+                                    </div>
+                                    
+                                    <button type="submit" class="btn btn-primary w-100">
+                                        <i class="fas fa-paper-plane me-2"></i>Inscrever-se Agora
+                                    </button>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -108,38 +359,79 @@
         </div>
         
         <!-- Features Section -->
-        <div class="row text-center text-white mb-5">
-            <div class="col-md-4 mb-4">
-                <div class="feature-icon">
-                    <i class="fas fa-bolt"></i>
+        <div class="features-section">
+            <div class="row g-4">
+                <div class="col-lg-4 col-md-6">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <h5 class="feature-title">Notícias em Tempo Real</h5>
+                        <p class="feature-description">
+                            Receba as últimas novidades do mundo tech assim que elas acontecem, 
+                            com atualizações instantâneas e análises profundas.
+                        </p>
+                    </div>
                 </div>
-                <h5>Notícias em Tempo Real</h5>
-                <p>Receba as últimas novidades do mundo tech assim que elas acontecem</p>
-            </div>
-            <div class="col-md-4 mb-4">
-                <div class="feature-icon">
-                    <i class="fas fa-filter"></i>
+                <div class="col-lg-4 col-md-6">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-filter"></i>
+                        </div>
+                        <h5 class="feature-title">Conteúdo Curado</h5>
+                        <p class="feature-description">
+                            Apenas as notícias mais relevantes e de fontes confiáveis, 
+                            selecionadas por nossa equipe de especialistas.
+                        </p>
+                    </div>
                 </div>
-                <h5>Conteúdo Curado</h5>
-                <p>Apenas as notícias mais relevantes e de fontes confiáveis</p>
-            </div>
-            <div class="col-md-4 mb-4">
-                <div class="feature-icon">
-                    <i class="fas fa-mobile-alt"></i>
+                <div class="col-lg-4 col-md-6">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-mobile-alt"></i>
+                        </div>
+                        <h5 class="feature-title">Mobile Friendly</h5>
+                        <p class="feature-description">
+                            Leia suas notícias em qualquer dispositivo, a qualquer hora, 
+                            com design responsivo e otimizado.
+                        </p>
+                    </div>
                 </div>
-                <h5>Mobile Friendly</h5>
-                <p>Leia suas notícias em qualquer dispositivo, a qualquer hora</p>
             </div>
         </div>
     </div>
     
-    <!-- Admin Link -->
-    <div class="container text-center mt-5 mb-4">
-        <a href="/admin" class="btn btn-outline-primary btn-lg">
-            <i class="fas fa-cog me-2"></i>Painel Administrativo
-        </a>
+    <!-- Admin Section -->
+    <div class="admin-section">
+        <div class="container text-center">
+            <a href="/admin" class="btn btn-outline-primary btn-lg">
+                <i class="fas fa-cog me-2"></i>Painel Administrativo
+            </a>
+        </div>
     </div>
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Add smooth scrolling and enhanced interactions
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add loading animation to form submission
+            const form = document.querySelector('form');
+            const submitBtn = document.querySelector('.btn-primary');
+            
+            if (form && submitBtn) {
+                form.addEventListener('submit', function() {
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Inscrevendo...';
+                    submitBtn.disabled = true;
+                });
+            }
+            
+            // Add floating animation to feature cards
+            const featureCards = document.querySelectorAll('.feature-card');
+            featureCards.forEach((card, index) => {
+                card.style.animationDelay = `${0.6 + index * 0.2}s`;
+                card.classList.add('animate__animated', 'animate__fadeInUp');
+            });
+        });
+    </script>
 </body>
 </html>
