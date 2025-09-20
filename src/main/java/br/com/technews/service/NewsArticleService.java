@@ -175,4 +175,20 @@ public class NewsArticleService {
     public Page<NewsArticle> findPublishedArticlesByCategory(String category, Pageable pageable) {
         return newsArticleRepository.findByPublishedTrueAndCategoryOrderByPublishedAtDesc(category, pageable);
     }
+    
+    /**
+     * Busca artigos com filtros avançados combinados
+     */
+    public Page<NewsArticle> searchArticlesWithFilters(String search, String category, 
+                                                      String dateFrom, String dateTo, 
+                                                      String author, Pageable pageable) {
+        return newsArticleRepository.findArticlesWithFilters(search, category, dateFrom, dateTo, author, pageable);
+    }
+    
+    /**
+     * Obtém lista de autores distintos
+     */
+    public List<String> getDistinctAuthors() {
+        return newsArticleRepository.findDistinctAuthors();
+    }
 }

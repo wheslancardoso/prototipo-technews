@@ -120,4 +120,28 @@ public interface NewsArticleRepository extends JpaRepository<NewsArticle, Long> 
      * Busca artigos publicados por categoria ordenados por data de publicação
      */
     Page<NewsArticle> findByPublishedTrueAndCategoryOrderByPublishedAtDesc(String category, Pageable pageable);
+    
+    /**
+     * Busca artigos com filtros avançados combinados
+     */
+    @Query("SELECT n FROM NewsArticle n WHERE n.published = true " +
+           "AND (:search IS NULL OR :search = '' OR " +
+           "     LOWER(n.title) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+           "     LOWER(n.content) LIKE LOWER(CONCAT('%', :search, '%'))) " +
+           "AND (:category IS NULL OR :category = '' OR n.category = :category) " +
+           "AND (:dateFrom IS NULL OR :dateFrom = '' OR n.publishedAt >= CAST(:dateFrom AS timestamp)) " +
+           "AND (:dateTo IS NULL OR :dateTo = '' OR n.publishedAt <= CAST(:dateTo AS timestamp)) " +
+           "AND (:author IS NULL OR :author = '' OR LOWER(n.author) LIKE LOWER(CONCAT('%', :author, '%')))")
+    Page<NewsArticle> findArticlesWithFilters(@Param("search") String search,
+                                            @Param("category") String category,
+                                            @Param("dateFrom") String dateFrom,
+                                            @Param("dateTo") String dateTo,
+                                            @Param("author") String author,
+                                            Pageable pageable);
+    
+    /**
+     * Obtém lista de autores distintos
+     */
+    @Query("SELECT DISTINCT n.author FROM NewsArticle n WHERE n.published = true AND n.author IS NOT NULL ORDER BY n.author")
+    List<String> findDistinctAuthors();
 }

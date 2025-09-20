@@ -83,21 +83,94 @@
     <section class="hero-section">
         <div class="container">
             <div class="row justify-content-center text-center">
-                <div class="col-lg-8">
+                <div class="col-lg-10">
                     <h1 class="display-4 fw-bold mb-4">
                         <i class="fas fa-newspaper me-3"></i>
                         Últimas Notícias Tech
                     </h1>
                     <p class="lead mb-5">Fique por dentro das principais novidades do mundo da tecnologia</p>
                     
-                    <!-- Search Form -->
-                    <form th:action="@{/articles}" method="get" class="d-flex justify-content-center gap-3">
-                        <input type="text" name="search" th:value="${search}" 
-                               class="form-control search-box" style="max-width: 400px;"
-                               placeholder="Buscar artigos...">
-                        <button type="submit" class="btn btn-success btn-search">
-                            <i class="fas fa-search me-2"></i>Buscar
-                        </button>
+                    <!-- Advanced Search Form -->
+                    <form th:action="@{/articles}" method="get" class="search-form">
+                        <div class="row g-3 justify-content-center">
+                            <!-- Search Text -->
+                            <div class="col-md-4">
+                                <input type="text" name="search" th:value="${search}" 
+                                       class="form-control search-box" 
+                                       placeholder="Buscar artigos...">
+                            </div>
+                            
+                            <!-- Category Filter -->
+                            <div class="col-md-3">
+                                <select name="category" class="form-select search-box">
+                                    <option value="">Todas as Categorias</option>
+                                    <option th:each="cat : ${categories}" 
+                                            th:value="${cat}" 
+                                            th:text="${cat}"
+                                            th:selected="${category == cat}">Categoria</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Author Filter -->
+                            <div class="col-md-3">
+                                <select name="author" class="form-select search-box">
+                                    <option value="">Todos os Autores</option>
+                                    <option th:each="auth : ${authors}" 
+                                            th:value="${auth}" 
+                                            th:text="${auth}"
+                                            th:selected="${author == auth}">Autor</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Search Button -->
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-success btn-search w-100">
+                                    <i class="fas fa-search me-2"></i>Buscar
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Advanced Filters Row -->
+                        <div class="row g-3 justify-content-center mt-3">
+                            <!-- Date From -->
+                            <div class="col-md-3">
+                                <input type="date" name="dateFrom" th:value="${dateFrom}" 
+                                       class="form-control search-box" 
+                                       placeholder="Data inicial">
+                            </div>
+                            
+                            <!-- Date To -->
+                            <div class="col-md-3">
+                                <input type="date" name="dateTo" th:value="${dateTo}" 
+                                       class="form-control search-box" 
+                                       placeholder="Data final">
+                            </div>
+                            
+                            <!-- Sort By -->
+                            <div class="col-md-2">
+                                <select name="sortBy" class="form-select search-box">
+                                    <option value="date" th:selected="${sortBy == 'date' or sortBy == null}">Data</option>
+                                    <option value="title" th:selected="${sortBy == 'title'}">Título</option>
+                                    <option value="author" th:selected="${sortBy == 'author'}">Autor</option>
+                                    <option value="category" th:selected="${sortBy == 'category'}">Categoria</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Sort Direction -->
+                            <div class="col-md-2">
+                                <select name="sortDir" class="form-select search-box">
+                                    <option value="desc" th:selected="${sortDir == 'desc' or sortDir == null}">Desc</option>
+                                    <option value="asc" th:selected="${sortDir == 'asc'}">Asc</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Clear Filters -->
+                            <div class="col-md-2">
+                                <a href="/articles" class="btn btn-outline-light w-100">
+                                    <i class="fas fa-times me-2"></i>Limpar
+                                </a>
+                            </div>
+                        </div>
                     </form>
                 </div>
             </div>
@@ -143,13 +216,26 @@
         <!-- Results Info -->
         <div class="row mb-4">
             <div class="col-12">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h3 class="mb-0">
-                        <span th:if="${search != null and !search.isEmpty()}" 
-                              th:text="'Resultados para: ' + ${search}">Resultados para: termo</span>
-                        <span th:if="${search == null or search.isEmpty()}" 
-                              th:text="'Artigos Publicados (' + ${articles.totalElements} + ')'">Artigos Publicados</span>
-                    </h3>
+                <div class="d-flex justify-content-between align-items-center flex-wrap">
+                    <div>
+                        <h3 class="mb-2">
+                            <span th:if="${search != null and !search.isEmpty()}" 
+                                  th:text="'Resultados para: &quot;' + ${search} + '&quot;'">Resultados para: termo</span>
+                            <span th:if="${search == null or search.isEmpty()}" 
+                                  th:text="'Artigos Publicados'">Artigos Publicados</span>
+                        </h3>
+                        <div class="text-muted small">
+                            <span th:text="${articles.totalElements} + ' artigos encontrados'">0 artigos encontrados</span>
+                            <span th:if="${category != null and !category.isEmpty()}" 
+                                  th:text="' • Categoria: ' + ${category}"></span>
+                            <span th:if="${author != null and !author.isEmpty()}" 
+                                  th:text="' • Autor: ' + ${author}"></span>
+                            <span th:if="${dateFrom != null and !dateFrom.isEmpty()}" 
+                                  th:text="' • De: ' + ${dateFrom}"></span>
+                            <span th:if="${dateTo != null and !dateTo.isEmpty()}" 
+                                  th:text="' • Até: ' + ${dateTo}"></span>
+                        </div>
+                    </div>
                     <div class="article-meta">
                         <i class="fas fa-clock me-1"></i>
                         Atualizado em <span th:text="${#temporals.format(#temporals.createNow(), 'dd/MM/yyyy HH:mm')}"></span>
@@ -228,19 +314,19 @@
         <nav th:if="${articles.totalPages > 1}" class="mt-5">
             <ul class="pagination justify-content-center">
                 <li class="page-item" th:classappend="${!articles.hasPrevious()} ? 'disabled'">
-                    <a class="page-link" th:href="@{/articles(page=${articles.number - 1}, search=${search}, category=${category})}">
+                    <a class="page-link" th:href="@{/articles(page=${articles.number - 1}, search=${search}, category=${category}, sortBy=${sortBy}, sortDir=${sortDir}, dateFrom=${dateFrom}, dateTo=${dateTo}, author=${author})}">
                         <i class="fas fa-chevron-left"></i>
                     </a>
                 </li>
                 
                 <li class="page-item" th:each="i : ${#numbers.sequence(0, articles.totalPages - 1)}"
                     th:classappend="${i == articles.number} ? 'active'">
-                    <a class="page-link" th:href="@{/articles(page=${i}, search=${search}, category=${category})}" 
+                    <a class="page-link" th:href="@{/articles(page=${i}, search=${search}, category=${category}, sortBy=${sortBy}, sortDir=${sortDir}, dateFrom=${dateFrom}, dateTo=${dateTo}, author=${author})}" 
                        th:text="${i + 1}">1</a>
                 </li>
                 
                 <li class="page-item" th:classappend="${!articles.hasNext()} ? 'disabled'">
-                    <a class="page-link" th:href="@{/articles(page=${articles.number + 1}, search=${search}, category=${category})}">
+                    <a class="page-link" th:href="@{/articles(page=${articles.number + 1}, search=${search}, category=${category}, sortBy=${sortBy}, sortDir=${sortDir}, dateFrom=${dateFrom}, dateTo=${dateTo}, author=${author})}">
                         <i class="fas fa-chevron-right"></i>
                     </a>
                 </li>

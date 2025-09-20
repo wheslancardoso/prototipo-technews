@@ -30,19 +30,22 @@ public class PublicArticleController {
             @RequestParam(defaultValue = "12") int size,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String category,
+            @RequestParam(required = false) String sortBy,
+            @RequestParam(required = false) String sortDir,
+            @RequestParam(required = false) String dateFrom,
+            @RequestParam(required = false) String dateTo,
+            @RequestParam(required = false) String author,
             Model model) {
         
-        Pageable pageable = PageRequest.of(page, size, Sort.by("publishedAt").descending());
+        // Configurar ordenação
+        Sort sort = createSort(sortBy, sortDir);
+        Pageable pageable = PageRequest.of(page, size, sort);
+        
         Page<NewsArticle> articles;
         
-        // Aplicar filtros se especificados
-        if (search != null && !search.trim().isEmpty()) {
-            articles = newsArticleService.searchPublishedArticles(search.trim(), pageable);
-        } else if (category != null && !category.trim().isEmpty()) {
-            articles = newsArticleService.findPublishedArticlesByCategory(category.trim(), pageable);
-        } else {
-            articles = newsArticleService.findPublishedArticles(pageable);
-        }
+        // Aplicar filtros combinados
+        articles = newsArticleService.searchArticlesWithFilters(
+            search, category, dateFrom, dateTo, author, pageable);
         
         model.addAttribute("articles", articles);
         model.addAttribute("currentPage", page);
@@ -50,9 +53,48 @@ public class PublicArticleController {
         model.addAttribute("totalElements", articles.getTotalElements());
         model.addAttribute("search", search);
         model.addAttribute("category", category);
+        model.addAttribute("sortBy", sortBy);
+        model.addAttribute("sortDir", sortDir);
+        model.addAttribute("dateFrom", dateFrom);
+        model.addAttribute("dateTo", dateTo);
+        model.addAttribute("author", author);
         model.addAttribute("categories", getCategories());
+        model.addAttribute("authors", getAuthors());
         
         return "articles/index";
+    }
+    
+    private Sort createSort(String sortBy, String sortDir) {
+        String field = "publishedAt"; // default
+        Sort.Direction direction = Sort.Direction.DESC; // default
+        
+        if (sortBy != null && !sortBy.trim().isEmpty()) {
+            switch (sortBy.toLowerCase()) {
+                case "title":
+                    field = "title";
+                    break;
+                case "author":
+                    field = "author";
+                    break;
+                case "category":
+                    field = "category";
+                    break;
+                case "date":
+                default:
+                    field = "publishedAt";
+                    break;
+            }
+        }
+        
+        if ("asc".equalsIgnoreCase(sortDir)) {
+            direction = Sort.Direction.ASC;
+        }
+        
+        return Sort.by(direction, field);
+    }
+    
+    private List<String> getAuthors() {
+        return newsArticleService.getDistinctAuthors();
     }
 
     @GetMapping("/{id}")
