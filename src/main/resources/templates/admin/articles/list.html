@@ -3,54 +3,366 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerenciar Artigos - TechNews Admin</title>
+    <title>Artigos - TechNews Admin</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        .admin-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 2rem 0;
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --warning-gradient: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            --danger-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.8);
+            --shadow-light: 0 8px 32px rgba(31, 38, 135, 0.37);
+            --shadow-heavy: 0 15px 35px rgba(31, 38, 135, 0.5);
         }
-        .status-badge {
-            font-size: 0.8rem;
+
+        body {
+            background: var(--primary-gradient);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text-primary);
+            overflow-x: hidden;
         }
-        .article-actions {
-            white-space: nowrap;
+
+        /* Glassmorphism Effects */
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            box-shadow: var(--shadow-light);
+            transition: all 0.3s ease;
+            animation: slideInUp 0.6s ease-out;
         }
-        .table-responsive {
-            border-radius: 10px;
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-heavy);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Page Header */
+        .page-header {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-light);
+        }
+
+        .page-title {
+            background: var(--secondary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 700;
+            font-size: 2.5rem;
+            margin: 0;
+        }
+
+        /* Stats Cards */
+        .stats-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
             overflow: hidden;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .stats-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--success-gradient);
+            border-radius: 20px 20px 0 0;
+        }
+
+        .stats-card.published::before { background: var(--success-gradient); }
+        .stats-card.pending::before { background: var(--warning-gradient); }
+        .stats-card.draft::before { background: var(--danger-gradient); }
+
+        .stats-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        .stats-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Buttons */
+        .btn-glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
+            border-radius: 15px;
+            padding: 0.75rem 1.5rem;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .btn-glass:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: var(--text-primary);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-light);
+        }
+
+        .btn-primary-glass {
+            background: var(--secondary-gradient);
+            border: none;
+            color: white;
+            border-radius: 15px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary-glass:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-heavy);
+            color: white;
+        }
+
+        .btn-action {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
+            border-radius: 10px;
+            padding: 0.5rem;
+            margin: 0 0.25rem;
+            transition: all 0.3s ease;
+            width: 35px;
+            height: 35px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-action:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: var(--text-primary);
+            transform: scale(1.1);
+        }
+
+        .btn-action.edit:hover { background: var(--warning-gradient); }
+        .btn-action.delete:hover { background: var(--danger-gradient); }
+        .btn-action.toggle:hover { background: var(--success-gradient); }
+
+        /* Table Styles */
+        .table-glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .table-glass thead {
+            background: rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .table-glass th {
+            color: var(--text-primary);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.85rem;
+            padding: 1rem;
+            border: none;
+        }
+
+        .table-glass td {
+            color: var(--text-secondary);
+            padding: 1rem;
+            border: none;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            vertical-align: middle;
+        }
+
+        .table-glass tbody tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Status Badges */
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border: 1px solid;
+            backdrop-filter: blur(10px);
+        }
+
+        .status-published {
+            background: rgba(76, 175, 80, 0.2);
+            color: #4CAF50;
+            border-color: rgba(76, 175, 80, 0.3);
+        }
+
+        .status-pending {
+            background: rgba(255, 193, 7, 0.2);
+            color: #FFC107;
+            border-color: rgba(255, 193, 7, 0.3);
+        }
+
+        .status-draft {
+            background: rgba(244, 67, 54, 0.2);
+            color: #F44336;
+            border-color: rgba(244, 67, 54, 0.3);
+        }
+
+        /* Pagination */
+        .pagination .page-link {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
+            border-radius: 10px;
+            margin: 0 0.25rem;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .pagination .page-link:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: var(--text-primary);
+            transform: translateY(-2px);
+        }
+
+        .pagination .page-item.active .page-link {
+            background: var(--secondary-gradient);
+            border-color: transparent;
+            color: white;
+        }
+
+        /* Animations */
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .page-header {
+                padding: 1.5rem;
+            }
+
+            .page-title {
+                font-size: 2rem;
+            }
+
+            .stats-card {
+                margin-bottom: 1rem;
+            }
+
+            .table-responsive {
+                border-radius: 20px;
+                overflow: hidden;
+            }
+
+            .btn-group-mobile {
+                display: flex;
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .btn-group-desktop {
+                display: none;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .btn-group-mobile {
+                display: none;
+            }
+
+            .btn-group-desktop {
+                display: flex;
+                gap: 0.5rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .page-header {
+                padding: 1rem;
+            }
+
+            .stats-number {
+                font-size: 2rem;
+            }
+
+            .table-glass th,
+            .table-glass td {
+                padding: 0.75rem 0.5rem;
+                font-size: 0.9rem;
+            }
+
+            .d-none-mobile {
+                display: none !important;
+            }
         }
     </style>
 </head>
-<body class="bg-light">
-    <div class="admin-header">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col">
-                    <h1><i class="fas fa-newspaper me-2"></i>Gerenciar Artigos</h1>
-                    <p class="mb-0">Administre todos os artigos do TechNews</p>
-                </div>
-                <div class="col-auto">
-                    <a href="/admin/articles/new" class="btn btn-light btn-lg">
-                        <i class="fas fa-plus me-2"></i>Novo Artigo
-                    </a>
-                </div>
+<body>
+    <!-- Page Header -->
+    <div class="page-header glass-card container mt-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="page-title">Gerenciar Artigos</h1>
+                <p class="text-secondary mb-0">Administre todos os artigos do TechNews</p>
             </div>
+            <a href="/admin/articles/new" class="btn btn-primary-glass">
+                <i class="fas fa-plus me-2"></i>Novo Artigo
+            </a>
         </div>
     </div>
 
     <div class="container mt-4">
         <!-- Mensagens de Sucesso/Erro -->
-        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <div th:if="${successMessage}" class="alert alert-success glass-card mb-4" role="alert">
             <i class="fas fa-check-circle me-2"></i>
             <span th:text="${successMessage}"></span>
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
 
-        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <div th:if="${errorMessage}" class="alert alert-danger glass-card mb-4" role="alert">
             <i class="fas fa-exclamation-circle me-2"></i>
             <span th:text="${errorMessage}"></span>
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
@@ -58,151 +370,195 @@
 
         <!-- Estatísticas -->
         <div class="row mb-4">
-            <div class="col-md-3">
-                <div class="card text-center">
-                    <div class="card-body">
-                        <h5 class="card-title text-primary">Total de Artigos</h5>
-                        <h2 class="text-primary" th:text="${totalElements}">0</h2>
-                    </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="stats-card glass-card">
+                    <h3 class="stats-number" th:text="${totalElements}">0</h3>
+                    <p class="stats-label">Total de Artigos</p>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="card text-center">
-                    <div class="card-body">
-                        <h5 class="card-title text-success">Publicados</h5>
-                        <h2 class="text-success">-</h2>
-                    </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="stats-card glass-card published">
+                    <h3 class="stats-number">-</h3>
+                    <p class="stats-label">Publicados</p>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="card text-center">
-                    <div class="card-body">
-                        <h5 class="card-title text-warning">Pendentes</h5>
-                        <h2 class="text-warning">-</h2>
-                    </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="stats-card glass-card pending">
+                    <h3 class="stats-number">-</h3>
+                    <p class="stats-label">Pendentes</p>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="card text-center">
-                    <div class="card-body">
-                        <h5 class="card-title text-info">Rascunhos</h5>
-                        <h2 class="text-info">-</h2>
-                    </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="stats-card glass-card draft">
+                    <h3 class="stats-number">-</h3>
+                    <p class="stats-label">Rascunhos</p>
                 </div>
             </div>
         </div>
 
         <!-- Tabela de Artigos -->
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0"><i class="fas fa-list me-2"></i>Lista de Artigos</h5>
+        <div class="table-glass glass-card">
+            <div class="p-3 border-bottom" style="border-color: var(--glass-border) !important;">
+                <h5 class="mb-0 text-white"><i class="fas fa-list me-2"></i>Lista de Artigos</h5>
             </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>ID</th>
-                                <th>Título</th>
-                                <th>Categoria</th>
-                                <th>Autor</th>
-                                <th>Status</th>
-                                <th>Publicado</th>
-                                <th>Data Criação</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr th:each="article : ${articles.content}">
-                                <td th:text="${article.id}">1</td>
-                                <td>
-                                    <strong th:text="${article.title}">Título do Artigo</strong>
-                                    <br>
-                                    <small class="text-muted" th:text="${#strings.abbreviate(article.summary, 50)}">Resumo...</small>
-                                </td>
-                                <td>
-                                    <span class="badge bg-secondary" th:text="${article.category}">Categoria</span>
-                                </td>
-                                <td th:text="${article.author}">Autor</td>
-                                <td>
-                                    <span class="badge status-badge"
-                                          th:classappend="${article.status.name() == 'PUBLICADO'} ? 'bg-success' : 
-                                                         (${article.status.name() == 'PENDENTE_REVISAO'} ? 'bg-warning' : 'bg-secondary')"
-                                          th:text="${article.status.name()}">Status</span>
-                                </td>
-                                <td>
-                                    <span th:if="${article.published}" class="badge bg-success">
-                                        <i class="fas fa-check"></i> Sim
-                                    </span>
-                                    <span th:unless="${article.published}" class="badge bg-secondary">
-                                        <i class="fas fa-times"></i> Não
-                                    </span>
-                                </td>
-                                <td th:text="${#temporals.format(article.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2024 10:00</td>
-                                <td class="article-actions">
-                                    <div class="btn-group" role="group">
-                                        <a th:href="@{/admin/articles/{id}(id=${article.id})}" 
-                                           class="btn btn-sm btn-outline-primary" title="Visualizar">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                        <a th:href="@{/admin/articles/{id}/edit(id=${article.id})}" 
-                                           class="btn btn-sm btn-outline-secondary" title="Editar">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        <form th:if="${!article.published}" 
-                                              th:action="@{/admin/articles/{id}/publish(id=${article.id})}" 
-                                              method="post" style="display: inline;">
-                                            <button type="submit" class="btn btn-sm btn-outline-success" title="Publicar">
-                                                <i class="fas fa-upload"></i>
-                                            </button>
-                                        </form>
-                                        <form th:if="${article.published}" 
-                                              th:action="@{/admin/articles/{id}/unpublish(id=${article.id})}" 
-                                              method="post" style="display: inline;">
-                                            <button type="submit" class="btn btn-sm btn-outline-warning" title="Despublicar">
-                                                <i class="fas fa-download"></i>
-                                            </button>
-                                        </form>
-                                        <form th:action="@{/admin/articles/{id}/delete(id=${article.id})}" 
-                                              method="post" style="display: inline;"
-                                              onsubmit="return confirm('Tem certeza que deseja excluir este artigo?')">
-                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Excluir">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+            <div class="table-responsive">
+                <table class="table mb-0">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Título</th>
+                            <th>Categoria</th>
+                            <th>Autor</th>
+                            <th>Status</th>
+                            <th>Publicado</th>
+                            <th class="d-none-mobile">Data Criação</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="article : ${articles.content}">
+                            <td th:text="${article.id}">1</td>
+                            <td>
+                                <strong class="text-white" th:text="${article.title}">Título do Artigo</strong>
+                                <br>
+                                <small class="text-secondary" th:text="${#strings.abbreviate(article.summary, 50)}">Resumo...</small>
+                            </td>
+                            <td>
+                                <span class="status-badge status-draft" th:text="${article.category}">Categoria</span>
+                            </td>
+                            <td class="text-white" th:text="${article.author}">Autor</td>
+                            <td>
+                                <span class="status-badge"
+                                      th:classappend="${article.status.name() == 'PUBLICADO'} ? 'status-published' : 
+                                                     (${article.status.name() == 'PENDENTE_REVISAO'} ? 'status-pending' : 'status-draft')"
+                                      th:text="${article.status.name()}">Status</span>
+                            </td>
+                            <td>
+                                <span th:if="${article.published}" class="status-badge status-published">
+                                    <i class="fas fa-check"></i> Sim
+                                </span>
+                                <span th:unless="${article.published}" class="status-badge status-draft">
+                                    <i class="fas fa-times"></i> Não
+                                </span>
+                            </td>
+                            <td class="d-none-mobile text-secondary" th:text="${#temporals.format(article.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2024 10:00</td>
+                            <td>
+                                <div class="btn-group-desktop">
+                                    <a th:href="@{/admin/articles/{id}(id=${article.id})}" 
+                                       class="btn-action" title="Visualizar">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a th:href="@{/admin/articles/{id}/edit(id=${article.id})}" 
+                                       class="btn-action edit" title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <form th:if="${!article.published}" 
+                                          th:action="@{/admin/articles/{id}/publish(id=${article.id})}" 
+                                          method="post" style="display: inline;">
+                                        <button type="submit" class="btn-action toggle" title="Publicar">
+                                            <i class="fas fa-upload"></i>
+                                        </button>
+                                    </form>
+                                    <form th:if="${article.published}" 
+                                          th:action="@{/admin/articles/{id}/unpublish(id=${article.id})}" 
+                                          method="post" style="display: inline;">
+                                        <button type="submit" class="btn-action toggle" title="Despublicar">
+                                            <i class="fas fa-download"></i>
+                                        </button>
+                                    </form>
+                                    <form th:action="@{/admin/articles/{id}/delete(id=${article.id})}" 
+                                          method="post" style="display: inline;"
+                                          onsubmit="return confirm('Tem certeza que deseja excluir este artigo?')">
+                                        <button type="submit" class="btn-action delete" title="Excluir">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                                <div class="btn-group-mobile">
+                                    <a th:href="@{/admin/articles/{id}(id=${article.id})}" 
+                                       class="btn btn-glass btn-sm mb-1" title="Visualizar">
+                                        <i class="fas fa-eye me-1"></i>Ver
+                                    </a>
+                                    <a th:href="@{/admin/articles/{id}/edit(id=${article.id})}" 
+                                       class="btn btn-glass btn-sm mb-1" title="Editar">
+                                        <i class="fas fa-edit me-1"></i>Editar
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
 
         <!-- Paginação -->
-        <nav th:if="${totalPages > 1}" class="mt-4">
-            <ul class="pagination justify-content-center">
-                <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
-                    <a class="page-link" th:href="@{/admin/articles(page=${currentPage - 1})}">Anterior</a>
-                </li>
-                <li th:each="i : ${#numbers.sequence(0, totalPages - 1)}" 
-                    class="page-item" th:classappend="${i == currentPage} ? 'active'">
-                    <a class="page-link" th:href="@{/admin/articles(page=${i})}" th:text="${i + 1}">1</a>
-                </li>
-                <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
-                    <a class="page-link" th:href="@{/admin/articles(page=${currentPage + 1})}">Próximo</a>
-                </li>
-            </ul>
-        </nav>
+        <div th:if="${totalPages > 1}" class="d-flex justify-content-center mt-4">
+            <nav aria-label="Navegação de páginas">
+                <ul class="pagination">
+                    <li th:class="${currentPage == 0 ? 'page-item disabled' : 'page-item'}">
+                        <a th:href="@{/admin/articles(page=${currentPage - 1})}" 
+                           class="page-link btn-glass">
+                            <i class="fas fa-chevron-left me-1"></i>Anterior
+                        </a>
+                    </li>
+                    <li th:each="i : ${#numbers.sequence(0, totalPages - 1)}" 
+                        th:class="${i == currentPage ? 'page-item active' : 'page-item'}">
+                        <a th:href="@{/admin/articles(page=${i})}" 
+                           class="page-link btn-glass" th:text="${i + 1}">1</a>
+                    </li>
+                    <li th:class="${currentPage == totalPages - 1 ? 'page-item disabled' : 'page-item'}">
+                        <a th:href="@{/admin/articles(page=${currentPage + 1})}" 
+                           class="page-link btn-glass">
+                            Próximo<i class="fas fa-chevron-right ms-1"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
 
         <!-- Botão Voltar -->
         <div class="text-center mt-4">
-            <a href="/" class="btn btn-outline-primary">
+            <a href="/" class="btn btn-glass">
                 <i class="fas fa-home me-2"></i>Voltar ao Site
             </a>
         </div>
     </div>
 
+    <!-- JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Smooth animations on load
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.glass-card');
+            cards.forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.1}s`;
+            });
+
+            // Add hover effects to action buttons
+            const actionButtons = document.querySelectorAll('.btn-action');
+            actionButtons.forEach(button => {
+                button.addEventListener('mouseenter', function() {
+                    this.style.transform = 'scale(1.1)';
+                });
+                
+                button.addEventListener('mouseleave', function() {
+                    this.style.transform = 'scale(1)';
+                });
+            });
+        });
+
+        // Confirmation dialogs with better styling
+        function confirmDelete(articleTitle) {
+            return confirm(`Tem certeza que deseja excluir o artigo "${articleTitle}"?\n\nEsta ação não pode ser desfeita.`);
+        }
+
+        function confirmPublish(articleTitle) {
+            return confirm(`Tem certeza que deseja publicar o artigo "${articleTitle}"?`);
+        }
+
+        function confirmUnpublish(articleTitle) {
+            return confirm(`Tem certeza que deseja despublicar o artigo "${articleTitle}"?`);
+        }
+    </script>
 </body>
 </html>
