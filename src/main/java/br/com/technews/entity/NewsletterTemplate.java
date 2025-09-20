@@ -1,11 +1,6 @@
 package br.com.technews.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-
 import java.time.LocalDateTime;
 
 /**
@@ -13,10 +8,6 @@ import java.time.LocalDateTime;
  */
 @Entity
 @Table(name = "newsletter_templates")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class NewsletterTemplate {
 
     @Id
@@ -41,22 +32,175 @@ public class NewsletterTemplate {
     @Column(columnDefinition = "TEXT")
     private String configuration; // JSON com configurações do template
 
-    @Builder.Default
     @Column(nullable = false)
     private Boolean isActive = true;
 
-    @Builder.Default
     @Column(nullable = false)
     private Boolean isDefault = false;
 
-    @Column(nullable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @Column(nullable = false)
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
     @Column(length = 100)
     private String createdBy; // Usuário que criou o template
+
+    // Construtores
+    public NewsletterTemplate() {
+        this.isActive = true;
+        this.isDefault = false;
+    }
+
+    public NewsletterTemplate(String name, String templateKey) {
+        this();
+        this.name = name;
+        this.templateKey = templateKey;
+    }
+
+    // Getters e Setters
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getTemplateKey() {
+        return templateKey;
+    }
+
+    public void setTemplateKey(String templateKey) {
+        this.templateKey = templateKey;
+    }
+
+    public String getHtmlContent() {
+        return htmlContent;
+    }
+
+    public void setHtmlContent(String htmlContent) {
+        this.htmlContent = htmlContent;
+    }
+
+    public String getCssStyles() {
+        return cssStyles;
+    }
+
+    public void setCssStyles(String cssStyles) {
+        this.cssStyles = cssStyles;
+    }
+
+    public String getConfiguration() {
+        return configuration;
+    }
+
+    public void setConfiguration(String configuration) {
+        this.configuration = configuration;
+    }
+
+    public Boolean getIsActive() {
+        return isActive;
+    }
+
+    public void setIsActive(Boolean isActive) {
+        this.isActive = isActive;
+    }
+
+    public Boolean getIsDefault() {
+        return isDefault;
+    }
+
+    public void setIsDefault(Boolean isDefault) {
+        this.isDefault = isDefault;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    // Método builder estático para substituir o Lombok
+    public static NewsletterTemplate builder() {
+        return new NewsletterTemplate();
+    }
+
+    public NewsletterTemplate name(String name) {
+        this.name = name;
+        return this;
+    }
+
+    public NewsletterTemplate description(String description) {
+        this.description = description;
+        return this;
+    }
+
+    public NewsletterTemplate templateKey(String templateKey) {
+        this.templateKey = templateKey;
+        return this;
+    }
+
+    public NewsletterTemplate htmlContent(String htmlContent) {
+        this.htmlContent = htmlContent;
+        return this;
+    }
+
+    public NewsletterTemplate cssStyles(String cssStyles) {
+        this.cssStyles = cssStyles;
+        return this;
+    }
+
+    public NewsletterTemplate configuration(String configuration) {
+        this.configuration = configuration;
+        return this;
+    }
+
+    public NewsletterTemplate isActive(Boolean isActive) {
+        this.isActive = isActive;
+        return this;
+    }
+
+    public NewsletterTemplate isDefault(Boolean isDefault) {
+        this.isDefault = isDefault;
+        return this;
+    }
+
+    public NewsletterTemplate createdBy(String createdBy) {
+        this.createdBy = createdBy;
+        return this;
+    }
+
+    public NewsletterTemplate build() {
+        return this;
+    }
 
     @PrePersist
     protected void onCreate() {

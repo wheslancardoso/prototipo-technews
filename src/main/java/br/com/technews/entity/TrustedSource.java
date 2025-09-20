@@ -11,16 +11,10 @@ import jakarta.persistence.PreUpdate;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import jakarta.validation.constraints.Pattern;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "trusted_sources")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class TrustedSource {
     
     @Id
@@ -49,6 +43,11 @@ public class TrustedSource {
     
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+    
+    // Construtores
+    public TrustedSource() {
+        this.active = true;
+    }
     
     @PrePersist
     protected void onCreate() {

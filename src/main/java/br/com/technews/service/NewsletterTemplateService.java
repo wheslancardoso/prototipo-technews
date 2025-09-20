@@ -159,7 +159,7 @@ public class NewsletterTemplateService {
             return;
         }
 
-        log.info("Inicializando templates padrão do sistema...");
+        System.out.println("Inicializando templates padrão do sistema...");
 
         // Template Padrão
         NewsletterTemplate defaultTemplate = NewsletterTemplate.builder()
@@ -192,14 +192,14 @@ public class NewsletterTemplateService {
                 .build();
 
         templateRepository.saveAll(List.of(defaultTemplate, gridTemplate, mobileTemplate));
-        log.info("Templates padrão inicializados com sucesso!");
+        System.out.println("Templates padrão inicializados com sucesso!");
     }
 
     /**
      * Criar template padrão se não existir
      */
     private NewsletterTemplate createDefaultTemplate() {
-        log.info("Criando template padrão...");
+        System.out.println("Criando template padrão...");
         
         NewsletterTemplate defaultTemplate = NewsletterTemplate.builder()
                 .name("Template Padrão")

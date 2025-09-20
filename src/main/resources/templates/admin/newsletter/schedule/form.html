@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Novo Agendamento - TechNews Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet">
+    <style>
+        .form-section {
+            background: #f8f9fa;
+            border-left: 4px solid #0d6efd;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .category-checkbox {
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            transition: all 0.2s;
+        }
+        .category-checkbox:hover {
+            background-color: #f8f9fa;
+        }
+        .category-checkbox input:checked + label {
+            font-weight: bold;
+            color: #0d6efd;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1 class="h3 mb-0">
+                            <i class="bi bi-plus-circle me-2"></i>
+                            Novo Agendamento de Newsletter
+                        </h1>
+                        <p class="text-muted mb-0">Configure um novo envio de newsletter</p>
+                    </div>
+                    <div>
+                        <a href="/admin/newsletter/schedule" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i>
+                            Voltar
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mensagens de erro -->
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- Formulário -->
+        <form th:action="@{/admin/newsletter/schedule/new}" th:object="${scheduleForm}" method="post">
+            <div class="row">
+                <div class="col-lg-8">
+                    <!-- Informações Básicas -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-info-circle me-2"></i>
+                                Informações Básicas
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="mb-3">
+                                        <label for="subject" class="form-label">
+                                            Assunto da Newsletter <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="text" 
+                                               class="form-control" 
+                                               id="subject" 
+                                               th:field="*{subject}"
+                                               th:classappend="${#fields.hasErrors('subject')} ? 'is-invalid'"
+                                               placeholder="Ex: Newsletter Semanal - Últimas Notícias de Tecnologia"
+                                               maxlength="200">
+                                        <div th:if="${#fields.hasErrors('subject')}" class="invalid-feedback">
+                                            <span th:errors="*{subject}"></span>
+                                        </div>
+                                        <div class="form-text">
+                                            Este será o assunto do email enviado aos assinantes
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="templateKey" class="form-label">Template</label>
+                                        <select class="form-select" id="templateKey" th:field="*{templateKey}">
+                                            <option value="default">Padrão</option>
+                                            <option value="weekly">Semanal</option>
+                                            <option value="monthly">Mensal</option>
+                                            <option value="breaking">Notícias Urgentes</option>
+                                        </select>
+                                        <div class="form-text">
+                                            Layout do email a ser enviado
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="scheduledDate" class="form-label">
+                                    Data e Hora do Envio <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="scheduledDate" 
+                                       th:field="*{scheduledDate}"
+                                       th:classappend="${#fields.hasErrors('scheduledDate')} ? 'is-invalid'"
+                                       placeholder="Selecione a data e hora">
+                                <div th:if="${#fields.hasErrors('scheduledDate')}" class="invalid-feedback">
+                                    <span th:errors="*{scheduledDate}"></span>
+                                </div>
+                                <div class="form-text">
+                                    A newsletter será enviada automaticamente nesta data e hora
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Filtros de Público -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-people me-2"></i>
+                                Filtros de Público
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="frequencyFilter" class="form-label">Frequência de Assinatura</label>
+                                        <select class="form-select" id="frequencyFilter" th:field="*{frequencyFilter}">
+                                            <option value="">Todas as frequências</option>
+                                            <option th:each="freq : ${frequencies}" 
+                                                    th:value="${freq}" 
+                                                    th:text="${freq.name()}">Frequência</option>
+                                        </select>
+                                        <div class="form-text">
+                                            Filtrar por frequência de recebimento
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" 
+                                                   type="checkbox" 
+                                                   id="activeOnly" 
+                                                   th:field="*{activeOnly}"
+                                                   checked>
+                                            <label class="form-check-label" for="activeOnly">
+                                                Apenas assinantes ativos
+                                            </label>
+                                        </div>
+                                        <div class="form-text">
+                                            Enviar apenas para assinantes com status ativo
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" 
+                                                   type="checkbox" 
+                                                   id="verifiedOnly" 
+                                                   th:field="*{verifiedOnly}"
+                                                   checked>
+                                            <label class="form-check-label" for="verifiedOnly">
+                                                Apenas emails verificados
+                                            </label>
+                                        </div>
+                                        <div class="form-text">
+                                            Enviar apenas para emails confirmados
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Categorias -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-tags me-2"></i>
+                                Categorias de Interesse
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted mb-3">
+                                Selecione as categorias para filtrar os assinantes. Se nenhuma categoria for selecionada, 
+                                a newsletter será enviada para todos os assinantes que atendem aos outros filtros.
+                            </p>
+                            
+                            <div class="row" th:if="${categories != null and !categories.empty}">
+                                <div class="col-md-6" th:each="category : ${categories}">
+                                    <div class="category-checkbox">
+                                        <div class="form-check">
+                                            <input class="form-check-input" 
+                                                   type="checkbox" 
+                                                   th:id="'category_' + ${category.id}"
+                                                   th:field="*{categoryIds}"
+                                                   th:value="${category.id}">
+                                            <label class="form-check-label" th:for="'category_' + ${category.id}">
+                                                <strong th:text="${category.name}">Categoria</strong>
+                                                <br>
+                                                <small class="text-muted" th:text="${category.description}">Descrição</small>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div th:if="${categories == null or categories.empty}" class="text-center py-3">
+                                <i class="bi bi-tags display-4 text-muted"></i>
+                                <p class="text-muted mt-2">Nenhuma categoria disponível</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sidebar -->
+                <div class="col-lg-4">
+                    <!-- Preview -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-eye me-2"></i>
+                                Preview do Agendamento
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <strong>Assunto:</strong>
+                                <p class="mb-1" id="preview-subject">-</p>
+                            </div>
+                            <div class="mb-3">
+                                <strong>Data de Envio:</strong>
+                                <p class="mb-1" id="preview-date">-</p>
+                            </div>
+                            <div class="mb-3">
+                                <strong>Template:</strong>
+                                <p class="mb-1" id="preview-template">-</p>
+                            </div>
+                            <div class="mb-3">
+                                <strong>Filtros:</strong>
+                                <ul class="list-unstyled mb-1" id="preview-filters">
+                                    <li>-</li>
+                                </ul>
+                            </div>
+                            <div class="mb-3">
+                                <strong>Categorias:</strong>
+                                <p class="mb-1" id="preview-categories">-</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dicas -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-lightbulb me-2"></i>
+                                Dicas
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-unstyled mb-0">
+                                <li class="mb-2">
+                                    <i class="bi bi-check-circle text-success me-2"></i>
+                                    Use assuntos claros e atrativos
+                                </li>
+                                <li class="mb-2">
+                                    <i class="bi bi-check-circle text-success me-2"></i>
+                                    Agende com pelo menos 1 hora de antecedência
+                                </li>
+                                <li class="mb-2">
+                                    <i class="bi bi-check-circle text-success me-2"></i>
+                                    Considere o fuso horário dos assinantes
+                                </li>
+                                <li class="mb-2">
+                                    <i class="bi bi-check-circle text-success me-2"></i>
+                                    Teste o template antes do envio
+                                </li>
+                                <li class="mb-0">
+                                    <i class="bi bi-check-circle text-success me-2"></i>
+                                    Verifique os filtros de público
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Ações -->
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="bi bi-calendar-plus me-2"></i>
+                                    Criar Agendamento
+                                </button>
+                                <a href="/admin/newsletter/schedule" class="btn btn-outline-secondary">
+                                    <i class="bi bi-x-circle me-2"></i>
+                                    Cancelar
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
+    <script>
+        // Configurar date picker
+        flatpickr("#scheduledDate", {
+            enableTime: true,
+            dateFormat: "Y-m-d H:i",
+            time_24hr: true,
+            locale: "pt",
+            minDate: "today",
+            defaultHour: 9,
+            defaultMinute: 0
+        });
+
+        // Preview em tempo real
+        function updatePreview() {
+            // Assunto
+            const subject = document.getElementById('subject').value || '-';
+            document.getElementById('preview-subject').textContent = subject;
+
+            // Data
+            const date = document.getElementById('scheduledDate').value || '-';
+            document.getElementById('preview-date').textContent = date;
+
+            // Template
+            const template = document.getElementById('templateKey').value || 'default';
+            const templateNames = {
+                'default': 'Padrão',
+                'weekly': 'Semanal',
+                'monthly': 'Mensal',
+                'breaking': 'Notícias Urgentes'
+            };
+            document.getElementById('preview-template').textContent = templateNames[template] || template;
+
+            // Filtros
+            const filters = [];
+            const frequency = document.getElementById('frequencyFilter').value;
+            if (frequency) filters.push(`Frequência: ${frequency}`);
+            
+            const activeOnly = document.getElementById('activeOnly').checked;
+            if (activeOnly) filters.push('Apenas ativos');
+            
+            const verifiedOnly = document.getElementById('verifiedOnly').checked;
+            if (verifiedOnly) filters.push('Apenas verificados');
+
+            const filtersHtml = filters.length > 0 
+                ? filters.map(f => `<li>${f}</li>`).join('') 
+                : '<li>Nenhum filtro específico</li>';
+            document.getElementById('preview-filters').innerHTML = filtersHtml;
+
+            // Categorias
+            const selectedCategories = Array.from(document.querySelectorAll('input[name="categoryIds"]:checked'))
+                .map(cb => cb.nextElementSibling.querySelector('strong').textContent);
+            
+            const categoriesText = selectedCategories.length > 0 
+                ? selectedCategories.join(', ') 
+                : 'Todas as categorias';
+            document.getElementById('preview-categories').textContent = categoriesText;
+        }
+
+        // Atualizar preview quando campos mudarem
+        document.addEventListener('DOMContentLoaded', function() {
+            updatePreview();
+            
+            document.getElementById('subject').addEventListener('input', updatePreview);
+            document.getElementById('scheduledDate').addEventListener('change', updatePreview);
+            document.getElementById('templateKey').addEventListener('change', updatePreview);
+            document.getElementById('frequencyFilter').addEventListener('change', updatePreview);
+            document.getElementById('activeOnly').addEventListener('change', updatePreview);
+            document.getElementById('verifiedOnly').addEventListener('change', updatePreview);
+            
+            document.querySelectorAll('input[name="categoryIds"]').forEach(cb => {
+                cb.addEventListener('change', updatePreview);
+            });
+        });
+
+        // Validação do formulário
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const subject = document.getElementById('subject').value.trim();
+            const scheduledDate = document.getElementById('scheduledDate').value;
+
+            if (!subject) {
+                e.preventDefault();
+                alert('Por favor, informe o assunto da newsletter.');
+                document.getElementById('subject').focus();
+                return;
+            }
+
+            if (!scheduledDate) {
+                e.preventDefault();
+                alert('Por favor, selecione a data e hora do envio.');
+                document.getElementById('scheduledDate').focus();
+                return;
+            }
+
+            // Verificar se a data é futura
+            const selectedDate = new Date(scheduledDate);
+            const now = new Date();
+            if (selectedDate <= now) {
+                e.preventDefault();
+                alert('A data de envio deve ser futura.');
+                document.getElementById('scheduledDate').focus();
+                return;
+            }
+        });
+    </script>
+</body>
+</html>
