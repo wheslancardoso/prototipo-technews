@@ -6,30 +6,331 @@
     <title th:text="${isEdit ? 'Editar Categoria' : 'Nova Categoria'} + ' - TechNews Admin'"></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --glass-bg: rgba(255, 255, 255, 0.25);
+            --glass-border: rgba(255, 255, 255, 0.18);
+            --text-primary: #2d3748;
+            --text-secondary: #718096;
+            --shadow-light: 0 8px 32px rgba(31, 38, 135, 0.37);
+            --shadow-medium: 0 15px 35px rgba(31, 38, 135, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(120, 119, 198, 0.2) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .sidebar {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--glass-border);
+            box-shadow: var(--shadow-light);
+            min-height: 100vh;
+        }
+
+        .sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 12px 20px;
+            margin: 4px 0;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .sidebar .nav-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .sidebar .nav-link.active {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
+        }
+
+        .sidebar-heading {
+            color: white !important;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .main-content {
+            background: transparent;
+        }
+
+        .page-header {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-medium);
+            color: white;
+        }
+
+        .page-header h1 {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            box-shadow: var(--shadow-medium);
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(31, 38, 135, 0.3);
+        }
+
+        .card-header {
+            background: rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid var(--glass-border);
+            border-radius: 20px 20px 0 0 !important;
+            padding: 1.5rem;
+        }
+
+        .card-title {
+            color: white;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .card-body {
+            padding: 2rem;
+        }
+
+        .form-label {
+            color: white;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            font-size: 0.95rem;
+        }
+
+        .form-control, .form-select {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            color: white;
+            padding: 12px 16px;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus, .form-select:focus {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.4);
+            box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .form-control::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .form-text {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+        }
+
+        .btn {
+            border-radius: 12px;
+            padding: 12px 24px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .btn-primary {
+            background: var(--primary-gradient);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .btn-outline-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-outline-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .alert {
+            background: rgba(248, 215, 218, 0.9);
+            border: 1px solid rgba(245, 198, 203, 0.5);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .form-check-input:checked {
+            background-color: #667eea;
+            border-color: #667eea;
+        }
+
+        .form-control-color {
+            width: 60px;
+            height: 45px;
+            border-radius: 12px;
+        }
+
+        .input-group .form-control:not(:last-child) {
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+
+        .input-group .form-control:not(:first-child) {
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+        }
+
+        .badge {
+            border-radius: 8px;
+            font-weight: 500;
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        .animate-slide-in {
+            animation: slideIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: -100%;
+                width: 280px;
+                height: 100vh;
+                z-index: 1050;
+                transition: left 0.3s ease;
+            }
+
+            .sidebar.show {
+                left: 0;
+            }
+
+            .main-content {
+                margin-left: 0 !important;
+            }
+
+            .page-header {
+                margin: 1rem;
+                padding: 1.5rem;
+            }
+
+            .glass-card {
+                margin: 1rem;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar -->
-            <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
+            <nav class="col-md-3 col-lg-2 d-md-block sidebar animate-slide-in">
                 <div class="position-sticky pt-3">
-                    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
-                        <span>TechNews Admin</span>
+                    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1">
+                        <span><i class="fas fa-newspaper me-2"></i>TechNews Admin</span>
                     </h6>
-                    <ul class="nav flex-column">
+                    <ul class="nav flex-column px-2">
                         <li class="nav-item">
                             <a class="nav-link" href="/admin/dashboard">
-                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                                <i class="fas fa-tachometer-alt me-2"></i> Dashboard
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="/admin/articles">
-                                <i class="fas fa-newspaper"></i> Artigos
+                                <i class="fas fa-newspaper me-2"></i> Artigos
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link active" href="/admin/categories">
-                                <i class="fas fa-tags"></i> Categorias
+                                <i class="fas fa-tags me-2"></i> Categorias
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/trusted-sources">
+                                <i class="fas fa-shield-alt me-2"></i> Fontes Confiáveis
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/subscribers">
+                                <i class="fas fa-users me-2"></i> Assinantes
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/newsletter">
+                                <i class="fas fa-envelope me-2"></i> Newsletter
                             </a>
                         </li>
                     </ul>
@@ -37,29 +338,38 @@
             </nav>
 
             <!-- Main content -->
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
-                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <h1 class="h2" th:text="${isEdit ? 'Editar Categoria' : 'Nova Categoria'}"></h1>
-                    <div class="btn-toolbar mb-2 mb-md-0">
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                <!-- Page Header -->
+                <div class="page-header animate-fade-in">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h1 class="h2">
+                                <i class="fas fa-tag me-2"></i>
+                                <span th:text="${isEdit ? 'Editar Categoria' : 'Nova Categoria'}"></span>
+                            </h1>
+                            <p class="mb-0 opacity-75">
+                                <span th:text="${isEdit ? 'Atualize as informações da categoria' : 'Preencha os dados para criar uma nova categoria'}"></span>
+                            </p>
+                        </div>
                         <a href="/admin/categories" class="btn btn-outline-secondary">
-                            <i class="fas fa-arrow-left"></i> Voltar
+                            <i class="fas fa-arrow-left me-2"></i> Voltar
                         </a>
                     </div>
                 </div>
 
                 <!-- Mensagens de erro -->
-                <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <i class="fas fa-exclamation-circle"></i> <span th:text="${errorMessage}"></span>
+                <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show animate-fade-in" role="alert">
+                    <i class="fas fa-exclamation-circle me-2"></i> <span th:text="${errorMessage}"></span>
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
 
                 <!-- Formulário -->
                 <div class="row">
                     <div class="col-md-8">
-                        <div class="card">
+                        <div class="glass-card animate-fade-in">
                             <div class="card-header">
                                 <h5 class="card-title mb-0">
-                                    <i class="fas fa-tag"></i> 
+                                    <i class="fas fa-edit me-2"></i> 
                                     <span th:text="${isEdit ? 'Editar Categoria' : 'Dados da Categoria'}"></span>
                                 </h5>
                             </div>
@@ -68,8 +378,10 @@
                                       method="post" th:object="${category}">
                                     
                                     <!-- Nome -->
-                                    <div class="mb-3">
-                                        <label for="name" class="form-label">Nome da Categoria *</label>
+                                    <div class="mb-4">
+                                        <label for="name" class="form-label">
+                                            <i class="fas fa-heading me-2"></i>Nome da Categoria *
+                                        </label>
                                         <input type="text" class="form-control" id="name" th:field="*{name}" 
                                                th:class="${#fields.hasErrors('name')} ? 'form-control is-invalid' : 'form-control'"
                                                placeholder="Ex: Tecnologia, Inteligência Artificial, etc." required>
@@ -82,8 +394,10 @@
                                     </div>
 
                                     <!-- Descrição -->
-                                    <div class="mb-3">
-                                        <label for="description" class="form-label">Descrição</label>
+                                    <div class="mb-4">
+                                        <label for="description" class="form-label">
+                                            <i class="fas fa-align-left me-2"></i>Descrição
+                                        </label>
                                         <textarea class="form-control" id="description" th:field="*{description}" 
                                                   rows="3" placeholder="Descrição opcional da categoria..."
                                                   th:class="${#fields.hasErrors('description')} ? 'form-control is-invalid' : 'form-control'"></textarea>
@@ -96,8 +410,10 @@
                                     </div>
 
                                     <!-- Cor -->
-                                    <div class="mb-3">
-                                        <label for="color" class="form-label">Cor da Categoria</label>
+                                    <div class="mb-4">
+                                        <label for="color" class="form-label">
+                                            <i class="fas fa-palette me-2"></i>Cor da Categoria
+                                        </label>
                                         <div class="input-group">
                                             <input type="color" class="form-control form-control-color" id="color" 
                                                    th:field="*{color}" title="Escolha uma cor">
@@ -114,12 +430,12 @@
                                     </div>
 
                                     <!-- Status -->
-                                    <div class="mb-3">
+                                    <div class="mb-4">
                                         <div class="form-check form-switch">
                                             <input class="form-check-input" type="checkbox" id="active" 
                                                    th:field="*{active}" th:checked="${category.active}">
-                                            <label class="form-check-label" for="active">
-                                                Categoria ativa
+                                            <label class="form-check-label text-white" for="active">
+                                                <i class="fas fa-toggle-on me-2"></i>Categoria ativa
                                             </label>
                                         </div>
                                         <div class="form-text">
@@ -130,10 +446,10 @@
                                     <!-- Botões -->
                                     <div class="d-flex justify-content-between">
                                         <a href="/admin/categories" class="btn btn-secondary">
-                                            <i class="fas fa-times"></i> Cancelar
+                                            <i class="fas fa-times me-2"></i> Cancelar
                                         </a>
                                         <button type="submit" class="btn btn-primary">
-                                            <i th:class="${isEdit ? 'fas fa-save' : 'fas fa-plus'}"></i>
+                                            <i th:class="${isEdit ? 'fas fa-save me-2' : 'fas fa-plus me-2'}"></i>
                                             <span th:text="${isEdit ? 'Atualizar Categoria' : 'Criar Categoria'}"></span>
                                         </button>
                                     </div>
@@ -144,32 +460,32 @@
 
                     <!-- Sidebar com informações -->
                     <div class="col-md-4">
-                        <div class="card">
+                        <div class="glass-card animate-fade-in" style="animation-delay: 0.2s;">
                             <div class="card-header">
                                 <h6 class="card-title mb-0">
-                                    <i class="fas fa-info-circle"></i> Informações
+                                    <i class="fas fa-info-circle me-2"></i> Informações
                                 </h6>
                             </div>
                             <div class="card-body">
                                 <div th:if="${isEdit && category.createdAt}" class="mb-3">
-                                    <small class="text-muted">Criado em:</small><br>
-                                    <span th:text="${#temporals.format(category.createdAt, 'dd/MM/yyyy HH:mm')}"></span>
+                                    <small class="text-white-50">Criado em:</small><br>
+                                    <span class="text-white" th:text="${#temporals.format(category.createdAt, 'dd/MM/yyyy HH:mm')}"></span>
                                 </div>
                                 
                                 <div th:if="${isEdit && category.updatedAt}" class="mb-3">
-                                    <small class="text-muted">Última atualização:</small><br>
-                                    <span th:text="${#temporals.format(category.updatedAt, 'dd/MM/yyyy HH:mm')}"></span>
+                                    <small class="text-white-50">Última atualização:</small><br>
+                                    <span class="text-white" th:text="${#temporals.format(category.updatedAt, 'dd/MM/yyyy HH:mm')}"></span>
                                 </div>
 
                                 <div th:if="${isEdit && category.slug}" class="mb-3">
-                                    <small class="text-muted">Slug:</small><br>
-                                    <code th:text="${category.slug}"></code>
+                                    <small class="text-white-50">Slug:</small><br>
+                                    <code class="text-info" th:text="${category.slug}"></code>
                                 </div>
 
-                                <hr>
+                                <hr class="border-white-50">
                                 
-                                <h6><i class="fas fa-lightbulb"></i> Dicas</h6>
-                                <ul class="small text-muted">
+                                <h6 class="text-white"><i class="fas fa-lightbulb me-2"></i> Dicas</h6>
+                                <ul class="small text-white-50 mb-0">
                                     <li>Use nomes descritivos e únicos para as categorias</li>
                                     <li>A cor ajuda a identificar visualmente a categoria</li>
                                     <li>Categorias inativas não aparecem no site público</li>
@@ -179,10 +495,10 @@
                         </div>
 
                         <!-- Preview da cor -->
-                        <div class="card mt-3" th:if="${category.color}">
+                        <div class="glass-card mt-3 animate-fade-in" style="animation-delay: 0.4s;" th:if="${category.color}">
                             <div class="card-header">
                                 <h6 class="card-title mb-0">
-                                    <i class="fas fa-palette"></i> Preview da Cor
+                                    <i class="fas fa-eye me-2"></i> Preview da Cor
                                 </h6>
                             </div>
                             <div class="card-body text-center">
@@ -215,6 +531,45 @@
                     }
                 });
             }
+
+            // Mobile sidebar toggle
+            const sidebarToggle = document.createElement('button');
+            sidebarToggle.className = 'btn btn-outline-light d-md-none position-fixed';
+            sidebarToggle.style.cssText = 'top: 20px; left: 20px; z-index: 1051;';
+            sidebarToggle.innerHTML = '<i class="fas fa-bars"></i>';
+            document.body.appendChild(sidebarToggle);
+
+            const sidebar = document.querySelector('.sidebar');
+            sidebarToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('show');
+            });
+
+            // Close sidebar when clicking outside on mobile
+            document.addEventListener('click', function(e) {
+                if (window.innerWidth <= 768 && !sidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {
+                    sidebar.classList.remove('show');
+                }
+            });
+
+            // Scroll animations
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver(function(entries) {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+
+            // Observe animated elements
+            document.querySelectorAll('.animate-fade-in, .animate-slide-in').forEach(el => {
+                observer.observe(el);
+            });
         });
     </script>
 </body>

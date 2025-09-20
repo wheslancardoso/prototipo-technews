@@ -6,215 +6,534 @@
     <title th:text="${article.id != null ? 'Editar Artigo' : 'Novo Artigo'} + ' - TechNews Admin'">Novo Artigo - TechNews Admin</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        .admin-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 2rem 0;
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --glass-bg: rgba(255, 255, 255, 0.25);
+            --glass-border: rgba(255, 255, 255, 0.18);
+            --text-primary: #2d3748;
+            --text-secondary: #4a5568;
+            --shadow-light: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            --shadow-medium: 0 15px 35px rgba(31, 38, 135, 0.2);
+            --border-radius: 16px;
         }
-        .form-container {
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            padding: 2rem;
-            margin-top: -50px;
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 100vh;
             position: relative;
-            z-index: 1;
+            overflow-x: hidden;
         }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.2) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 280px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--glass-border);
+            z-index: 1000;
+            transition: all 0.3s ease;
+            transform: translateX(-100%);
+        }
+
+        .sidebar.show {
+            transform: translateX(0);
+        }
+
+        @media (min-width: 768px) {
+            .sidebar {
+                transform: translateX(0);
+            }
+        }
+
+        .sidebar-brand {
+            padding: 2rem 1.5rem;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .sidebar-brand h4 {
+            color: white;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .sidebar-nav {
+            padding: 1rem 0;
+        }
+
+        .nav-item {
+            margin: 0.5rem 1rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .nav-link i {
+            margin-right: 0.75rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .main-content {
+            margin-left: 0;
+            min-height: 100vh;
+            transition: all 0.3s ease;
+        }
+
+        @media (min-width: 768px) {
+            .main-content {
+                margin-left: 280px;
+            }
+        }
+
+        .page-header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+        }
+
+        .page-header h1 {
+            color: white;
+            font-weight: 700;
+            margin: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .page-header p {
+            color: rgba(255, 255, 255, 0.8);
+            margin: 0.5rem 0 0 0;
+        }
+
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-radius: var(--border-radius);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow-light);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-medium);
+        }
+
         .form-label {
             font-weight: 600;
-            color: #495057;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
         }
-        .form-control:focus {
+
+        .form-label i {
+            margin-right: 0.5rem;
+            color: #667eea;
+        }
+
+        .form-control, .form-select {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus, .form-select:focus {
+            background: rgba(255, 255, 255, 0.95);
             border-color: #667eea;
             box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+            transform: translateY(-2px);
         }
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+        .form-control-lg {
+            padding: 1rem 1.25rem;
+            font-size: 1.1rem;
+        }
+
+        .btn {
+            border-radius: 12px;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            transition: all 0.3s ease;
             border: none;
+            position: relative;
+            overflow: hidden;
         }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: var(--primary-gradient);
+            color: white;
+        }
+
         .btn-primary:hover {
-            background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
         }
+
+        .btn-success {
+            background: var(--success-gradient);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(79, 172, 254, 0.4);
+        }
+
+        .btn-outline-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: var(--text-primary);
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-outline-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .alert {
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .alert-danger {
+            background: rgba(245, 87, 108, 0.1);
+            border-left: 4px solid #f5576c;
+            color: #721c24;
+        }
+
         .preview-image {
-            max-width: 200px;
-            max-height: 150px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+        }
+
+        .preview-image:hover {
+            transform: scale(1.05);
+        }
+
+        .form-check-input:checked {
+            background-color: #667eea;
+            border-color: #667eea;
+        }
+
+        .form-text {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        /* Animations */
+        .animate-fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s ease;
+        }
+
+        .animate-slide-in {
+            opacity: 0;
+            transform: translateX(-30px);
+            transition: all 0.6s ease;
+        }
+
+        .animate-slide-in:nth-child(2) { transition-delay: 0.1s; }
+        .animate-slide-in:nth-child(3) { transition-delay: 0.2s; }
+        .animate-slide-in:nth-child(4) { transition-delay: 0.3s; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .glass-card {
+                margin: 1rem;
+                padding: 1.5rem;
+            }
+            
+            .page-header {
+                padding: 1.5rem 1rem;
+            }
+            
+            .btn-lg {
+                padding: 0.75rem 1.25rem;
+                font-size: 1rem;
+            }
         }
     </style>
 </head>
-<body class="bg-light">
-    <div class="admin-header">
-        <div class="container">
-            <h1>
-                <i class="fas fa-edit me-2"></i>
-                <span th:text="${article.id != null ? 'Editar Artigo' : 'Novo Artigo'}">Novo Artigo</span>
-            </h1>
-            <p class="mb-0">Preencha os dados do artigo</p>
+<<body>
+    <!-- Sidebar -->
+    <div class="sidebar animate-slide-in">
+        <div class="sidebar-brand">
+            <h4><i class="fas fa-newspaper me-2"></i>TechNews</h4>
         </div>
+        <nav class="sidebar-nav">
+            <div class="nav-item animate-slide-in">
+                <a href="/admin/dashboard" class="nav-link">
+                    <i class="fas fa-tachometer-alt"></i>Dashboard
+                </a>
+            </div>
+            <div class="nav-item animate-slide-in">
+                <a href="/admin/articles" class="nav-link active">
+                    <i class="fas fa-newspaper"></i>Artigos
+                </a>
+            </div>
+            <div class="nav-item animate-slide-in">
+                <a href="/admin/categories" class="nav-link">
+                    <i class="fas fa-tags"></i>Categorias
+                </a>
+            </div>
+            <div class="nav-item animate-slide-in">
+                <a href="/admin/trusted-sources" class="nav-link">
+                    <i class="fas fa-shield-alt"></i>Fontes Confiáveis
+                </a>
+            </div>
+            <div class="nav-item animate-slide-in">
+                <a href="/admin/newsletter" class="nav-link">
+                    <i class="fas fa-envelope"></i>Newsletter
+                </a>
+            </div>
+        </nav>
     </div>
 
-    <div class="container">
-        <div class="form-container">
-            <!-- Mensagens de Erro -->
-            <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="fas fa-exclamation-circle me-2"></i>
-                <span th:text="${errorMessage}"></span>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="page-header animate-fade-in">
+            <div class="container-fluid">
+                <h1>
+                    <i class="fas fa-edit me-2"></i>
+                    <span th:text="${article.id != null ? 'Editar Artigo' : 'Novo Artigo'}">Novo Artigo</span>
+                </h1>
+                <p class="mb-0">Preencha os dados do artigo</p>
             </div>
+        </div>
 
-            <form th:action="${article.id != null ? '/admin/articles/' + article.id + '/edit' : '/admin/articles/new'}" 
-                  method="post" th:object="${article}">
-                
-                <div class="row">
-                    <div class="col-md-8">
-                        <!-- Título -->
-                        <div class="mb-3">
-                            <label for="title" class="form-label">
-                                <i class="fas fa-heading me-2"></i>Título *
-                            </label>
-                            <input type="text" class="form-control form-control-lg" id="title" 
-                                   th:field="*{title}" required maxlength="200"
-                                   placeholder="Digite o título do artigo">
-                            <div class="form-text">Máximo 200 caracteres</div>
-                        </div>
+        <div class="container-fluid">
+            <div class="glass-card animate-fade-in">
+                <!-- Mensagens de Erro -->
+                <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    <span th:text="${errorMessage}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
 
-                        <!-- Resumo -->
-                        <div class="mb-3">
-                            <label for="summary" class="form-label">
-                                <i class="fas fa-align-left me-2"></i>Resumo *
-                            </label>
-                            <textarea class="form-control" id="summary" rows="3" 
-                                      th:field="*{summary}" required maxlength="500"
-                                      placeholder="Digite um resumo do artigo"></textarea>
-                            <div class="form-text">Máximo 500 caracteres</div>
-                        </div>
-
-                        <!-- Conteúdo -->
-                        <div class="mb-3">
-                            <label for="content" class="form-label">
-                                <i class="fas fa-file-text me-2"></i>Conteúdo *
-                            </label>
-                            <textarea class="form-control" id="content" rows="10" 
-                                      th:field="*{content}" required
-                                      placeholder="Digite o conteúdo completo do artigo"></textarea>
-                        </div>
-
-                        <!-- URL -->
-                        <div class="mb-3">
-                            <label for="url" class="form-label">
-                                <i class="fas fa-link me-2"></i>URL da Fonte
-                            </label>
-                            <input type="url" class="form-control" id="url" 
-                                   th:field="*{url}" maxlength="500"
-                                   placeholder="https://exemplo.com/artigo">
-                        </div>
-                    </div>
-
-                    <div class="col-md-4">
-                        <!-- Status -->
-                        <div class="mb-3">
-                            <label for="status" class="form-label">
-                                <i class="fas fa-flag me-2"></i>Status
-                            </label>
-                            <select class="form-select" id="status" th:field="*{status}">
-                                <option th:each="status : ${T(br.com.technews.model.ArticleStatus).values()}"
-                                        th:value="${status}" th:text="${status.name()}">Status</option>
-                            </select>
-                        </div>
-
-                        <!-- Categoria -->
-                        <div class="mb-3">
-                            <label for="category" class="form-label">
-                                <i class="fas fa-tags me-2"></i>Categoria
-                            </label>
-                            <input type="text" class="form-control" id="category" 
-                                   th:field="*{category}" maxlength="100"
-                                   placeholder="Ex: Tecnologia, IA, Web">
-                        </div>
-
-                        <!-- Autor -->
-                        <div class="mb-3">
-                            <label for="author" class="form-label">
-                                <i class="fas fa-user me-2"></i>Autor
-                            </label>
-                            <input type="text" class="form-control" id="author" 
-                                   th:field="*{author}" maxlength="100"
-                                   placeholder="Nome do autor">
-                        </div>
-
-                        <!-- URL da Imagem -->
-                        <div class="mb-3">
-                            <label for="imageUrl" class="form-label">
-                                <i class="fas fa-image me-2"></i>URL da Imagem
-                            </label>
-                            <input type="url" class="form-control" id="imageUrl" 
-                                   th:field="*{imageUrl}" maxlength="500"
-                                   placeholder="https://exemplo.com/imagem.jpg"
-                                   onchange="previewImage()">
-                        </div>
-
-                        <!-- Preview da Imagem -->
-                        <div class="mb-3" id="imagePreview" style="display: none;">
-                            <label class="form-label">Preview da Imagem</label>
-                            <div>
-                                <img id="previewImg" class="preview-image" alt="Preview">
-                            </div>
-                        </div>
-
-                        <!-- Domínio da Fonte -->
-                        <div class="mb-3">
-                            <label for="sourceDomain" class="form-label">
-                                <i class="fas fa-globe me-2"></i>Domínio da Fonte
-                            </label>
-                            <input type="text" class="form-control" id="sourceDomain" 
-                                   th:field="*{sourceDomain}" maxlength="100"
-                                   placeholder="exemplo.com">
-                        </div>
-
-                        <!-- Data de Publicação -->
-                        <div class="mb-3">
-                            <label for="publishedAt" class="form-label">
-                                <i class="fas fa-calendar me-2"></i>Data de Publicação
-                            </label>
-                            <input type="datetime-local" class="form-control" id="publishedAt" 
-                                   th:field="*{publishedAt}">
-                        </div>
-
-                        <!-- Publicado -->
-                        <div class="mb-3">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="published" 
-                                       th:field="*{published}">
-                                <label class="form-check-label" for="published">
-                                    <i class="fas fa-eye me-2"></i>Artigo Publicado
+                <form th:action="${article.id != null ? '/admin/articles/' + article.id + '/edit' : '/admin/articles/new'}" 
+                      method="post" th:object="${article}">
+                    
+                    <div class="row">
+                        <div class="col-md-8">
+                            <!-- Título -->
+                            <div class="mb-3 animate-fade-in">
+                                <label for="title" class="form-label">
+                                    <i class="fas fa-heading"></i>Título *
                                 </label>
+                                <input type="text" class="form-control form-control-lg" id="title" 
+                                       th:field="*{title}" required maxlength="200"
+                                       placeholder="Digite o título do artigo">
+                                <div class="form-text">Máximo 200 caracteres</div>
                             </div>
-                            <div class="form-text">Marque para tornar o artigo visível publicamente</div>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- Botões -->
-                <div class="row mt-4">
-                    <div class="col-12">
-                        <div class="d-flex justify-content-between">
-                            <a href="/admin/articles" class="btn btn-outline-secondary btn-lg">
-                                <i class="fas fa-arrow-left me-2"></i>Cancelar
-                            </a>
-                            <div>
-                                <button type="submit" name="action" value="save" class="btn btn-primary btn-lg me-2">
-                                    <i class="fas fa-save me-2"></i>Salvar
-                                </button>
-                                <button type="submit" name="action" value="saveAndPublish" class="btn btn-success btn-lg">
-                                    <i class="fas fa-upload me-2"></i>Salvar e Publicar
-                                </button>
+                            <!-- Resumo -->
+                            <div class="mb-3 animate-fade-in">
+                                <label for="summary" class="form-label">
+                                    <i class="fas fa-align-left"></i>Resumo *
+                                </label>
+                                <textarea class="form-control" id="summary" rows="3" 
+                                          th:field="*{summary}" required maxlength="500"
+                                          placeholder="Digite um resumo do artigo"></textarea>
+                                <div class="form-text">Máximo 500 caracteres</div>
+                            </div>
+
+                            <!-- Conteúdo -->
+                            <div class="mb-3 animate-fade-in">
+                                <label for="content" class="form-label">
+                                    <i class="fas fa-file-text"></i>Conteúdo *
+                                </label>
+                                <textarea class="form-control" id="content" rows="10" 
+                                          th:field="*{content}" required
+                                          placeholder="Digite o conteúdo completo do artigo"></textarea>
+                            </div>
+
+                            <!-- URL -->
+                            <div class="mb-3 animate-fade-in">
+                                <label for="url" class="form-label">
+                                    <i class="fas fa-link"></i>URL da Fonte
+                                </label>
+                                <input type="url" class="form-control" id="url" 
+                                       th:field="*{url}" maxlength="500"
+                                       placeholder="https://exemplo.com/artigo">
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <!-- Status -->
+                            <div class="mb-3 animate-fade-in">
+                                <label for="status" class="form-label">
+                                    <i class="fas fa-flag"></i>Status
+                                </label>
+                                <select class="form-select" id="status" th:field="*{status}">
+                                    <option th:each="status : ${T(br.com.technews.model.ArticleStatus).values()}"
+                                            th:value="${status}" th:text="${status.name()}">Status</option>
+                                </select>
+                            </div>
+
+                            <!-- Categoria -->
+                            <div class="mb-3 animate-fade-in">
+                                <label for="category" class="form-label">
+                                    <i class="fas fa-tags"></i>Categoria
+                                </label>
+                                <input type="text" class="form-control" id="category" 
+                                       th:field="*{category}" maxlength="100"
+                                       placeholder="Ex: Tecnologia, IA, Web">
+                            </div>
+
+                            <!-- Autor -->
+                            <div class="mb-3 animate-fade-in">
+                                <label for="author" class="form-label">
+                                    <i class="fas fa-user"></i>Autor
+                                </label>
+                                <input type="text" class="form-control" id="author" 
+                                       th:field="*{author}" maxlength="100"
+                                       placeholder="Nome do autor">
+                            </div>
+
+                            <!-- URL da Imagem -->
+                            <div class="mb-3 animate-fade-in">
+                                <label for="imageUrl" class="form-label">
+                                    <i class="fas fa-image"></i>URL da Imagem
+                                </label>
+                                <input type="url" class="form-control" id="imageUrl" 
+                                       th:field="*{imageUrl}" maxlength="500"
+                                       placeholder="https://exemplo.com/imagem.jpg"
+                                       onchange="previewImage()">
+                            </div>
+
+                            <!-- Preview da Imagem -->
+                            <div class="mb-3 animate-fade-in" id="imagePreview" style="display: none;">
+                                <label class="form-label">Preview da Imagem</label>
+                                <div>
+                                    <img id="previewImg" class="preview-image" alt="Preview">
+                                </div>
+                            </div>
+
+                            <!-- Domínio da Fonte -->
+                            <div class="mb-3 animate-fade-in">
+                                <label for="sourceDomain" class="form-label">
+                                    <i class="fas fa-globe"></i>Domínio da Fonte
+                                </label>
+                                <input type="text" class="form-control" id="sourceDomain" 
+                                       th:field="*{sourceDomain}" maxlength="100"
+                                       placeholder="exemplo.com">
+                            </div>
+
+                            <!-- Data de Publicação -->
+                            <div class="mb-3 animate-fade-in">
+                                <label for="publishedAt" class="form-label">
+                                    <i class="fas fa-calendar"></i>Data de Publicação
+                                </label>
+                                <input type="datetime-local" class="form-control" id="publishedAt" 
+                                       th:field="*{publishedAt}">
+                            </div>
+
+                            <!-- Publicado -->
+                            <div class="mb-3 animate-fade-in">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="published" 
+                                           th:field="*{published}">
+                                    <label class="form-check-label" for="published">
+                                        <i class="fas fa-eye me-2"></i>Artigo Publicado
+                                    </label>
+                                </div>
+                                <div class="form-text">Marque para tornar o artigo visível publicamente</div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </form>
+
+                    <!-- Botões -->
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between animate-fade-in">
+                                <a href="/admin/articles" class="btn btn-outline-secondary btn-lg">
+                                    <i class="fas fa-arrow-left me-2"></i>Cancelar
+                                </a>
+                                <div>
+                                    <button type="submit" name="action" value="save" class="btn btn-primary btn-lg me-2">
+                                        <i class="fas fa-save me-2"></i>Salvar
+                                    </button>
+                                    <button type="submit" name="action" value="saveAndPublish" class="btn btn-success btn-lg">
+                                        <i class="fas fa-upload me-2"></i>Salvar e Publicar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 
@@ -240,6 +559,45 @@
         // Preview da imagem ao carregar a página se já houver URL
         document.addEventListener('DOMContentLoaded', function() {
             previewImage();
+
+            // Mobile sidebar toggle
+            const sidebarToggle = document.createElement('button');
+            sidebarToggle.className = 'btn btn-outline-light d-md-none position-fixed';
+            sidebarToggle.style.cssText = 'top: 20px; left: 20px; z-index: 1051;';
+            sidebarToggle.innerHTML = '<i class="fas fa-bars"></i>';
+            document.body.appendChild(sidebarToggle);
+
+            const sidebar = document.querySelector('.sidebar');
+            sidebarToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('show');
+            });
+
+            // Close sidebar when clicking outside on mobile
+            document.addEventListener('click', function(e) {
+                if (window.innerWidth <= 768 && !sidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {
+                    sidebar.classList.remove('show');
+                }
+            });
+
+            // Scroll animations
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver(function(entries) {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+
+            // Observe animated elements
+            document.querySelectorAll('.animate-fade-in, .animate-slide-in').forEach(el => {
+                observer.observe(el);
+            });
         });
     </script>
 </body>
