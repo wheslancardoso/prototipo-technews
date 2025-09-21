@@ -21,8 +21,15 @@ public class SecurityConfig {
         http
             .authorizeHttpRequests(authz -> authz
                 .requestMatchers("/", "/subscribe", "/unsubscribe/**", "/verify/**", 
-                               "/css/**", "/js/**", "/images/**", "/webjars/**",
-                               "/api/**").permitAll()
+                               "/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
+                // Endpoints públicos da API
+                .requestMatchers("/api/newsletter/subscribe", "/api/newsletter/status/**", 
+                               "/api/newsletter/unsubscribe/**", "/api/newsletter/reactivate",
+                               "/api/newsletter/verify", "/api/news/**").permitAll()
+                // Endpoints administrativos da API - requerem autenticação ADMIN
+                .requestMatchers("/api/newsletter/subscribers", "/api/newsletter/stats", 
+                               "/api/newsletter/send", "/api/newsletter/templates/**",
+                               "/api/newsletter/schedule/**").hasRole("ADMIN")
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
