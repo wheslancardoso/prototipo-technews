@@ -1,8 +1,12 @@
 package br.com.technews.controller;
 
 import br.com.technews.entity.Subscriber;
+import br.com.technews.entity.NewsArticle;
 import br.com.technews.service.SubscriberService;
+import br.com.technews.service.NewsArticleService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,14 +22,32 @@ public class PageController {
     @Autowired
     private SubscriberService subscriberService;
     
+    @Autowired
+    private NewsArticleService newsArticleService;
+    
     @GetMapping("/")
     public String home(Model model) {
         try {
+            // Estatísticas de assinantes
             List<Subscriber> subscribers = subscriberService.getAllSubscribers();
             model.addAttribute("subscriberCount", subscribers.size());
+            
+            // Artigos em destaque (últimos 6 publicados)
+            List<NewsArticle> featuredArticles = newsArticleService.findPublishedArticles(
+                PageRequest.of(0, 6, Sort.by("publishedAt").descending())
+            ).getContent();
+            model.addAttribute("featuredArticles", featuredArticles);
+            
+            // Estatísticas gerais
+            model.addAttribute("totalArticles", newsArticleService.countPublished());
+            model.addAttribute("categories", newsArticleService.getDistinctCategories());
+            
         } catch (Exception e) {
-            // Se houver erro ao buscar subscribers, define count como 0
+            // Se houver erro, define valores padrão
             model.addAttribute("subscriberCount", 0);
+            model.addAttribute("featuredArticles", List.of());
+            model.addAttribute("totalArticles", 0);
+            model.addAttribute("categories", List.of());
         }
         return "index";
     }

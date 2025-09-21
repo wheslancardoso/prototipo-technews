@@ -244,194 +244,454 @@
             color: white;
         }
 
-        /* Animations */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        /* Statistics Section */
+        .stats-section {
+            padding: 80px 0;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .hero-title {
-                font-size: 2.5rem;
-            }
-            
-            .hero-subtitle {
-                font-size: 1.1rem;
-            }
-            
-            .card-body {
-                padding: 2rem !important;
-            }
-            
-            .feature-card {
-                margin-bottom: 2rem;
-            }
+        .stat-card {
+            text-align: center;
+            padding: 2rem 1rem;
+            transition: all 0.3s ease;
         }
 
-        @media (max-width: 576px) {
-            .hero-section {
-                padding: 60px 0 40px;
-            }
-            
-            .hero-title {
-                font-size: 2rem;
-            }
-            
-            .card-body {
-                padding: 1.5rem !important;
-            }
+        .stat-card:hover {
+            transform: translateY(-5px);
         }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <!-- Hero Section -->
-        <div class="hero-section">
-            <div class="hero-content text-center">
-                <h1 class="hero-title">
-                    <i class="fas fa-newspaper me-3"></i>TechNews
-                </h1>
-                <p class="hero-subtitle">
-                    Receba as últimas notícias de tecnologia diretamente no seu email.<br>
-                    Conteúdo curado por especialistas, entregue com qualidade.
-                </p>
-                
-                <!-- Subscription Form -->
-                <div class="row justify-content-center">
-                    <div class="col-lg-5 col-md-7">
-                        <div class="subscription-card">
-                            <div class="card-body">
-                                <h3 class="card-title text-center">
-                                    <i class="fas fa-envelope me-2"></i>Inscreva-se Gratuitamente
-                                </h3>
-                                
-                                <!-- Success Message -->
-                                <div th:if="${successMessage}" class="alert alert-success" role="alert">
-                                    <i class="fas fa-check-circle me-2"></i>
-                                    <span th:text="${successMessage}"></span>
-                                </div>
-                                
-                                <!-- Error Message -->
-                                <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
-                                    <i class="fas fa-exclamation-circle me-2"></i>
-                                    <span th:text="${errorMessage}"></span>
-                                </div>
-                                
-                                <form th:action="@{/subscribe}" method="post">
-                                    <div class="mb-4">
-                                        <label for="nome" class="form-label">Nome Completo</label>
-                                        <div class="input-group">
-                                            <span class="input-group-text">
-                                                <i class="fas fa-user"></i>
-                                            </span>
-                                            <input type="text" class="form-control" id="nome" name="nome" 
-                                                   th:value="${nome}" placeholder="Digite seu nome completo" required>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="mb-4">
-                                        <label for="email" class="form-label">Email</label>
-                                        <div class="input-group">
-                                            <span class="input-group-text">
-                                                <i class="fas fa-envelope"></i>
-                                            </span>
-                                            <input type="email" class="form-control" id="email" name="email" 
-                                                   th:value="${email}" placeholder="Digite seu melhor email" required>
-                                        </div>
-                                    </div>
-                                    
-                                    <button type="submit" class="btn btn-primary w-100">
-                                        <i class="fas fa-paper-plane me-2"></i>Inscrever-se Agora
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Features Section -->
-        <div class="features-section">
-            <div class="row g-4">
-                <div class="col-lg-4 col-md-6">
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="fas fa-bolt"></i>
-                        </div>
-                        <h5 class="feature-title">Notícias em Tempo Real</h5>
-                        <p class="feature-description">
-                            Receba as últimas novidades do mundo tech assim que elas acontecem, 
-                            com atualizações instantâneas e análises profundas.
-                        </p>
-                    </div>
-                </div>
-                <div class="col-lg-4 col-md-6">
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="fas fa-filter"></i>
-                        </div>
-                        <h5 class="feature-title">Conteúdo Curado</h5>
-                        <p class="feature-description">
-                            Apenas as notícias mais relevantes e de fontes confiáveis, 
-                            selecionadas por nossa equipe de especialistas.
-                        </p>
-                    </div>
-                </div>
-                <div class="col-lg-4 col-md-6">
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="fas fa-mobile-alt"></i>
-                        </div>
-                        <h5 class="feature-title">Mobile Friendly</h5>
-                        <p class="feature-description">
-                            Leia suas notícias em qualquer dispositivo, a qualquer hora, 
-                            com design responsivo e otimizado.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Admin Section -->
-    <div class="admin-section">
-        <div class="container text-center">
-            <a href="/admin" class="btn btn-outline-primary btn-lg">
-                <i class="fas fa-cog me-2"></i>Painel Administrativo
-            </a>
-        </div>
-    </div>
-    
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Add smooth scrolling and enhanced interactions
-        document.addEventListener('DOMContentLoaded', function() {
-            // Add loading animation to form submission
-            const form = document.querySelector('form');
-            const submitBtn = document.querySelector('.btn-primary');
-            
-            if (form && submitBtn) {
-                form.addEventListener('submit', function() {
-                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Inscrevendo...';
-                    submitBtn.disabled = true;
-                });
-            }
-            
-            // Add floating animation to feature cards
-            const featureCards = document.querySelectorAll('.feature-card');
-            featureCards.forEach((card, index) => {
-                card.style.animationDelay = `${0.6 + index * 0.2}s`;
-                card.classList.add('animate__animated', 'animate__fadeInUp');
-            });
-        });
-    </script>
-</body>
-</html>
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Featured Articles Section */
+        .featured-articles-section {
+            padding: 80px 0;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(5px);
+        }
+
+        .section-header {
+            margin-bottom: 4rem;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 1rem;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .section-subtitle {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 300;
+        }
+
+        .article-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            transition: all 0.4s ease;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .article-card:hover {
+            transform: translateY(-10px);
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .article-image {
+            position: relative;
+            height: 200px;
+            overflow: hidden;
+        }
+
+        .article-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.4s ease;
+        }
+
+        .article-card:hover .article-image img {
+            transform: scale(1.05);
+        }
+
+        .article-category {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            background: var(--secondary-gradient);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .article-content {
+            padding: 2rem;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .article-title {
+            margin-bottom: 1rem;
+            flex-grow: 1;
+        }
+
+        .article-title a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.2rem;
+            line-height: 1.4;
+            transition: color 0.3s ease;
+        }
+
+        .article-title a:hover {
+            color: #f093fb;
+        }
+
+        .article-excerpt {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        .article-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: auto;
+        }
+
+        .article-meta span {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .article-meta i {
+            font-size: 0.8rem;
+        }
+
+         /* Animations */
+         @keyframes fadeInUp {
+             from {
+                 opacity: 0;
+                 transform: translateY(30px);
+             }
+             to {
+                 opacity: 1;
+                 transform: translateY(0);
+             }
+         }
+
+         /* Responsive Design */
+         @media (max-width: 768px) {
+             .hero-title {
+                 font-size: 2.5rem;
+             }
+             
+             .hero-subtitle {
+                 font-size: 1.1rem;
+             }
+             
+             .card-body {
+                 padding: 2rem !important;
+             }
+             
+             .feature-card {
+                 margin-bottom: 2rem;
+             }
+             
+             .section-title {
+                 font-size: 2rem;
+             }
+             
+             .stat-number {
+                 font-size: 2.5rem;
+             }
+             
+             .article-content {
+                 padding: 1.5rem;
+             }
+         }
+
+         @media (max-width: 576px) {
+             .hero-section {
+                 padding: 60px 0 40px;
+             }
+             
+             .hero-title {
+                 font-size: 2rem;
+             }
+             
+             .card-body {
+                 padding: 1.5rem !important;
+             }
+             
+             .stats-section, .featured-articles-section {
+                 padding: 60px 0;
+             }
+             
+             .section-title {
+                 font-size: 1.8rem;
+             }
+             
+             .stat-number {
+                 font-size: 2rem;
+             }
+         }
+     </style>
+ </head>
+ <body>
+     <div class="container">
+         <!-- Hero Section -->
+         <div class="hero-section">
+             <div class="hero-content text-center">
+                 <h1 class="hero-title">
+                     <i class="fas fa-newspaper me-3"></i>TechNews
+                 </h1>
+                 <p class="hero-subtitle">
+                     Receba as últimas notícias de tecnologia diretamente no seu email.<br>
+                     Conteúdo curado por especialistas, entregue com qualidade.
+                 </p>
+                 
+                 <!-- Subscription Form -->
+                 <div class="row justify-content-center">
+                     <div class="col-lg-5 col-md-7">
+                         <div class="subscription-card">
+                             <div class="card-body">
+                                 <h3 class="card-title text-center">
+                                     <i class="fas fa-envelope me-2"></i>Inscreva-se Gratuitamente
+                                 </h3>
+                                 
+                                 <!-- Success Message -->
+                                 <div th:if="${successMessage}" class="alert alert-success" role="alert">
+                                     <i class="fas fa-check-circle me-2"></i>
+                                     <span th:text="${successMessage}"></span>
+                                 </div>
+                                 
+                                 <!-- Error Message -->
+                                 <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
+                                     <i class="fas fa-exclamation-circle me-2"></i>
+                                     <span th:text="${errorMessage}"></span>
+                                 </div>
+                                 
+                                 <form th:action="@{/subscribe}" method="post">
+                                     <div class="mb-4">
+                                         <label for="nome" class="form-label">Nome Completo</label>
+                                         <div class="input-group">
+                                             <span class="input-group-text">
+                                                 <i class="fas fa-user"></i>
+                                             </span>
+                                             <input type="text" class="form-control" id="nome" name="nome" 
+                                                    th:value="${nome}" placeholder="Digite seu nome completo" required>
+                                         </div>
+                                     </div>
+                                     
+                                     <div class="mb-4">
+                                         <label for="email" class="form-label">Email</label>
+                                         <div class="input-group">
+                                             <span class="input-group-text">
+                                                 <i class="fas fa-envelope"></i>
+                                             </span>
+                                             <input type="email" class="form-control" id="email" name="email" 
+                                                    th:value="${email}" placeholder="Digite seu melhor email" required>
+                                         </div>
+                                     </div>
+                                     
+                                     <button type="submit" class="btn btn-primary w-100">
+                                         <i class="fas fa-paper-plane me-2"></i>Inscrever-se Agora
+                                     </button>
+                                 </form>
+                             </div>
+                         </div>
+                     </div>
+                 </div>
+             </div>
+         </div>
+         
+         <!-- Features Section -->
+         <div class="features-section">
+             <div class="row g-4">
+                 <div class="col-lg-4 col-md-6">
+                     <div class="feature-card">
+                         <div class="feature-icon">
+                             <i class="fas fa-bolt"></i>
+                         </div>
+                         <h5 class="feature-title">Notícias em Tempo Real</h5>
+                         <p class="feature-description">
+                             Receba as últimas novidades do mundo tech assim que elas acontecem, 
+                             com atualizações instantâneas e análises profundas.
+                         </p>
+                     </div>
+                 </div>
+                 <div class="col-lg-4 col-md-6">
+                     <div class="feature-card">
+                         <div class="feature-icon">
+                             <i class="fas fa-filter"></i>
+                         </div>
+                         <h5 class="feature-title">Conteúdo Curado</h5>
+                         <p class="feature-description">
+                             Apenas as notícias mais relevantes e de fontes confiáveis, 
+                             selecionadas por nossa equipe de especialistas.
+                         </p>
+                     </div>
+                 </div>
+                 <div class="col-lg-4 col-md-6">
+                     <div class="feature-card">
+                         <div class="feature-icon">
+                             <i class="fas fa-mobile-alt"></i>
+                         </div>
+                         <h5 class="feature-title">Mobile Friendly</h5>
+                         <p class="feature-description">
+                             Leia suas notícias em qualquer dispositivo, a qualquer hora, 
+                             com design responsivo e otimizado.
+                         </p>
+                     </div>
+                 </div>
+             </div>
+         </div>
+         
+         <!-- Statistics Section -->
+         <div class="stats-section">
+             <div class="container">
+                 <div class="row text-center">
+                     <div class="col-md-3 col-6">
+                         <div class="stat-card">
+                             <div class="stat-number" th:text="${totalArticles ?: 0}">0</div>
+                             <div class="stat-label">Artigos Publicados</div>
+                         </div>
+                     </div>
+                     <div class="col-md-3 col-6">
+                         <div class="stat-card">
+                             <div class="stat-number" th:text="${subscriberCount ?: 0}">0</div>
+                             <div class="stat-label">Assinantes</div>
+                         </div>
+                     </div>
+                     <div class="col-md-3 col-6">
+                         <div class="stat-card">
+                             <div class="stat-number" th:text="${#lists.size(categories ?: {})}">0</div>
+                             <div class="stat-label">Categorias</div>
+                         </div>
+                     </div>
+                     <div class="col-md-3 col-6">
+                         <div class="stat-card">
+                             <div class="stat-number">24/7</div>
+                             <div class="stat-label">Cobertura</div>
+                         </div>
+                     </div>
+                 </div>
+             </div>
+         </div>
+         
+         <!-- Featured Articles Section -->
+         <div class="featured-articles-section" th:if="${featuredArticles != null and !#lists.isEmpty(featuredArticles)}">
+             <div class="container">
+                 <div class="section-header text-center mb-5">
+                     <h2 class="section-title">Últimas Notícias</h2>
+                     <p class="section-subtitle">Fique por dentro das novidades mais recentes do mundo tech</p>
+                 </div>
+                 
+                 <div class="row g-4">
+                     <div class="col-lg-4 col-md-6" th:each="article : ${featuredArticles}">
+                         <div class="article-card">
+                             <div class="article-image" th:if="${article.imageUrl}">
+                                 <img th:src="${article.imageUrl}" th:alt="${article.title}" class="img-fluid">
+                                 <div class="article-category" th:text="${article.category}">Categoria</div>
+                             </div>
+                             <div class="article-content">
+                                 <h5 class="article-title">
+                                     <a th:href="@{/articles/{id}(id=${article.id})}" th:text="${article.title}">Título do Artigo</a>
+                                 </h5>
+                                 <p class="article-excerpt" th:text="${#strings.abbreviate(article.content, 120)}">
+                                     Resumo do artigo...
+                                 </p>
+                                 <div class="article-meta">
+                                     <span class="article-author" th:if="${article.author}">
+                                         <i class="fas fa-user"></i> <span th:text="${article.author}">Autor</span>
+                                     </span>
+                                     <span class="article-date" th:if="${article.publishedAt}">
+                                         <i class="fas fa-calendar"></i> 
+                                         <span th:text="${#temporals.format(article.publishedAt, 'dd/MM/yyyy')}">Data</span>
+                                     </span>
+                                 </div>
+                             </div>
+                         </div>
+                     </div>
+                 </div>
+                 
+                 <div class="text-center mt-5">
+                     <a href="/articles" class="btn btn-outline-primary btn-lg">
+                         <i class="fas fa-newspaper me-2"></i>Ver Todos os Artigos
+                     </a>
+                 </div>
+             </div>
+         </div>
+     </div>
+     
+     <!-- Admin Section -->
+     <div class="admin-section">
+         <div class="container text-center">
+             <a href="/admin" class="btn btn-outline-primary btn-lg">
+                 <i class="fas fa-cog me-2"></i>Painel Administrativo
+             </a>
+         </div>
+     </div>
+     
+     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+     <script>
+         // Add smooth scrolling and enhanced interactions
+         document.addEventListener('DOMContentLoaded', function() {
+             // Add loading animation to form submission
+             const form = document.querySelector('form');
+             const submitBtn = document.querySelector('.btn-primary');
+             
+             if (form && submitBtn) {
+                 form.addEventListener('submit', function() {
+                     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Inscrevendo...';
+                     submitBtn.disabled = true;
+                 });
+             }
+             
+             // Add floating animation to feature cards
+             const featureCards = document.querySelectorAll('.feature-card');
+             featureCards.forEach((card, index) => {
+                 card.style.animationDelay = `${0.6 + index * 0.2}s`;
+                 card.classList.add('animate__animated', 'animate__fadeInUp');
+             });
+         });
+     </script>
+ </body>
+ </html>
