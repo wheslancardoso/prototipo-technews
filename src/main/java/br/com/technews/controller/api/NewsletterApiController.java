@@ -269,15 +269,20 @@ public class NewsletterApiController {
      * Enviar newsletter manualmente
      */
     @PostMapping("/send")
-    public ResponseEntity<Map<String, Object>> sendNewsletter(@RequestBody SendNewsletterRequest request) {
+    public ResponseEntity<Map<String, Object>> sendNewsletter(@RequestBody(required = false) SendNewsletterRequest request) {
         Map<String, Object> response = new HashMap<>();
         
         try {
+            // Se não há request body, usar valores padrão
+            if (request == null) {
+                request = new SendNewsletterRequest();
+                request.setFrequency(Subscriber.SubscriptionFrequency.WEEKLY);
+                request.setTestMode(false);
+            }
+            
             // Validar parâmetros
             if (request.getFrequency() == null) {
-                response.put("success", false);
-                response.put("message", "Frequência é obrigatória");
-                return ResponseEntity.badRequest().body(response);
+                request.setFrequency(Subscriber.SubscriptionFrequency.WEEKLY);
             }
 
             // Enviar newsletter
@@ -305,11 +310,11 @@ public class NewsletterApiController {
      * Reativar inscrição
      */
     @PostMapping("/reactivate")
-    public ResponseEntity<Map<String, Object>> reactivate(@RequestBody ReactivateRequest request) {
+    public ResponseEntity<Map<String, Object>> reactivate(@RequestParam String email) {
         Map<String, Object> response = new HashMap<>();
         
         try {
-            boolean success = subscriberService.reactivateSubscription(request.getEmail());
+            boolean success = subscriberService.reactivateSubscription(email);
             
             if (success) {
                 response.put("success", true);
@@ -331,7 +336,43 @@ public class NewsletterApiController {
     }
 
     /**
-     * Verificar email via API
+     * Verificar email via token
+     */
+    @GetMapping("/verify")
+    public ResponseEntity<Map<String, Object>> verifyEmailGet(@RequestParam(required = false) String token) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            if (token == null || token.trim().isEmpty()) {
+                response.put("success", false);
+                response.put("message", "Token de verificação é obrigatório");
+                response.put("verified", false);
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            boolean success = subscriberService.verifyEmail(token);
+            
+            if (success) {
+                response.put("success", true);
+                response.put("message", "Email verificado com sucesso");
+                response.put("verified", true);
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("success", false);
+                response.put("message", "Token de verificação inválido ou expirado");
+                response.put("verified", false);
+                return ResponseEntity.badRequest().body(response);
+            }
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Erro interno do servidor");
+            response.put("error", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
+    /**
+     * Verificar email via POST (para compatibilidade)
      */
     @PostMapping("/verify")
     public ResponseEntity<Map<String, Object>> verifyEmail(@RequestBody VerifyEmailRequest request) {
@@ -365,7 +406,7 @@ public class NewsletterApiController {
         response.put("id", subscriber.getId());
         response.put("email", subscriber.getEmail());
         response.put("nome", subscriber.getFullName());
-        response.put("ativo", subscriber.getActive());
+        response.put("ativo", subscriber.isActive());
         response.put("verificado", subscriber.isEmailVerified());
         response.put("frequencia", subscriber.getFrequency().toString());
         response.put("categorias", subscriber.getSubscribedCategories());

@@ -44,6 +44,9 @@ public class NewsletterScheduleService {
     
     @Autowired
     private EmailService emailService;
+    
+    @Autowired
+    private NewsletterService newsletterService;
 
     /**
      * Cria um novo agendamento de newsletter
@@ -244,9 +247,9 @@ public class NewsletterScheduleService {
 
             for (Subscriber subscriber : recipients) {
                 try {
-                    // Enviar newsletter para cada assinante
-                    CompletableFuture<Boolean> emailResult = emailService.sendNewsletterToSubscriber(subscriber, 
-                        List.of()); // Lista vazia por enquanto, pode ser implementada depois
+                    // Usar o NewsletterService para enviar newsletter completa
+                    newsletterService.sendNewsletterToSubscriber(subscriber, 
+                        List.of(), List.of(), List.of(), Map.of());
                     successCount++;
                 } catch (Exception e) {
                     log.warn("Erro ao enviar newsletter para {}: {}", subscriber.getEmail(), e.getMessage());

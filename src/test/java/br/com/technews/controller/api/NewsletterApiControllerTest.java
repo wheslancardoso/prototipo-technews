@@ -298,9 +298,7 @@ class NewsletterApiControllerTest {
     @WithMockUser(roles = "ADMIN")
     void shouldSendNewsletterSuccessfully() throws Exception {
         // Given
-        when(emailService.sendNewsletterToAll()).thenReturn(
-            CompletableFuture.completedFuture(Map.of("sent", 10, "failed", 0, "total", 10))
-        );
+        when(emailService.sendNewsletterToSubscribers(any(), any(), anyBoolean())).thenReturn(10);
 
         // When & Then
         mockMvc.perform(post("/api/newsletter/send")
@@ -311,7 +309,7 @@ class NewsletterApiControllerTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.message").value("Newsletter enviada com sucesso"));
 
-        verify(emailService).sendNewsletterToAll();
+        verify(emailService).sendNewsletterToSubscribers(any(), any(), anyBoolean());
     }
 
     @Test
