@@ -259,7 +259,7 @@ class NewsletterApiControllerTest {
                 2L
         );
         
-        when(subscriberService.findAll(any(), eq(true), eq(true), any(Pageable.class)))
+        when(subscriberService.findByAtivo(eq(true), any(Pageable.class)))
                 .thenReturn(subscriberPage);
 
         // When & Then
@@ -271,9 +271,9 @@ class NewsletterApiControllerTest {
                 .andExpect(jsonPath("$.subscribers").isArray())
                 .andExpect(jsonPath("$.totalElements").value(2))
                 .andExpect(jsonPath("$.currentPage").value(0))
-                .andExpect(jsonPath("$.pageSize").value(10));
+                .andExpect(jsonPath("$.size").value(10));
 
-        verify(subscriberService).findAll(any(), eq(true), eq(true), any(Pageable.class));
+        verify(subscriberService).findByAtivo(eq(true), any(Pageable.class));
     }
 
     @Test
@@ -316,30 +316,34 @@ class NewsletterApiControllerTest {
     @WithMockUser(roles = "ADMIN")
     void shouldHandleSendNewsletterFailure() throws Exception {
         // Given
-        when(emailService.sendNewsletterToAll()).thenReturn(
-            CompletableFuture.completedFuture(Map.of("sent", 0, "failed", 10, "total", 10))
-        );
+        when(emailService.sendNewsletterToSubscribers(
+            eq(Subscriber.SubscriptionFrequency.WEEKLY), 
+            isNull(), 
+            eq(false)
+        )).thenReturn(0);
 
         // When & Then
         mockMvc.perform(post("/api/newsletter/send")
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"subject\":\"Weekly Tech News\",\"content\":\"<h1>Latest News</h1>\"}"))
-                .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.message").value("Erro ao enviar newsletter"));
+                .content("{}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("Newsletter enviada com sucesso"))
+                .andExpect(jsonPath("$.emailsSent").value(0))
+                .andExpect(jsonPath("$.testMode").value(false));
 
-        verify(emailService).sendNewsletterToAll();
+        verify(emailService).sendNewsletterToSubscribers(
+            eq(Subscriber.SubscriptionFrequency.WEEKLY), 
+            isNull(), 
+            eq(false)
+        );
     }
 
     @Test
     void shouldReactivateSubscriptionSuccessfully() throws Exception {
         // Given
-        Subscriber subscriber = createTestSubscriber(1L, "João Silva", "joao@example.com");
-        subscriber.setActive(false);
-        
-        when(subscriberService.findByEmail("joao@example.com")).thenReturn(Optional.of(subscriber));
-        when(subscriberService.save(any(Subscriber.class))).thenReturn(subscriber);
+        when(subscriberService.reactivateSubscription("joao@example.com")).thenReturn(true);
 
         // When & Then
         mockMvc.perform(post("/api/newsletter/reactivate")
@@ -349,14 +353,13 @@ class NewsletterApiControllerTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.message").value("Inscrição reativada com sucesso"));
 
-        verify(subscriberService).findByEmail("joao@example.com");
-        verify(subscriberService).save(any(Subscriber.class));
+        verify(subscriberService).reactivateSubscription("joao@example.com");
     }
 
     @Test
     void shouldHandleReactivateWithNonExistentEmail() throws Exception {
         // Given
-        when(subscriberService.findByEmail("nonexistent@example.com")).thenReturn(Optional.empty());
+        when(subscriberService.reactivateSubscription("nonexistent@example.com")).thenReturn(false);
 
         // When & Then
         mockMvc.perform(post("/api/newsletter/reactivate")
@@ -364,10 +367,9 @@ class NewsletterApiControllerTest {
                 .param("email", "nonexistent@example.com"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.message").value("Assinante não encontrado"));
+                .andExpect(jsonPath("$.message").value("Email não encontrado ou já está ativo"));
 
-        verify(subscriberService).findByEmail("nonexistent@example.com");
-        verify(subscriberService, never()).save(any(Subscriber.class));
+        verify(subscriberService).reactivateSubscription("nonexistent@example.com");
     }
 
     @Test
