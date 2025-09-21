@@ -1,5 +1,6 @@
 package br.com.technews.entity;
 
+import com.technews.entity.Tag;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import jakarta.persistence.Id;
@@ -11,7 +12,9 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
 import jakarta.persistence.FetchType;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -76,6 +79,15 @@ public class NewsArticle {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
     
+    // Relacionamento com tags
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "article_tags",
+        joinColumns = @JoinColumn(name = "article_id"),
+        inverseJoinColumns = @JoinColumn(name = "tag_id")
+    )
+    private Set<Tag> tags = new HashSet<>();
+    
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
@@ -106,6 +118,32 @@ public class NewsArticle {
             categories.add(categoryEntity);
         }
         return categories;
+    }
+    
+    /**
+     * Métodos utilitários para tags
+     */
+    public Set<Tag> getTags() {
+        return tags != null ? tags : new HashSet<>();
+    }
+    
+    public void setTags(Set<Tag> tags) {
+        this.tags = tags != null ? tags : new HashSet<>();
+    }
+    
+    public void addTag(Tag tag) {
+        if (tags == null) {
+            tags = new HashSet<>();
+        }
+        tags.add(tag);
+        tag.getArticles().add(this);
+    }
+    
+    public void removeTag(Tag tag) {
+        if (tags != null) {
+            tags.remove(tag);
+            tag.getArticles().remove(this);
+        }
     }
     
     // Getters e Setters necessários
