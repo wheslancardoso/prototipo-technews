@@ -21,9 +21,12 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(authz -> authz
-                .requestMatchers("/", "/subscribe", "/unsubscribe/**", "/verify/**", 
-                               "/newsletter/archive", "/newsletter/manage", "/newsletter/pause",
-                               "/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
+                // Recursos estáticos primeiro
+                .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
+                // Páginas públicas
+                .requestMatchers("/", "/subscribe", "/unsubscribe/**", "/verify/**").permitAll()
+                // Newsletter páginas públicas
+                .requestMatchers("/newsletter/archive", "/newsletter/manage", "/newsletter/pause").permitAll()
                 // Endpoints públicos da API
                 .requestMatchers("/api/newsletter/subscribe", "/api/newsletter/status/**", 
                                "/api/newsletter/unsubscribe/**", "/api/newsletter/reactivate",
