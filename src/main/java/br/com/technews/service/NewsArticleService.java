@@ -198,4 +198,49 @@ public class NewsArticleService {
     public List<String> getDistinctCategories() {
         return newsArticleRepository.findDistinctCategories();
     }
+    
+    /**
+     * Busca artigos em destaque (limitado)
+     */
+    public List<NewsArticle> findFeaturedArticles(int limit) {
+        return newsArticleRepository.findByPublishedTrueOrderByPublishedAtDesc()
+                .stream()
+                .limit(limit)
+                .toList();
+    }
+    
+    /**
+     * Busca últimos artigos publicados (limitado)
+     */
+    public List<NewsArticle> findLatestPublishedArticles(int limit) {
+        return newsArticleRepository.findByPublishedTrueOrderByPublishedAtDesc()
+                .stream()
+                .limit(limit)
+                .toList();
+    }
+    
+    /**
+     * Busca artigos populares (simulado por data de publicação)
+     */
+    public List<NewsArticle> findPopularArticles(int limit) {
+        return newsArticleRepository.findByPublishedTrueOrderByPublishedAtDesc()
+                .stream()
+                .limit(limit)
+                .toList();
+    }
+    
+    /**
+     * Conta artigos publicados desde uma data específica
+     */
+    public long countArticlesPublishedSince(LocalDateTime date) {
+        return newsArticleRepository.countByPublishedTrueAndPublishedAtAfter(date);
+    }
+    
+    /**
+     * Obtém total de visualizações da última semana (simulado)
+     */
+    public long getTotalViewsLastWeek() {
+        // Implementação simulada - em produção, seria baseado em métricas reais
+        return countPublished() * 50; // Simula 50 visualizações por artigo
+    }
 }

@@ -1,0 +1,329 @@
+/* Newsletter Subscription Styles */
+
+.newsletter-header .newsletter-icon {
+    font-size: 4rem;
+    color: var(--bs-primary);
+    opacity: 0.8;
+}
+
+.benefits-section .benefit-card {
+    padding: 2rem 1rem;
+    border-radius: 15px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    height: 100%;
+}
+
+.benefits-section .benefit-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.benefit-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 1rem;
+    background: linear-gradient(135deg, var(--bs-primary), var(--bs-info));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: white;
+}
+
+.subscription-form-container .card {
+    border-radius: 20px;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+}
+
+.subscription-form-container .card-body {
+    position: relative;
+}
+
+.subscription-form-container .card-body::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--bs-primary), var(--bs-info), var(--bs-success));
+    border-radius: 20px 20px 0 0;
+}
+
+.form-control, .form-select {
+    border-radius: 10px;
+    border: 2px solid #e9ecef;
+    padding: 0.75rem 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--bs-primary);
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+    transform: translateY(-2px);
+}
+
+.categories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+.form-check {
+    background: #f8f9fa;
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.form-check:hover {
+    background: #e9ecef;
+    border-color: var(--bs-primary);
+}
+
+.form-check-input:checked + .form-check-label {
+    color: var(--bs-primary);
+    font-weight: 600;
+}
+
+.privacy-notice {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 15px;
+    border-left: 4px solid var(--bs-primary);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--bs-primary), var(--bs-info));
+    border: none;
+    border-radius: 15px;
+    padding: 1rem 2rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(13, 110, 253, 0.3);
+    background: linear-gradient(135deg, var(--bs-info), var(--bs-primary));
+}
+
+.stats-section {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: 3rem 2rem;
+    border-radius: 20px;
+    margin-top: 3rem;
+}
+
+.stat-item {
+    padding: 1rem;
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--bs-primary);
+    line-height: 1;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 0.5rem;
+}
+
+.newsletter-preview {
+    background: #f8f9fa;
+    padding: 2rem;
+    border-radius: 20px;
+    border: 2px dashed #dee2e6;
+}
+
+.preview-container {
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.preview-header {
+    background: linear-gradient(135deg, var(--bs-primary), var(--bs-info));
+    color: white;
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.preview-header h5 {
+    margin: 0;
+    font-weight: 600;
+}
+
+.preview-content {
+    padding: 2rem;
+}
+
+.preview-section {
+    margin-bottom: 1.5rem;
+}
+
+.preview-section:last-child {
+    margin-bottom: 0;
+}
+
+.preview-section h6 {
+    color: var(--bs-primary);
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.preview-list {
+    list-style: none;
+    padding: 0;
+}
+
+.preview-list li {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #f8f9fa;
+    position: relative;
+    padding-left: 1.5rem;
+}
+
+.preview-list li:before {
+    content: '▶';
+    position: absolute;
+    left: 0;
+    color: var(--bs-primary);
+    font-size: 0.8rem;
+}
+
+.preview-list li:last-child {
+    border-bottom: none;
+}
+
+/* Alert Styles */
+.alert {
+    border-radius: 15px;
+    border: none;
+    padding: 1rem 1.5rem;
+}
+
+.alert-success {
+    background: linear-gradient(135deg, #d1edff, #a7d8f0);
+    color: #0c5460;
+}
+
+.alert-danger {
+    background: linear-gradient(135deg, #f8d7da, #f1aeb5);
+    color: #721c24;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .newsletter-header .newsletter-icon {
+        font-size: 3rem;
+    }
+    
+    .display-4 {
+        font-size: 2rem;
+    }
+    
+    .benefits-section .benefit-card {
+        padding: 1.5rem 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .subscription-form-container .card-body {
+        padding: 2rem 1.5rem;
+    }
+    
+    .categories-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .stats-section {
+        padding: 2rem 1rem;
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+    }
+    
+    .newsletter-preview {
+        padding: 1rem;
+    }
+    
+    .preview-content {
+        padding: 1rem;
+    }
+}
+
+/* Animation Classes */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.newsletter-header,
+.benefits-section,
+.subscription-form-container,
+.stats-section,
+.newsletter-preview {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.benefits-section {
+    animation-delay: 0.2s;
+}
+
+.subscription-form-container {
+    animation-delay: 0.4s;
+}
+
+.stats-section {
+    animation-delay: 0.6s;
+}
+
+.newsletter-preview {
+    animation-delay: 0.8s;
+}
+
+/* Loading State */
+.btn-primary.loading {
+    position: relative;
+    color: transparent;
+}
+
+.btn-primary.loading::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    top: 50%;
+    left: 50%;
+    margin-left: -10px;
+    margin-top: -10px;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}

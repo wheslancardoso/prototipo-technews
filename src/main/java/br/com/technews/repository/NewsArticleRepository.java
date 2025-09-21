@@ -156,4 +156,9 @@ public interface NewsArticleRepository extends JpaRepository<NewsArticle, Long> 
      */
     @Query("SELECT DISTINCT n.category FROM NewsArticle n WHERE n.published = true AND n.category IS NOT NULL ORDER BY n.category")
     List<String> findDistinctCategories();
+    
+    /**
+     * Conta artigos publicados após uma data específica
+     */
+    long countByPublishedTrueAndPublishedAtAfter(LocalDateTime date);
 }

@@ -37,11 +37,30 @@ public class NewsletterController {
      * Página de inscrição na newsletter
      */
     @GetMapping("/subscribe")
-    public String showSubscribePage(Model model) {
+    public String showSubscribePage(Model model,
+                                  @RequestParam(required = false) String success,
+                                  @RequestParam(required = false) String error) {
         List<Category> categories = categoryService.findAllActive();
         model.addAttribute("categories", categories);
         model.addAttribute("frequencies", Subscriber.SubscriptionFrequency.values());
-        return "newsletter/subscribe";
+        
+        // Adicionar estatísticas para exibir na página
+        try {
+            var stats = subscriberService.getStats();
+            model.addAttribute("stats", stats);
+        } catch (Exception e) {
+            log.warn("Erro ao carregar estatísticas: {}", e.getMessage());
+        }
+        
+        // Adicionar flags para success/error
+        if (success != null) {
+            model.addAttribute("success", true);
+        }
+        if (error != null) {
+            model.addAttribute("error", true);
+        }
+        
+        return "newsletter/newsletter-subscription";
     }
 
     /**

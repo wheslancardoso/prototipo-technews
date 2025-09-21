@@ -270,6 +270,13 @@ public class SubscriberService {
     }
 
     /**
+     * Conta assinantes ativos
+     */
+    public long countActiveSubscribers() {
+        return subscriberRepository.countActiveSubscribers();
+    }
+
+    /**
      * Valida formato do email
      */
     private void validateEmail(String email) {

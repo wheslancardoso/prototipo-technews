@@ -47,6 +47,16 @@ public class Subscriber {
     @Size(max = 100, message = "Nome deve ter no máximo 100 caracteres")
     @Column(name = "full_name")
     private String fullName;
+
+    // Método getName() para compatibilidade
+    public String getName() {
+        return this.fullName;
+    }
+
+    // Método setName() para compatibilidade
+    public void setName(String name) {
+        this.fullName = name;
+    }
     
     @Builder.Default
     @Column(nullable = false)

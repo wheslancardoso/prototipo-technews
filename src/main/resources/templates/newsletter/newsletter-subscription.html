@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Newsletter - TechNews</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link th:href="@{/css/newsletter-subscription.css}" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand fw-bold" th:href="@{/}">
+                <i class="fas fa-newspaper me-2"></i>TechNews
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <!-- Newsletter Header -->
+                <div class="newsletter-header text-center mb-5">
+                    <div class="newsletter-icon mb-3">
+                        <i class="fas fa-envelope-open-text"></i>
+                    </div>
+                    <h1 class="display-4 fw-bold text-primary mb-3">Newsletter TechNews</h1>
+                    <p class="lead text-muted">
+                        Receba as últimas notícias de tecnologia diretamente no seu email. 
+                        Mantenha-se atualizado com as tendências e inovações do mundo tech.
+                    </p>
+                </div>
+
+                <!-- Benefits Section -->
+                <div class="benefits-section mb-5">
+                    <div class="row g-4">
+                        <div class="col-md-4">
+                            <div class="benefit-card text-center">
+                                <div class="benefit-icon">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <h5>Conteúdo Semanal</h5>
+                                <p class="text-muted">Resumo das principais notícias da semana</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="benefit-card text-center">
+                                <div class="benefit-icon">
+                                    <i class="fas fa-filter"></i>
+                                </div>
+                                <h5>Conteúdo Curado</h5>
+                                <p class="text-muted">Apenas as notícias mais relevantes e importantes</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="benefit-card text-center">
+                                <div class="benefit-icon">
+                                    <i class="fas fa-mobile-alt"></i>
+                                </div>
+                                <h5>Mobile Friendly</h5>
+                                <p class="text-muted">Otimizado para leitura em qualquer dispositivo</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Subscription Form -->
+                <div class="subscription-form-container">
+                    <div class="card shadow-lg border-0">
+                        <div class="card-body p-5">
+                            <h3 class="text-center mb-4">Inscreva-se Agora</h3>
+                            
+                            <!-- Success Message -->
+                            <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                                <i class="fas fa-check-circle me-2"></i>
+                                <span th:text="${successMessage}">Inscrição realizada com sucesso!</span>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+
+                            <!-- Error Message -->
+                            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                                <i class="fas fa-exclamation-circle me-2"></i>
+                                <span th:text="${errorMessage}">Erro ao processar inscrição.</span>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+
+                            <form th:action="@{/newsletter/subscribe}" method="post" id="subscriptionForm">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="fullName" class="form-label">Nome Completo</label>
+                                        <input type="text" class="form-control" id="fullName" name="fullName" 
+                                               th:value="${param.fullName}" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="email" class="form-label">Email</label>
+                                        <input type="email" class="form-control" id="email" name="email" 
+                                               th:value="${param.email}" required>
+                                    </div>
+                                </div>
+
+                                <div class="row g-3 mt-3">
+                                    <div class="col-md-6">
+                                        <label for="frequency" class="form-label">Frequência</label>
+                                        <select class="form-select" id="frequency" name="frequency" required>
+                                            <option value="">Selecione a frequência</option>
+                                            <option value="SEMANAL" th:selected="${param.frequency == 'SEMANAL'}">Semanal</option>
+                                            <option value="QUINZENAL" th:selected="${param.frequency == 'QUINZENAL'}">Quinzenal</option>
+                                            <option value="MENSAL" th:selected="${param.frequency == 'MENSAL'}">Mensal</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- Categories Section -->
+                                <div class="mt-4">
+                                    <label class="form-label">Categorias de Interesse (opcional)</label>
+                                    <div class="categories-grid" th:if="${categories}">
+                                        <div th:each="category : ${categories}" class="form-check">
+                                            <input class="form-check-input" type="checkbox" 
+                                                   th:id="'category_' + ${category.id}" 
+                                                   th:name="categoryIds" 
+                                                   th:value="${category.id}">
+                                            <label class="form-check-label" th:for="'category_' + ${category.id}" 
+                                                   th:text="${category.name}">
+                                                Categoria
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Privacy Notice -->
+                                <div class="privacy-notice mt-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="privacyAccept" required>
+                                        <label class="form-check-label" for="privacyAccept">
+                                            Concordo em receber emails da TechNews e aceito a 
+                                            <a href="#" class="text-primary">política de privacidade</a>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="d-grid mt-4">
+                                    <button type="submit" class="btn btn-primary btn-lg">
+                                        <i class="fas fa-envelope me-2"></i>
+                                        Inscrever-se na Newsletter
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Section -->
+                <div class="stats-section mt-5" th:if="${stats}">
+                    <div class="row text-center">
+                        <div class="col-md-3">
+                            <div class="stat-item">
+                                <div class="stat-number" th:text="${stats.totalSubscribers}">1,234</div>
+                                <div class="stat-label">Assinantes</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-item">
+                                <div class="stat-number" th:text="${stats.totalArticles}">567</div>
+                                <div class="stat-label">Artigos</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-item">
+                                <div class="stat-number" th:text="${stats.weeklyViews}">89K</div>
+                                <div class="stat-label">Visualizações</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-item">
+                                <div class="stat-number">100%</div>
+                                <div class="stat-label">Gratuito</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sample Newsletter Preview -->
+                <div class="newsletter-preview mt-5">
+                    <h4 class="text-center mb-4">Prévia da Newsletter</h4>
+                    <div class="preview-container">
+                        <div class="preview-header">
+                            <h5>TechNews Semanal #42 - 20/09/2024</h5>
+                        </div>
+                        <div class="preview-content">
+                            <div class="preview-section">
+                                <h6><i class="fas fa-star text-warning me-2"></i>Destaques da Semana</h6>
+                                <ul class="preview-list">
+                                    <li>Nova versão do React revoluciona desenvolvimento frontend</li>
+                                    <li>IA generativa atinge marco histórico em processamento de linguagem</li>
+                                    <li>Startup brasileira recebe investimento milionário</li>
+                                </ul>
+                            </div>
+                            <div class="preview-section">
+                                <h6><i class="fas fa-chart-line text-success me-2"></i>Estatísticas</h6>
+                                <p class="text-muted">Esta semana: 15 novos artigos • 89K visualizações • 1.2K novos assinantes</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-light py-4 mt-5">
+        <div class="container text-center">
+            <p class="mb-0">&copy; 2024 TechNews. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/newsletter-subscription.js}"></script>
+</body>
+</html>
