@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${article.title} + ' - TechNews'">Artigo - TechNews</title>
+    
+    <!-- Meta tags para SEO e compartilhamento social -->
+    <meta name="description" th:content="${article.content != null ? #strings.abbreviate(article.content, 160) : 'Artigo do TechNews'}">
+    <meta name="author" th:content="${article.author}">
+    <meta name="keywords" th:content="${article.category}">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="article">
+    <meta property="og:url" th:content="@{|${#httpServletRequest.requestURL}|}">
+    <meta property="og:title" th:content="${article.title}">
+    <meta property="og:description" th:content="${article.content != null ? #strings.abbreviate(article.content, 160) : 'Artigo do TechNews'}">
+    <meta property="og:image" th:content="${article.imageUrl != null ? article.imageUrl : '/images/default-article.jpg'}">
+    <meta property="og:site_name" content="TechNews">
+    <meta property="article:author" th:content="${article.author}">
+    <meta property="article:published_time" th:content="${article.publishedAt}">
+    <meta property="article:section" th:content="${article.category}">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" th:content="@{|${#httpServletRequest.requestURL}|}">
+    <meta property="twitter:title" th:content="${article.title}">
+    <meta property="twitter:description" th:content="${article.content != null ? #strings.abbreviate(article.content, 160) : 'Artigo do TechNews'}">
+    <meta property="twitter:image" th:content="${article.imageUrl != null ? article.imageUrl : '/images/default-article.jpg'}">
+    
+    <!-- LinkedIn -->
+    <meta property="linkedin:title" th:content="${article.title}">
+    <meta property="linkedin:description" th:content="${article.content != null ? #strings.abbreviate(article.content, 160) : 'Artigo do TechNews'}">
+    <meta property="linkedin:image" th:content="${article.imageUrl != null ? article.imageUrl : '/images/default-article.jpg'}">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        .article-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 3rem 0;
+            margin-bottom: 2rem;
+        }
+        
+        .article-meta {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9rem;
+        }
+        
+        .article-content {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #333;
+        }
+        
+        .article-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin: 2rem 0;
+        }
+        
+        .social-share {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+            text-align: center;
+        }
+        
+        .social-share h4 {
+            color: #2c3e50;
+            margin-bottom: 1.5rem;
+        }
+        
+        .social-btn {
+            display: inline-block;
+            padding: 12px 20px;
+            margin: 0.5rem;
+            border-radius: 50px;
+            text-decoration: none;
+            color: white;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            min-width: 150px;
+        }
+        
+        .social-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            color: white;
+            text-decoration: none;
+        }
+        
+        .social-btn.facebook {
+            background: #1877f2;
+        }
+        
+        .social-btn.twitter {
+            background: #1da1f2;
+        }
+        
+        .social-btn.linkedin {
+            background: #0077b5;
+        }
+        
+        .social-btn.whatsapp {
+            background: #25d366;
+        }
+        
+        .social-btn.telegram {
+            background: #0088cc;
+        }
+        
+        .social-btn.copy-link {
+            background: #6c757d;
+        }
+        
+        .tag-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            margin: 0.25rem;
+            background: #667eea;
+            color: white;
+            border-radius: 25px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-decoration: none;
+        }
+        
+        .tag-badge:hover {
+            background: #764ba2;
+            color: white;
+            text-decoration: none;
+        }
+        
+        .back-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .back-btn:hover {
+            background: #5a6268;
+            color: white;
+            text-decoration: none;
+            transform: translateY(-2px);
+        }
+        
+        .copy-success {
+            background: #28a745;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-newspaper me-2"></i>TechNews
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/">Início</a>
+                <a class="nav-link" href="/stats">Estatísticas</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="copy-success" id="copySuccess">
+        <i class="fas fa-check me-2"></i>Link copiado para a área de transferência!
+    </div>
+
+    <div class="article-header">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 mx-auto">
+                    <h1 th:text="${article.title}">Título do Artigo</h1>
+                    <div class="article-meta mt-3">
+                        <span th:if="${article.author}">
+                            <i class="fas fa-user me-1"></i>
+                            <span th:text="${article.author}">Autor</span>
+                        </span>
+                        <span th:if="${article.category}" class="ms-3">
+                            <i class="fas fa-tag me-1"></i>
+                            <span th:text="${article.category}">Categoria</span>
+                        </span>
+                        <span th:if="${article.publishedAt}" class="ms-3">
+                            <i class="fas fa-calendar me-1"></i>
+                            <span th:text="${#temporals.format(article.publishedAt, 'dd/MM/yyyy HH:mm')}">Data</span>
+                        </span>
+                        <span th:if="${article.sourceDomain}" class="ms-3">
+                            <i class="fas fa-external-link-alt me-1"></i>
+                            <span th:text="${article.sourceDomain}">Fonte</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <a href="/" class="back-btn mb-4 d-inline-block">
+                    <i class="fas fa-arrow-left me-2"></i>Voltar
+                </a>
+                
+                <div th:if="${article.imageUrl}" class="text-center">
+                    <img th:src="${article.imageUrl}" th:alt="${article.title}" class="article-image">
+                </div>
+                
+                <div class="article-content" th:utext="${article.content}">
+                    Conteúdo do artigo...
+                </div>
+                
+                <!-- Tags do artigo -->
+                <div th:if="${article.tags != null and !article.tags.isEmpty()}" class="mt-4">
+                    <h5>Tags:</h5>
+                    <div>
+                        <span th:each="tag : ${article.tags}" 
+                              th:class="'tag-badge'" 
+                              th:style="${tag.color != null ? 'background-color: ' + tag.color : ''}"
+                              th:text="${tag.displayName != null ? tag.displayName : tag.name}">
+                            Tag
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- Sistema de Compartilhamento Social -->
+                <div class="social-share">
+                    <h4>
+                        <i class="fas fa-share-alt me-2"></i>
+                        Compartilhe este artigo
+                    </h4>
+                    
+                    <div class="d-flex flex-wrap justify-content-center">
+                        <!-- Facebook -->
+                        <a href="#" class="social-btn facebook" onclick="shareOnFacebook()" title="Compartilhar no Facebook">
+                            <i class="fab fa-facebook-f me-2"></i>Facebook
+                        </a>
+                        
+                        <!-- Twitter -->
+                        <a href="#" class="social-btn twitter" onclick="shareOnTwitter()" title="Compartilhar no Twitter">
+                            <i class="fab fa-twitter me-2"></i>Twitter
+                        </a>
+                        
+                        <!-- LinkedIn -->
+                        <a href="#" class="social-btn linkedin" onclick="shareOnLinkedIn()" title="Compartilhar no LinkedIn">
+                            <i class="fab fa-linkedin-in me-2"></i>LinkedIn
+                        </a>
+                        
+                        <!-- WhatsApp -->
+                        <a href="#" class="social-btn whatsapp" onclick="shareOnWhatsApp()" title="Compartilhar no WhatsApp">
+                            <i class="fab fa-whatsapp me-2"></i>WhatsApp
+                        </a>
+                        
+                        <!-- Telegram -->
+                        <a href="#" class="social-btn telegram" onclick="shareOnTelegram()" title="Compartilhar no Telegram">
+                            <i class="fab fa-telegram-plane me-2"></i>Telegram
+                        </a>
+                        
+                        <!-- Copiar Link -->
+                        <a href="#" class="social-btn copy-link" onclick="copyLink()" title="Copiar link">
+                            <i class="fas fa-link me-2"></i>Copiar Link
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Link para artigo original -->
+                <div th:if="${article.url}" class="text-center mt-4">
+                    <a th:href="${article.url}" target="_blank" class="btn btn-outline-primary">
+                        <i class="fas fa-external-link-alt me-2"></i>
+                        Ver artigo original
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-dark text-light py-4 mt-5">
+        <div class="container text-center">
+            <p>&copy; 2024 TechNews. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script th:inline="javascript">
+        // Dados do artigo para compartilhamento
+        const articleData = {
+            title: /*[[${article.title}]]*/ 'Título do Artigo',
+            url: window.location.href,
+            description: /*[[${article.content != null ? #strings.abbreviate(article.content, 160) : 'Artigo do TechNews'}]]*/ 'Descrição do artigo'
+        };
+        
+        // Função para compartilhar no Facebook
+        function shareOnFacebook() {
+            const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(articleData.url)}`;
+            openShareWindow(url, 'Facebook');
+        }
+        
+        // Função para compartilhar no Twitter
+        function shareOnTwitter() {
+            const text = `${articleData.title} - ${articleData.description}`;
+            const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(articleData.url)}`;
+            openShareWindow(url, 'Twitter');
+        }
+        
+        // Função para compartilhar no LinkedIn
+        function shareOnLinkedIn() {
+            const url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(articleData.url)}`;
+            openShareWindow(url, 'LinkedIn');
+        }
+        
+        // Função para compartilhar no WhatsApp
+        function shareOnWhatsApp() {
+            const text = `${articleData.title}\n\n${articleData.description}\n\n${articleData.url}`;
+            const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+            window.open(url, '_blank');
+        }
+        
+        // Função para compartilhar no Telegram
+        function shareOnTelegram() {
+            const text = `${articleData.title}\n\n${articleData.description}`;
+            const url = `https://t.me/share/url?url=${encodeURIComponent(articleData.url)}&text=${encodeURIComponent(text)}`;
+            window.open(url, '_blank');
+        }
+        
+        // Função para copiar link
+        function copyLink() {
+            navigator.clipboard.writeText(articleData.url).then(function() {
+                showCopySuccess();
+            }).catch(function(err) {
+                // Fallback para navegadores mais antigos
+                const textArea = document.createElement('textarea');
+                textArea.value = articleData.url;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showCopySuccess();
+            });
+        }
+        
+        // Função para abrir janela de compartilhamento
+        function openShareWindow(url, platform) {
+            const width = 600;
+            const height = 400;
+            const left = (window.innerWidth - width) / 2;
+            const top = (window.innerHeight - height) / 2;
+            
+            window.open(
+                url,
+                `share-${platform}`,
+                `width=${width},height=${height},left=${left},top=${top},scrollbars=yes,resizable=yes`
+            );
+        }
+        
+        // Função para mostrar mensagem de sucesso ao copiar
+        function showCopySuccess() {
+            const successMsg = document.getElementById('copySuccess');
+            successMsg.style.display = 'block';
+            setTimeout(() => {
+                successMsg.style.display = 'none';
+            }, 3000);
+        }
+        
+        // Suporte para Web Share API (dispositivos móveis)
+        if (navigator.share) {
+            // Adiciona botão de compartilhamento nativo se disponível
+            const shareContainer = document.querySelector('.social-share .d-flex');
+            const nativeShareBtn = document.createElement('a');
+            nativeShareBtn.href = '#';
+            nativeShareBtn.className = 'social-btn copy-link';
+            nativeShareBtn.innerHTML = '<i class="fas fa-share me-2"></i>Compartilhar';
+            nativeShareBtn.onclick = function(e) {
+                e.preventDefault();
+                navigator.share({
+                    title: articleData.title,
+                    text: articleData.description,
+                    url: articleData.url
+                });
+            };
+            shareContainer.appendChild(nativeShareBtn);
+        }
+    </script>
+</body>
+</html>
