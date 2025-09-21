@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arquivo de Newsletters - TechNews</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --accent-color: #667eea;
+            --text-dark: #2d3748;
+            --text-light: #718096;
+            --border-radius: 16px;
+            --shadow-soft: 0 10px 40px rgba(0,0,0,0.1);
+            --shadow-hover: 0 20px 60px rgba(0,0,0,0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--primary-gradient);
+            min-height: 100vh;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            line-height: 1.6;
+        }
+
+        .header-section {
+            padding: 80px 0 60px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><defs><radialGradient id="a" cx="50%" cy="50%"><stop offset="0%" stop-color="rgba(255,255,255,0.1)"/><stop offset="100%" stop-color="rgba(255,255,255,0)"/></radialGradient></defs><circle cx="200" cy="200" r="100" fill="url(%23a)"/><circle cx="800" cy="300" r="150" fill="url(%23a)"/><circle cx="400" cy="700" r="120" fill="url(%23a)"/></svg>') no-repeat center center;
+            background-size: cover;
+            opacity: 0.3;
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .page-title {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .page-subtitle {
+            font-size: 1.2rem;
+            font-weight: 300;
+            margin-bottom: 2rem;
+            opacity: 0.95;
+            animation: fadeInUp 1s ease-out 0.2s both;
+        }
+
+        .breadcrumb {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 50px;
+            padding: 0.5rem 1.5rem;
+            margin-bottom: 2rem;
+            animation: fadeInUp 1s ease-out 0.4s both;
+        }
+
+        .breadcrumb-item a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+        }
+
+        .breadcrumb-item a:hover {
+            color: white;
+        }
+
+        .breadcrumb-item.active {
+            color: white;
+        }
+
+        .content-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: var(--border-radius) var(--border-radius) 0 0;
+            margin-top: -30px;
+            position: relative;
+            z-index: 3;
+            min-height: 70vh;
+            padding: 3rem 0;
+        }
+
+        .newsletter-card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-soft);
+            transition: all 0.4s ease;
+            margin-bottom: 2rem;
+            overflow: hidden;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .newsletter-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .newsletter-header {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 1.5rem;
+            position: relative;
+        }
+
+        .newsletter-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            transform: translate(30px, -30px);
+        }
+
+        .newsletter-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .newsletter-date {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 2;
+        }
+
+        .newsletter-body {
+            padding: 1.5rem;
+        }
+
+        .newsletter-description {
+            color: var(--text-light);
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .newsletter-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .btn-read {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-read:hover {
+            background: #5a67d8;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .btn-share {
+            background: transparent;
+            color: var(--text-light);
+            border: 2px solid var(--text-light);
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-share:hover {
+            background: var(--text-light);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .pagination-wrapper {
+            display: flex;
+            justify-content: center;
+            margin-top: 3rem;
+        }
+
+        .pagination .page-link {
+            border: none;
+            color: var(--accent-color);
+            padding: 0.75rem 1rem;
+            margin: 0 0.25rem;
+            border-radius: 50px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .pagination .page-link:hover {
+            background: var(--accent-color);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .pagination .page-item.active .page-link {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-light);
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--text-dark);
+        }
+
+        .stats-bar {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            border-radius: var(--border-radius);
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-dark);
+            font-weight: 500;
+        }
+
+        .stat-item i {
+            color: var(--accent-color);
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .newsletter-card {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .newsletter-card:nth-child(2) { animation-delay: 0.1s; }
+        .newsletter-card:nth-child(3) { animation-delay: 0.2s; }
+        .newsletter-card:nth-child(4) { animation-delay: 0.3s; }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .page-title {
+                font-size: 2rem;
+            }
+            
+            .page-subtitle {
+                font-size: 1rem;
+            }
+            
+            .newsletter-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .btn-read, .btn-share {
+                text-align: center;
+                justify-content: center;
+            }
+            
+            .stats-bar {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .content-section {
+                padding: 2rem 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header Section -->
+    <div class="header-section">
+        <div class="container">
+            <div class="header-content text-center">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb justify-content-center">
+                        <li class="breadcrumb-item">
+                            <a href="/">
+                                <i class="fas fa-home me-1"></i>Início
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item active" aria-current="page">
+                            <i class="fas fa-archive me-1"></i>Arquivo de Newsletters
+                        </li>
+                    </ol>
+                </nav>
+                
+                <h1 class="page-title">
+                    <i class="fas fa-archive me-3"></i>Arquivo de Newsletters
+                </h1>
+                <p class="page-subtitle">
+                    Explore todas as edições anteriores da nossa newsletter de tecnologia.<br>
+                    Mantenha-se atualizado com o que aconteceu no mundo tech.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content Section -->
+    <div class="content-section">
+        <div class="container">
+            <!-- Statistics Bar -->
+            <div class="stats-bar" th:if="${totalElements > 0}">
+                <div class="stat-item">
+                    <i class="fas fa-newspaper"></i>
+                    <span th:text="${totalElements}">0</span> newsletters encontradas
+                </div>
+                <div class="stat-item">
+                    <i class="fas fa-eye"></i>
+                    Página <span th:text="${currentPage + 1}">1</span> de <span th:text="${totalPages}">1</span>
+                </div>
+                <div class="stat-item">
+                    <i class="fas fa-clock"></i>
+                    Atualizações semanais
+                </div>
+            </div>
+
+            <!-- Error Message -->
+            <div th:if="${error}" class="alert alert-danger" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <span th:text="${error}"></span>
+            </div>
+
+            <!-- Newsletter List -->
+            <div th:if="${newsletters != null and !#lists.isEmpty(newsletters)}">
+                <div class="row">
+                    <div class="col-lg-6" th:each="newsletter : ${newsletters}">
+                        <div class="newsletter-card">
+                            <div class="newsletter-header">
+                                <h3 class="newsletter-title" th:text="${newsletter.title}">
+                                    TechNews - Semana de 01/01/2024
+                                </h3>
+                                <div class="newsletter-date">
+                                    <i class="fas fa-calendar-alt me-2"></i>
+                                    <span th:text="${newsletter.formattedDate}">01/01/2024</span>
+                                </div>
+                            </div>
+                            <div class="newsletter-body">
+                                <p class="newsletter-description" th:text="${newsletter.description}">
+                                    Newsletter semanal com as principais notícias de tecnologia, inovação e startups da semana.
+                                </p>
+                                <div class="newsletter-actions">
+                                    <a th:href="${newsletter.url}" class="btn-read">
+                                        <i class="fas fa-book-open"></i>
+                                        Ler Newsletter
+                                    </a>
+                                    <a href="#" class="btn-share" onclick="shareNewsletter(this)" 
+                                       th:data-title="${newsletter.title}" 
+                                       th:data-url="${newsletter.url}">
+                                        <i class="fas fa-share-alt"></i>
+                                        Compartilhar
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div th:if="${newsletters == null or #lists.isEmpty(newsletters)}" class="empty-state">
+                <i class="fas fa-inbox"></i>
+                <h3>Nenhuma newsletter encontrada</h3>
+                <p>Ainda não temos newsletters arquivadas para exibir.<br>
+                   Volte em breve para conferir nossas edições anteriores!</p>
+                <a href="/" class="btn btn-primary mt-3">
+                    <i class="fas fa-home me-2"></i>Voltar ao Início
+                </a>
+            </div>
+
+            <!-- Pagination -->
+            <div th:if="${totalPages > 1}" class="pagination-wrapper">
+                <nav aria-label="Navegação das newsletters">
+                    <ul class="pagination">
+                        <li class="page-item" th:classappend="${!hasPrevious} ? 'disabled'">
+                            <a class="page-link" th:href="@{/newsletter/archive(page=${currentPage - 1})}" 
+                               th:if="${hasPrevious}">
+                                <i class="fas fa-chevron-left me-1"></i>Anterior
+                            </a>
+                            <span class="page-link" th:unless="${hasPrevious}">
+                                <i class="fas fa-chevron-left me-1"></i>Anterior
+                            </span>
+                        </li>
+                        
+                        <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                            th:classappend="${i == currentPage} ? 'active'">
+                            <a class="page-link" th:href="@{/newsletter/archive(page=${i})}" 
+                               th:text="${i + 1}">1</a>
+                        </li>
+                        
+                        <li class="page-item" th:classappend="${!hasNext} ? 'disabled'">
+                            <a class="page-link" th:href="@{/newsletter/archive(page=${currentPage + 1})}" 
+                               th:if="${hasNext}">
+                                Próxima<i class="fas fa-chevron-right ms-1"></i>
+                            </a>
+                            <span class="page-link" th:unless="${hasNext}">
+                                Próxima<i class="fas fa-chevron-right ms-1"></i>
+                            </span>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Função para compartilhar newsletter
+        function shareNewsletter(element) {
+            const title = element.getAttribute('data-title');
+            const url = element.getAttribute('data-url');
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: title,
+                    url: window.location.origin + url
+                }).catch(console.error);
+            } else {
+                // Fallback para navegadores que não suportam Web Share API
+                const shareUrl = window.location.origin + url;
+                navigator.clipboard.writeText(shareUrl).then(() => {
+                    // Mostrar feedback visual
+                    const originalText = element.innerHTML;
+                    element.innerHTML = '<i class="fas fa-check"></i> Copiado!';
+                    element.style.background = '#10b981';
+                    
+                    setTimeout(() => {
+                        element.innerHTML = originalText;
+                        element.style.background = '';
+                    }, 2000);
+                }).catch(() => {
+                    alert('URL da newsletter: ' + shareUrl);
+                });
+            }
+        }
+
+        // Animação de entrada dos cards
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.newsletter-card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(30px)';
+                
+                setTimeout(() => {
+                    card.style.transition = 'all 0.6s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        });
+    </script>
+</body>
+</html>

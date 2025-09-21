@@ -56,7 +56,7 @@ public class SecurityConfig {
     public UserDetailsService userDetailsService() {
         UserDetails admin = User.builder()
             .username("admin")
-            .password("$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM1JiOV7M0OKu9o4.jTW") // admin123
+            .password(passwordEncoder().encode("admin123")) // Gera hash dinamicamente
             .roles("ADMIN")
             .build();
 

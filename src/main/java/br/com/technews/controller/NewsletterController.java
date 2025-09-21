@@ -17,9 +17,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/newsletter")
@@ -330,6 +333,84 @@ public class NewsletterController {
     }
 
     /**
+     * Página de arquivo de newsletters anteriores
+     */
+    @GetMapping("/archive")
+    public String listNewsletters(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "12") int size,
+            Model model) {
+        
+        try {
+            // Buscar assinantes que receberam newsletters (têm lastEmailSentAt preenchido)
+            // Isso simula um histórico de newsletters enviadas
+            List<Subscriber> subscribersWithEmails = subscriberService.getAllSubscribers()
+                .stream()
+                .filter(s -> s.getLastEmailSentAt() != null)
+                .sorted((s1, s2) -> s2.getLastEmailSentAt().compareTo(s1.getLastEmailSentAt()))
+                .collect(Collectors.toList());
+
+            // Criar uma lista simulada de newsletters baseada nas datas de envio
+            List<NewsletterInfo> newsletters = subscribersWithEmails.stream()
+                .map(Subscriber::getLastEmailSentAt)
+                .distinct()
+                .sorted((d1, d2) -> d2.compareTo(d1))
+                .limit(50) // Limitar a 50 newsletters mais recentes
+                .map(this::createNewsletterInfo)
+                .collect(Collectors.toList());
+
+            // Implementar paginação manual
+            int start = page * size;
+            int end = Math.min(start + size, newsletters.size());
+            List<NewsletterInfo> paginatedNewsletters = newsletters.subList(start, end);
+            
+            int totalPages = (int) Math.ceil((double) newsletters.size() / size);
+
+            model.addAttribute("newsletters", paginatedNewsletters);
+            model.addAttribute("currentPage", page);
+            model.addAttribute("totalPages", totalPages);
+            model.addAttribute("totalElements", newsletters.size());
+            model.addAttribute("hasNext", page < totalPages - 1);
+            model.addAttribute("hasPrevious", page > 0);
+
+        } catch (Exception e) {
+            // Em caso de erro, criar lista vazia
+            model.addAttribute("newsletters", List.of());
+            model.addAttribute("currentPage", 0);
+            model.addAttribute("totalPages", 0);
+            model.addAttribute("totalElements", 0);
+            model.addAttribute("hasNext", false);
+            model.addAttribute("hasPrevious", false);
+            model.addAttribute("error", "Erro ao carregar newsletters: " + e.getMessage());
+        }
+
+        return "newsletters/archive";
+    }
+
+    private NewsletterInfo createNewsletterInfo(LocalDateTime sentDate) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        DateTimeFormatter weekFormatter = DateTimeFormatter.ofPattern("'Semana de' dd/MM/yyyy");
+        
+        String title = "TechNews - " + sentDate.format(weekFormatter);
+        String description = "Newsletter semanal com as principais notícias de tecnologia, " +
+                           "inovação e startups da semana.";
+        
+        return new NewsletterInfo(
+            title,
+            description,
+            sentDate,
+            sentDate.format(formatter),
+            generateNewsletterUrl(sentDate)
+        );
+    }
+
+    private String generateNewsletterUrl(LocalDateTime sentDate) {
+        // Por enquanto, retorna uma URL placeholder
+        // Futuramente pode ser implementado um sistema de arquivo de newsletters
+        return "#newsletter-" + sentDate.toLocalDate().toString();
+    }
+
+    /**
      * Classe para resposta da verificação de email
      */
     public static class CheckEmailResponse {
@@ -350,5 +431,32 @@ public class NewsletterController {
         public boolean isActive() { return active; }
         public boolean isVerified() { return verified; }
         public String getMessage() { return message; }
+    }
+
+    /**
+     * Classe interna para representar informações da newsletter
+     */
+    public static class NewsletterInfo {
+        private String title;
+        private String description;
+        private LocalDateTime sentDate;
+        private String formattedDate;
+        private String url;
+
+        public NewsletterInfo(String title, String description, LocalDateTime sentDate, 
+                            String formattedDate, String url) {
+            this.title = title;
+            this.description = description;
+            this.sentDate = sentDate;
+            this.formattedDate = formattedDate;
+            this.url = url;
+        }
+
+        // Getters
+        public String getTitle() { return title; }
+        public String getDescription() { return description; }
+        public LocalDateTime getSentDate() { return sentDate; }
+        public String getFormattedDate() { return formattedDate; }
+        public String getUrl() { return url; }
     }
 }
