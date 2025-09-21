@@ -131,17 +131,6 @@ public class Subscriber {
         }
     }
     
-    // Construtor personalizado
-    public Subscriber(String email, String fullName) {
-        this.email = email;
-        this.fullName = fullName;
-        this.active = true;
-        this.emailVerified = false;
-        this.frequency = SubscriptionFrequency.WEEKLY;
-        this.subscribedCategories = new HashSet<>();
-        this.emailCount = 0;
-    }
-    
     // Métodos utilitários
     public boolean isActive() {
         return active != null && active;

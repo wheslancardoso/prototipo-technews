@@ -1,7 +1,8 @@
 package com.technews.repository;
 
 import com.technews.entity.Comment;
-import com.technews.entity.NewsArticle;
+import com.technews.entity.CommentStatus;
+import br.com.technews.entity.NewsArticle;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -73,4 +74,12 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     // Find top commenters
     @Query("SELECT c.authorName, c.authorEmail, COUNT(c) as commentCount FROM Comment c WHERE c.approved = true AND c.active = true GROUP BY c.authorName, c.authorEmail ORDER BY commentCount DESC")
     List<Object[]> findTopCommenters(Pageable pageable);
+    
+    // Find comments by status
+    @Query("SELECT c FROM Comment c WHERE c.status = :status AND c.active = true ORDER BY c.createdAt DESC")
+    Page<Comment> findByStatus(@Param("status") CommentStatus status, Pageable pageable);
+    
+    // Count comments by status
+    @Query("SELECT COUNT(c) FROM Comment c WHERE c.status = :status AND c.active = true")
+    Long countByStatus(@Param("status") CommentStatus status);
 }

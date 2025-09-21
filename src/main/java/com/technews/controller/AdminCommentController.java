@@ -1,7 +1,9 @@
 package com.technews.controller;
 
 import com.technews.entity.Comment;
+import com.technews.entity.CommentStatus;
 import com.technews.service.CommentService;
+import br.com.technews.entity.NewsArticle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -9,8 +11,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,13 +53,13 @@ public class AdminCommentController {
         if (search != null && !search.trim().isEmpty()) {
             if (status != null && !status.trim().isEmpty()) {
                 comments = commentService.searchCommentsWithStatus(search, 
-                    Comment.CommentStatus.valueOf(status), pageable);
+                    CommentStatus.valueOf(status), pageable);
             } else {
                 comments = commentService.searchComments(search, pageable);
             }
         } else if (status != null && !status.trim().isEmpty()) {
             comments = commentService.getCommentsByStatus(
-                Comment.CommentStatus.valueOf(status), pageable);
+                CommentStatus.valueOf(status), pageable);
         } else {
             comments = commentService.getAllComments(pageable);
         }
@@ -69,9 +73,9 @@ public class AdminCommentController {
     public ResponseEntity<Map<String, Long>> getCommentStats() {
         Map<String, Long> stats = new HashMap<>();
         stats.put("total", commentService.getTotalCommentsCount());
-        stats.put("pending", commentService.getCommentCountByStatus(Comment.CommentStatus.PENDING));
-        stats.put("approved", commentService.getCommentCountByStatus(Comment.CommentStatus.APPROVED));
-        stats.put("rejected", commentService.getCommentCountByStatus(Comment.CommentStatus.REJECTED));
+        stats.put("pending", commentService.getCommentCountByStatus(CommentStatus.PENDING));
+        stats.put("approved", commentService.getCommentCountByStatus(CommentStatus.APPROVED));
+        stats.put("rejected", commentService.getCommentCountByStatus(CommentStatus.REJECTED));
         
         return ResponseEntity.ok(stats);
     }

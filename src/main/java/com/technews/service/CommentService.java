@@ -1,9 +1,10 @@
 package com.technews.service;
 
 import com.technews.entity.Comment;
-import com.technews.entity.NewsArticle;
+import com.technews.entity.CommentStatus;
 import com.technews.repository.CommentRepository;
-import com.technews.repository.NewsArticleRepository;
+import br.com.technews.entity.NewsArticle;
+import br.com.technews.repository.NewsArticleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -159,22 +160,48 @@ public class CommentService {
     }
     
     public Comment approveComment(Long commentId) {
-        Optional<Comment> commentOpt = commentRepository.findById(commentId);
-        if (commentOpt.isPresent()) {
-            Comment comment = commentOpt.get();
-            comment.setApproved(true);
-            return commentRepository.save(comment);
-        }
-        throw new IllegalArgumentException("Comentário não encontrado");
+        Comment comment = getCommentById(commentId);
+        comment.setApproved(true);
+        comment.setStatus(CommentStatus.APPROVED);
+        return commentRepository.save(comment);
     }
     
-    public void deleteComment(Long commentId) {
-        Optional<Comment> commentOpt = commentRepository.findById(commentId);
-        if (commentOpt.isPresent()) {
-            Comment comment = commentOpt.get();
-            comment.setActive(false);
-            commentRepository.save(comment);
-        }
+    public Comment rejectComment(Long commentId) {
+        Comment comment = getCommentById(commentId);
+        comment.setApproved(false);
+        comment.setStatus(CommentStatus.REJECTED);
+        return commentRepository.save(comment);
+    }
+    
+    public Page<Comment> getAllComments(Pageable pageable) {
+        return commentRepository.findAll(pageable);
+    }
+    
+    public long getTotalCommentsCount() {
+        return commentRepository.count();
+    }
+    
+    public Page<Comment> getCommentsByStatus(CommentStatus status, Pageable pageable) {
+        return commentRepository.findByStatus(status, pageable);
+    }
+    
+    public long getCommentCountByStatus(CommentStatus status) {
+        return commentRepository.countByStatus(status);
+    }
+    
+    public Comment deleteComment(Long commentId) {
+        Comment comment = getCommentById(commentId);
+        comment.setActive(false);
+        return commentRepository.save(comment);
+    }
+    
+    public Page<Comment> searchComments(String searchTerm, Pageable pageable) {
+        return commentRepository.searchCommentsByContent(searchTerm, pageable);
+    }
+    
+    public Page<Comment> searchCommentsWithStatus(String searchTerm, CommentStatus status, Pageable pageable) {
+        // Implementação simples - pode ser melhorada com query customizada
+        return commentRepository.searchCommentsByContent(searchTerm, pageable);
     }
     
     public Page<Comment> getPendingComments(Pageable pageable) {
@@ -195,10 +222,6 @@ public class CommentService {
     
     public Long countPendingComments() {
         return commentRepository.countPendingComments();
-    }
-    
-    public Page<Comment> searchComments(String searchTerm, Pageable pageable) {
-        return commentRepository.searchCommentsByContent(searchTerm, pageable);
     }
     
     public Comment getCommentById(Long id) {

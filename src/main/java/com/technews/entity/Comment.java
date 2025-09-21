@@ -1,10 +1,14 @@
 package com.technews.entity;
 
+import br.com.technews.entity.NewsArticle;
+import com.technews.entity.CommentStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "comments")
@@ -42,6 +46,9 @@ public class Comment {
     @JoinColumn(name = "parent_id")
     private Comment parent;
     
+    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Comment> replies = new ArrayList<>();
+    
     @Column(nullable = false)
     private LocalDateTime createdAt;
     
@@ -50,6 +57,10 @@ public class Comment {
     
     @Column(nullable = false)
     private Boolean active = true;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private CommentStatus status = CommentStatus.PENDING;
     
     @Column(length = 45)
     private String ipAddress;
@@ -127,6 +138,18 @@ public class Comment {
         this.parent = parent;
     }
     
+    public List<Comment> getReplies() {
+        return replies;
+    }
+    
+    public void setReplies(List<Comment> replies) {
+        this.replies = replies;
+    }
+    
+    public Comment getParentComment() {
+        return parent;
+    }
+    
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -151,6 +174,14 @@ public class Comment {
         this.active = active;
     }
     
+    public CommentStatus getStatus() {
+        return status;
+    }
+    
+    public void setStatus(CommentStatus status) {
+        this.status = status;
+    }
+    
     public String getIpAddress() {
         return ipAddress;
     }
@@ -173,10 +204,21 @@ public class Comment {
     }
     
     public String getGravatarUrl() {
-        return "https://www.gravatar.com/avatar/" + 
-               java.security.MessageDigest.getInstance("MD5")
-                   .digest(authorEmail.toLowerCase().getBytes())
-                   .toString() + "?d=identicon&s=50";
+        try {
+            java.security.MessageDigest md = java.security.MessageDigest.getInstance("MD5");
+            byte[] hash = md.digest(authorEmail.toLowerCase().getBytes());
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : hash) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) {
+                    hexString.append('0');
+                }
+                hexString.append(hex);
+            }
+            return "https://www.gravatar.com/avatar/" + hexString.toString() + "?d=identicon&s=50";
+        } catch (java.security.NoSuchAlgorithmException e) {
+            return "https://www.gravatar.com/avatar/default?d=identicon&s=50";
+        }
     }
     
     @Override

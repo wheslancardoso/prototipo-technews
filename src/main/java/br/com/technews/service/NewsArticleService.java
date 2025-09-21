@@ -191,4 +191,11 @@ public class NewsArticleService {
     public List<String> getDistinctAuthors() {
         return newsArticleRepository.findDistinctAuthors();
     }
+    
+    /**
+     * Obtém lista de categorias distintas
+     */
+    public List<String> getDistinctCategories() {
+        return newsArticleRepository.findDistinctCategories();
+    }
 }

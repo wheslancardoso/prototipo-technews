@@ -150,4 +150,10 @@ public interface NewsArticleRepository extends JpaRepository<NewsArticle, Long> 
      */
     @Query("SELECT DISTINCT n.author FROM NewsArticle n WHERE n.published = true AND n.author IS NOT NULL ORDER BY n.author")
     List<String> findDistinctAuthors();
+    
+    /**
+     * Obtém lista de categorias distintas
+     */
+    @Query("SELECT DISTINCT n.category FROM NewsArticle n WHERE n.published = true AND n.category IS NOT NULL ORDER BY n.category")
+    List<String> findDistinctCategories();
 }
