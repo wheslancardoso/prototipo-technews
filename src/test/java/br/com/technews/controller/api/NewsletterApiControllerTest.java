@@ -10,12 +10,19 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -237,6 +244,176 @@ class NewsletterApiControllerTest {
                 .andExpect(jsonPath("$.message").value("Assinante não encontrado"));
 
         verify(subscriberService).findByEmail("invalid@example.com");
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void shouldListSubscribersWithPagination() throws Exception {
+        // Given
+        Subscriber subscriber1 = createTestSubscriber(1L, "João Silva", "joao@example.com");
+        Subscriber subscriber2 = createTestSubscriber(2L, "Maria Santos", "maria@example.com");
+        
+        Page<Subscriber> subscriberPage = new PageImpl<>(
+                java.util.Arrays.asList(subscriber1, subscriber2),
+                PageRequest.of(0, 10),
+                2L
+        );
+        
+        when(subscriberService.findAll(any(), eq(true), eq(true), any(Pageable.class)))
+                .thenReturn(subscriberPage);
+
+        // When & Then
+        mockMvc.perform(get("/api/newsletter/subscribers")
+                .param("page", "0")
+                .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.subscribers").isArray())
+                .andExpect(jsonPath("$.totalElements").value(2))
+                .andExpect(jsonPath("$.currentPage").value(0))
+                .andExpect(jsonPath("$.pageSize").value(10));
+
+        verify(subscriberService).findAll(any(), eq(true), eq(true), any(Pageable.class));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void shouldGetNewsletterStatistics() throws Exception {
+        // Given
+        SubscriberService.SubscriberStats stats = new SubscriberService.SubscriberStats(150L, 120L, 100L, 90L, List.of());
+        when(subscriberService.getStats()).thenReturn(stats);
+
+        // When & Then
+        mockMvc.perform(get("/api/newsletter/stats"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.stats.totalSubscribers").value(150))
+                .andExpect(jsonPath("$.stats.activeSubscribers").value(120))
+                .andExpect(jsonPath("$.stats.verifiedSubscribers").value(100));
+
+        verify(subscriberService).getStats();
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void shouldSendNewsletterSuccessfully() throws Exception {
+        // Given
+        when(emailService.sendNewsletterToAll()).thenReturn(
+            CompletableFuture.completedFuture(Map.of("sent", 10, "failed", 0, "total", 10))
+        );
+
+        // When & Then
+        mockMvc.perform(post("/api/newsletter/send")
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"subject\":\"Weekly Tech News\",\"content\":\"<h1>Latest News</h1>\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("Newsletter enviada com sucesso"));
+
+        verify(emailService).sendNewsletterToAll();
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void shouldHandleSendNewsletterFailure() throws Exception {
+        // Given
+        when(emailService.sendNewsletterToAll()).thenReturn(
+            CompletableFuture.completedFuture(Map.of("sent", 0, "failed", 10, "total", 10))
+        );
+
+        // When & Then
+        mockMvc.perform(post("/api/newsletter/send")
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"subject\":\"Weekly Tech News\",\"content\":\"<h1>Latest News</h1>\"}"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.message").value("Erro ao enviar newsletter"));
+
+        verify(emailService).sendNewsletterToAll();
+    }
+
+    @Test
+    void shouldReactivateSubscriptionSuccessfully() throws Exception {
+        // Given
+        Subscriber subscriber = createTestSubscriber(1L, "João Silva", "joao@example.com");
+        subscriber.setActive(false);
+        
+        when(subscriberService.findByEmail("joao@example.com")).thenReturn(Optional.of(subscriber));
+        when(subscriberService.save(any(Subscriber.class))).thenReturn(subscriber);
+
+        // When & Then
+        mockMvc.perform(post("/api/newsletter/reactivate")
+                .with(csrf())
+                .param("email", "joao@example.com"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("Inscrição reativada com sucesso"));
+
+        verify(subscriberService).findByEmail("joao@example.com");
+        verify(subscriberService).save(any(Subscriber.class));
+    }
+
+    @Test
+    void shouldHandleReactivateWithNonExistentEmail() throws Exception {
+        // Given
+        when(subscriberService.findByEmail("nonexistent@example.com")).thenReturn(Optional.empty());
+
+        // When & Then
+        mockMvc.perform(post("/api/newsletter/reactivate")
+                .with(csrf())
+                .param("email", "nonexistent@example.com"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.message").value("Assinante não encontrado"));
+
+        verify(subscriberService).findByEmail("nonexistent@example.com");
+        verify(subscriberService, never()).save(any(Subscriber.class));
+    }
+
+    @Test
+    void shouldVerifyEmailSuccessfully() throws Exception {
+        // Given
+        when(subscriberService.verifyEmail("verification-token")).thenReturn(true);
+
+        // When & Then
+        mockMvc.perform(get("/api/newsletter/verify")
+                .param("token", "verification-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("Email verificado com sucesso"))
+                .andExpect(jsonPath("$.verified").value(true));
+
+        verify(subscriberService).verifyEmail("verification-token");
+    }
+
+    @Test
+    void shouldHandleVerifyEmailWithInvalidToken() throws Exception {
+        // Given
+        when(subscriberService.verifyEmail("invalid-token")).thenReturn(false);
+
+        // When & Then
+        mockMvc.perform(get("/api/newsletter/verify")
+                .param("token", "invalid-token"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.message").value("Token de verificação inválido ou expirado"))
+                .andExpect(jsonPath("$.verified").value(false));
+
+        verify(subscriberService).verifyEmail("invalid-token");
+    }
+
+    @Test
+    void shouldHandleVerifyEmailWithMissingToken() throws Exception {
+        // When & Then
+        mockMvc.perform(get("/api/newsletter/verify"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.message").value("Token de verificação é obrigatório"))
+                .andExpect(jsonPath("$.verified").value(false));
+
+        verify(subscriberService, never()).verifyEmail(anyString());
     }
 
     private Subscriber createTestSubscriber(Long id, String name, String email) {
