@@ -45,15 +45,15 @@ public class NewsSchedulerService {
         }
     }
 
-    @Scheduled(cron = "0 0 8 * * MON") // Segunda-feira às 8h
+    @Scheduled(cron = "0 0 8 * * *") // Todos os dias às 8h
     public void scheduleDailyNewsletter() {
-        log.info("Executando envio automático da newsletter semanal");
+        log.info("Executando envio automático da newsletter diária");
         try {
             // Usa o novo método de newsletter automática com notícias coletadas
             newsletterService.generateAndSendAutomaticNewsletter();
-            log.info("Newsletter automática enviada com sucesso");
+            log.info("Newsletter diária enviada com sucesso");
         } catch (Exception e) {
-            log.error("Erro no envio automático da newsletter", e);
+            log.error("Erro no envio automático da newsletter diária", e);
         }
     }
 

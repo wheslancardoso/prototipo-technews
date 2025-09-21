@@ -50,7 +50,7 @@ public class NewsletterService {
      */
     public void sendWeeklyNewsletter() {
         try {
-            log.info("Iniciando envio da newsletter semanal");
+            log.info("Iniciando envio da newsletter diária");
             
             List<Subscriber> activeSubscribers = subscriberService.findActiveSubscribers();
             if (activeSubscribers.isEmpty()) {
@@ -86,7 +86,7 @@ public class NewsletterService {
             log.info("Newsletter enviada - Sucessos: {}, Erros: {}", successCount, errorCount);
             
         } catch (Exception e) {
-            log.error("Erro ao enviar newsletter semanal", e);
+            log.error("Erro ao enviar newsletter diária", e);
             throw new RuntimeException("Falha no envio da newsletter", e);
         }
     }
@@ -216,7 +216,7 @@ public class NewsletterService {
      */
     private String generateNewsletterSubject(List<NewsArticle> featuredArticles) {
         if (featuredArticles == null || featuredArticles.isEmpty()) {
-            return "TechNews - Newsletter Semanal 📰";
+            return "TechNews - Newsletter Diária 📰";
         }
         
         // Usa o primeiro artigo em destaque para personalizar o assunto
@@ -284,14 +284,14 @@ public class NewsletterService {
     }
 
     /**
-     * Agenda envio automático da newsletter semanal
+     * Agenda envio automático da newsletter diária
      */
     public void scheduleWeeklyNewsletter() {
         // Este método será chamado pelo scheduler
         try {
             sendWeeklyNewsletter();
         } catch (Exception e) {
-            log.error("Erro no envio automático da newsletter semanal", e);
+            log.error("Erro no envio automático da newsletter diária", e);
         }
     }
 

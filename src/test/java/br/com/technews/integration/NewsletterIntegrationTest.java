@@ -44,6 +44,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
+@Import(br.com.technews.controller.TestSecurityConfig.class)
 class NewsletterIntegrationTest {
 
     @Autowired

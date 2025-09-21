@@ -84,7 +84,7 @@
                                                id="subject" 
                                                th:field="*{subject}"
                                                th:classappend="${#fields.hasErrors('subject')} ? 'is-invalid'"
-                                               placeholder="Ex: Newsletter Semanal - Últimas Notícias de Tecnologia"
+                                               placeholder="Ex: Newsletter Diária - Últimas Notícias de Tecnologia"
                                                maxlength="200">
                                         <div th:if="${#fields.hasErrors('subject')}" class="invalid-feedback">
                                             <span th:errors="*{subject}"></span>
@@ -99,7 +99,7 @@
                                         <label for="templateKey" class="form-label">Template</label>
                                         <select class="form-select" id="templateKey" th:field="*{templateKey}">
                                             <option value="default">Padrão</option>
-                                            <option value="weekly">Semanal</option>
+                                            <option value="weekly">Diária</option>
                                             <option value="monthly">Mensal</option>
                                             <option value="breaking">Notícias Urgentes</option>
                                         </select>
@@ -353,7 +353,7 @@
             const template = document.getElementById('templateKey').value || 'default';
             const templateNames = {
                 'default': 'Padrão',
-                'weekly': 'Semanal',
+                'weekly': 'Diária',
                 'monthly': 'Mensal',
                 'breaking': 'Notícias Urgentes'
             };
