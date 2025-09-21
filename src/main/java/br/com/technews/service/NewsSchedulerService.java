@@ -21,6 +21,7 @@ public class NewsSchedulerService {
     private final NewsScrapingService newsScrapingService;
     private final EmailService emailService;
     private final NewsCollectionService newsCollectionService;
+    private final NewsletterService newsletterService;
 
     @Scheduled(cron = "0 0 */2 * * *")
     public void scheduleNewsCollection() {

@@ -86,6 +86,31 @@ public class EmailService {
     }
 
     /**
+     * Envia email HTML genérico
+     */
+    @Async
+    public CompletableFuture<Boolean> sendHtmlEmail(String toEmail, String subject, String htmlContent) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(fromEmail, fromName);
+            helper.setTo(toEmail);
+            helper.setSubject(subject);
+            helper.setText(htmlContent, true);
+
+            mailSender.send(message);
+            
+            log.info("Email HTML enviado para: {}", toEmail);
+            return CompletableFuture.completedFuture(true);
+
+        } catch (Exception e) {
+            log.error("Erro ao enviar email HTML para {}: {}", toEmail, e.getMessage());
+            return CompletableFuture.completedFuture(false);
+        }
+    }
+
+    /**
      * Envia newsletter com artigos recentes
      */
     @Async

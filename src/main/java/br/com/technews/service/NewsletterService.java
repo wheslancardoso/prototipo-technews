@@ -418,8 +418,8 @@ public class NewsletterService {
         
         try {
             // Estatísticas tradicionais
-            long totalArticles = newsArticleService.getTotalArticlesCount();
-            long publishedArticles = newsArticleService.getPublishedArticlesCount();
+            long totalArticles = newsArticleService.countAll();
+            long publishedArticles = newsArticleService.countPublished();
             
             // Estatísticas de notícias coletadas
             long totalCollected = newsCurationService.getTopQualityNews(1000).size();
@@ -443,6 +443,5 @@ public class NewsletterService {
         // Esta funcionalidade será implementada quando necessário
         // Por enquanto, apenas logamos
         log.debug("Marcando {} notícias coletadas como publicadas", newsList.size());
-    }
     }
 }
