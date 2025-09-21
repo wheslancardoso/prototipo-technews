@@ -2,6 +2,7 @@ package br.com.technews.service;
 
 import br.com.technews.entity.NewsArticle;
 import br.com.technews.entity.Subscriber;
+import br.com.technews.entity.CollectedNews;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,6 +32,7 @@ public class NewsletterService {
     private final SubscriberService subscriberService;
     private final EmailService emailService;
     private final TemplateEngine templateEngine;
+    private final NewsCurationService newsCurationService;
 
     @Value("${app.base-url}")
     private String baseUrl;
@@ -289,5 +291,158 @@ public class NewsletterService {
         } catch (Exception e) {
             log.error("Erro no envio automático da newsletter semanal", e);
         }
+    }
+
+    /**
+     * Gera e envia newsletter automática com notícias coletadas
+     */
+    @Transactional
+    public void generateAndSendAutomaticNewsletter() {
+        try {
+            log.info("Iniciando geração automática de newsletter com notícias coletadas");
+            
+            List<Subscriber> activeSubscribers = subscriberService.findActiveSubscribers();
+            if (activeSubscribers.isEmpty()) {
+                log.info("Nenhum assinante ativo encontrado para newsletter automática");
+                return;
+            }
+
+            // Busca notícias coletadas de alta qualidade
+            List<CollectedNews> topCollectedNews = newsCurationService.getTopQualityNews(10);
+            List<CollectedNews> recentCollectedNews = newsCurationService.getRecentApprovedNews(3);
+            
+            if (topCollectedNews.isEmpty() && recentCollectedNews.isEmpty()) {
+                log.info("Nenhuma notícia coletada de qualidade encontrada para newsletter");
+                return;
+            }
+
+            // Combina com artigos tradicionais se disponíveis
+            List<NewsArticle> featuredArticles = newsArticleService.findFeaturedArticles(3);
+            List<NewsArticle> latestArticles = newsArticleService.findLatestPublishedArticles(5);
+
+            // Gera estatísticas incluindo notícias coletadas
+            Map<String, Object> stats = generateAutomaticNewsletterStats();
+
+            int successCount = 0;
+            int errorCount = 0;
+
+            for (Subscriber subscriber : activeSubscribers) {
+                try {
+                    sendAutomaticNewsletterToSubscriber(subscriber, topCollectedNews, 
+                        recentCollectedNews, featuredArticles, latestArticles, stats);
+                    successCount++;
+                    
+                    // Pequena pausa para evitar sobrecarga
+                    Thread.sleep(100);
+                    
+                } catch (Exception e) {
+                    log.error("Erro ao enviar newsletter automática para {}: {}", 
+                        subscriber.getEmail(), e.getMessage());
+                    errorCount++;
+                }
+            }
+
+            // Marca notícias como publicadas
+            markCollectedNewsAsPublished(topCollectedNews);
+            markCollectedNewsAsPublished(recentCollectedNews);
+
+            log.info("Newsletter automática enviada - Sucessos: {}, Erros: {}", successCount, errorCount);
+            
+        } catch (Exception e) {
+            log.error("Erro ao gerar newsletter automática", e);
+            throw new RuntimeException("Falha na geração da newsletter automática", e);
+        }
+    }
+
+    private void sendAutomaticNewsletterToSubscriber(Subscriber subscriber,
+                                                   List<CollectedNews> topNews,
+                                                   List<CollectedNews> recentNews,
+                                                   List<NewsArticle> featuredArticles,
+                                                   List<NewsArticle> latestArticles,
+                                                   Map<String, Object> stats) {
+        try {
+            String subject = generateAutomaticNewsletterSubject(topNews, featuredArticles);
+            
+            Context context = new Context();
+            context.setVariable("subscriber", subscriber);
+            context.setVariable("baseUrl", baseUrl);
+            context.setVariable("newsletter", Map.of(
+                "subject", subject,
+                "createdAt", LocalDateTime.now(),
+                "type", "automatic"
+            ));
+            context.setVariable("topCollectedNews", topNews);
+            context.setVariable("recentCollectedNews", recentNews);
+            context.setVariable("featuredArticles", featuredArticles);
+            context.setVariable("latestArticles", latestArticles);
+            context.setVariable("stats", stats);
+
+            String htmlContent = templateEngine.process("newsletter/automatic-newsletter-email", context);
+
+            // Enviar email
+            emailService.sendHtmlEmail(subscriber.getEmail(), subject, htmlContent);
+            
+            // Atualizar última data de envio
+            subscriber.setLastEmailSentAt(LocalDateTime.now());
+            subscriberService.save(subscriber);
+            
+            log.debug("Newsletter automática enviada para: {}", subscriber.getEmail());
+            
+        } catch (Exception e) {
+            log.error("Erro ao enviar newsletter automática para {}: {}", 
+                subscriber.getEmail(), e.getMessage());
+            throw new RuntimeException("Falha no envio da newsletter automática para " + 
+                subscriber.getEmail(), e);
+        }
+    }
+
+    private String generateAutomaticNewsletterSubject(List<CollectedNews> topNews, 
+                                                    List<NewsArticle> featuredArticles) {
+        String baseSubject = "TechNews - Últimas Notícias de Tecnologia";
+        
+        if (!topNews.isEmpty()) {
+            String firstTitle = topNews.get(0).getTitle();
+            if (firstTitle.length() > 50) {
+                firstTitle = firstTitle.substring(0, 47) + "...";
+            }
+            return baseSubject + " - " + firstTitle;
+        } else if (!featuredArticles.isEmpty()) {
+            return baseSubject + " - " + featuredArticles.get(0).getTitle();
+        }
+        
+        return baseSubject + " - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+    }
+
+    private Map<String, Object> generateAutomaticNewsletterStats() {
+        Map<String, Object> stats = new HashMap<>();
+        
+        try {
+            // Estatísticas tradicionais
+            long totalArticles = newsArticleService.getTotalArticlesCount();
+            long publishedArticles = newsArticleService.getPublishedArticlesCount();
+            
+            // Estatísticas de notícias coletadas
+            long totalCollected = newsCurationService.getTopQualityNews(1000).size();
+            long approvedCollected = newsCurationService.getRecentApprovedNews(30).size();
+            
+            stats.put("totalArticles", totalArticles);
+            stats.put("publishedArticles", publishedArticles);
+            stats.put("totalCollectedNews", totalCollected);
+            stats.put("approvedCollectedNews", approvedCollected);
+            stats.put("generatedAt", LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
+            
+        } catch (Exception e) {
+            log.warn("Erro ao gerar estatísticas da newsletter automática", e);
+            stats.put("error", "Estatísticas indisponíveis");
+        }
+        
+        return stats;
+    }
+
+    private void markCollectedNewsAsPublished(List<CollectedNews> newsList) {
+        // Esta funcionalidade será implementada quando necessário
+        // Por enquanto, apenas logamos
+        log.debug("Marcando {} notícias coletadas como publicadas", newsList.size());
+    }
     }
 }
