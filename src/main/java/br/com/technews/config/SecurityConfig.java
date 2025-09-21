@@ -22,6 +22,7 @@ public class SecurityConfig {
         http
             .authorizeHttpRequests(authz -> authz
                 .requestMatchers("/", "/subscribe", "/unsubscribe/**", "/verify/**", 
+                               "/newsletter/archive", "/newsletter/manage", "/newsletter/pause",
                                "/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
                 // Endpoints públicos da API
                 .requestMatchers("/api/newsletter/subscribe", "/api/newsletter/status/**", 

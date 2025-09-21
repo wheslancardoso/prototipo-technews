@@ -424,14 +424,14 @@
                                 <small class="text-secondary" th:text="${#strings.abbreviate(article.summary, 50)}">Resumo...</small>
                             </td>
                             <td>
-                                <span class="status-badge status-draft" th:text="${article.category}">Categoria</span>
+                                <span class="status-badge status-draft" th:text="${article.category != null ? article.category : 'Sem categoria'}">Categoria</span>
                             </td>
                             <td class="text-white" th:text="${article.author}">Autor</td>
                             <td>
                                 <span class="status-badge"
-                                      th:classappend="${article.status.name() == 'PUBLICADO'} ? 'status-published' : 
-                                                     (${article.status.name() == 'PENDENTE_REVISAO'} ? 'status-pending' : 'status-draft')"
-                                      th:text="${article.status.name()}">Status</span>
+                                      th:classappend="${article.status == 'PUBLICADO' or article.status.name() == 'PUBLICADO'} ? 'status-published' : 
+                                                     (${article.status == 'PENDENTE_REVISAO' or article.status.name() == 'PENDENTE_REVISAO'} ? 'status-pending' : 'status-draft')"
+                                      th:text="${article.status.name() != null ? article.status.name() : article.status}">Status</span>
                             </td>
                             <td>
                                 <span th:if="${article.published}" class="status-badge status-published">
