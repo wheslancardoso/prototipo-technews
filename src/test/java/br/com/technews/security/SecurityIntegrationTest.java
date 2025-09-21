@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureWebMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
@@ -27,6 +28,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 @AutoConfigureWebMvc
 @ActiveProfiles("test")
 @Transactional
+@Import(br.com.technews.controller.TestSecurityConfig.class)
 class SecurityIntegrationTest {
 
     @Autowired
