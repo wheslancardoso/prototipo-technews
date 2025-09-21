@@ -1,16 +1,18 @@
 package br.com.technews;
 
+import br.com.technews.config.TestSecurityConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
-@SpringBootTest(classes = br.com.technews.TechnewsApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(classes = br.com.technews.TechnewsApplication.class)
 @ActiveProfiles("test")
+@Import(TestSecurityConfig.class)
 public class SimpleIntegrationTest {
 
     @Test
-    public void contextLoads() {
+    void contextLoads() {
         // Este teste verifica se o contexto Spring Boot carrega corretamente
-        // Se chegou até aqui, o contexto foi carregado com sucesso
     }
 }
