@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estatísticas - TechNews</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .stats-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .stat-item {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease;
+        }
+        
+        .stat-item:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .chart-container {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .section-title {
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 0.5rem;
+        }
+        
+        .tag-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            margin: 0.25rem;
+            border-radius: 25px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: transform 0.2s ease;
+        }
+        
+        .tag-badge:hover {
+            transform: scale(1.05);
+            text-decoration: none;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: #6c757d;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 1rem;
+            border-radius: 5px;
+            margin: 1rem 0;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-newspaper me-2"></i>TechNews
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/">Início</a>
+                <a class="nav-link active" href="/stats">Estatísticas</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="stats-card text-center">
+            <h1 class="mb-0">
+                <i class="fas fa-chart-bar me-3"></i>
+                Estatísticas do TechNews
+            </h1>
+            <p class="mt-2 mb-0">Dados em tempo real sobre nosso conteúdo</p>
+        </div>
+
+        <!-- Estatísticas Gerais -->
+        <div class="row" id="generalStats">
+            <div class="col-md-3">
+                <div class="stat-item text-center">
+                    <div class="stat-number" id="totalArticles">-</div>
+                    <div class="stat-label">Artigos Publicados</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-item text-center">
+                    <div class="stat-number" id="totalCategories">-</div>
+                    <div class="stat-label">Categorias</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-item text-center">
+                    <div class="stat-number" id="totalTags">-</div>
+                    <div class="stat-label">Tags Ativas</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-item text-center">
+                    <div class="stat-number" id="totalComments">-</div>
+                    <div class="stat-label">Comentários</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráficos -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="chart-container">
+                    <h3 class="section-title">
+                        <i class="fas fa-tags me-2"></i>
+                        Categorias Mais Populares
+                    </h3>
+                    <canvas id="categoriesChart" width="400" height="300"></canvas>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="chart-container">
+                    <h3 class="section-title">
+                        <i class="fas fa-user-edit me-2"></i>
+                        Autores Mais Ativos
+                    </h3>
+                    <canvas id="authorsChart" width="400" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tags Populares -->
+        <div class="chart-container">
+            <h3 class="section-title">
+                <i class="fas fa-hashtag me-2"></i>
+                Tags Mais Populares
+            </h3>
+            <div id="popularTags" class="text-center">
+                <div class="loading">
+                    <i class="fas fa-spinner fa-spin fa-2x"></i>
+                    <p class="mt-2">Carregando tags...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Artigos Recentes -->
+        <div class="chart-container">
+            <h3 class="section-title">
+                <i class="fas fa-clock me-2"></i>
+                Artigos Mais Recentes
+            </h3>
+            <div id="recentArticles">
+                <div class="loading">
+                    <i class="fas fa-spinner fa-spin fa-2x"></i>
+                    <p class="mt-2">Carregando artigos...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-dark text-light py-4 mt-5">
+        <div class="container text-center">
+            <p>&copy; 2024 TechNews. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Variáveis globais para os gráficos
+        let categoriesChart, authorsChart;
+
+        // Carrega todas as estatísticas
+        async function loadStats() {
+            try {
+                await Promise.all([
+                    loadGeneralStats(),
+                    loadPopularCategories(),
+                    loadActiveAuthors(),
+                    loadPopularTags(),
+                    loadRecentArticles()
+                ]);
+            } catch (error) {
+                console.error('Erro ao carregar estatísticas:', error);
+            }
+        }
+
+        // Carrega estatísticas gerais
+        async function loadGeneralStats() {
+            try {
+                const response = await fetch('/api/stats/general');
+                const data = await response.json();
+                
+                document.getElementById('totalArticles').textContent = data.totalPublishedArticles || 0;
+                document.getElementById('totalCategories').textContent = data.totalCategories || 0;
+                document.getElementById('totalTags').textContent = data.totalActiveTags || 0;
+                document.getElementById('totalComments').textContent = data.totalApprovedComments || 0;
+            } catch (error) {
+                console.error('Erro ao carregar estatísticas gerais:', error);
+            }
+        }
+
+        // Carrega categorias populares
+        async function loadPopularCategories() {
+            try {
+                const response = await fetch('/api/stats/popular-categories');
+                const data = await response.json();
+                
+                if (data.categories && data.categories.length > 0) {
+                    const ctx = document.getElementById('categoriesChart').getContext('2d');
+                    
+                    if (categoriesChart) {
+                        categoriesChart.destroy();
+                    }
+                    
+                    categoriesChart = new Chart(ctx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: data.categories.map(cat => cat.category),
+                            datasets: [{
+                                data: data.categories.map(cat => cat.count),
+                                backgroundColor: [
+                                    '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0',
+                                    '#9966FF', '#FF9F40', '#FF6384', '#C9CBCF'
+                                ]
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom'
+                                }
+                            }
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Erro ao carregar categorias populares:', error);
+            }
+        }
+
+        // Carrega autores ativos
+        async function loadActiveAuthors() {
+            try {
+                const response = await fetch('/api/stats/active-authors');
+                const data = await response.json();
+                
+                if (data.authors && data.authors.length > 0) {
+                    const ctx = document.getElementById('authorsChart').getContext('2d');
+                    
+                    if (authorsChart) {
+                        authorsChart.destroy();
+                    }
+                    
+                    authorsChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: data.authors.map(author => author.author),
+                            datasets: [{
+                                label: 'Artigos',
+                                data: data.authors.map(author => author.count),
+                                backgroundColor: '#667eea',
+                                borderColor: '#764ba2',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Erro ao carregar autores ativos:', error);
+            }
+        }
+
+        // Carrega tags populares
+        async function loadPopularTags() {
+            try {
+                const response = await fetch('/api/stats/popular-tags?limit=20');
+                const tags = await response.json();
+                
+                const container = document.getElementById('popularTags');
+                
+                if (tags && tags.length > 0) {
+                    container.innerHTML = tags.map(tag => 
+                        `<span class="tag-badge" style="background-color: ${tag.color || '#007bff'}; color: white;">
+                            ${tag.displayName || tag.name} (${tag.articleCount || 0})
+                        </span>`
+                    ).join('');
+                } else {
+                    container.innerHTML = '<p class="text-muted">Nenhuma tag encontrada.</p>';
+                }
+            } catch (error) {
+                console.error('Erro ao carregar tags populares:', error);
+                document.getElementById('popularTags').innerHTML = 
+                    '<div class="error">Erro ao carregar tags populares.</div>';
+            }
+        }
+
+        // Carrega artigos recentes
+        async function loadRecentArticles() {
+            try {
+                const response = await fetch('/api/stats/recent-articles');
+                const articles = await response.json();
+                
+                const container = document.getElementById('recentArticles');
+                
+                if (articles && articles.length > 0) {
+                    container.innerHTML = articles.map(article => 
+                        `<div class="row mb-3 p-3 border-bottom">
+                            <div class="col-md-8">
+                                <h5><a href="/article/${article.id}" class="text-decoration-none">${article.title}</a></h5>
+                                <p class="text-muted mb-1">
+                                    <i class="fas fa-user me-1"></i>${article.author || 'Autor desconhecido'}
+                                    <i class="fas fa-tag ms-3 me-1"></i>${article.category || 'Sem categoria'}
+                                </p>
+                                <p class="text-muted small">
+                                    <i class="fas fa-calendar me-1"></i>
+                                    ${new Date(article.publishedAt || article.createdAt).toLocaleDateString('pt-BR')}
+                                </p>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <span class="badge bg-success">${article.status}</span>
+                            </div>
+                        </div>`
+                    ).join('');
+                } else {
+                    container.innerHTML = '<p class="text-muted">Nenhum artigo encontrado.</p>';
+                }
+            } catch (error) {
+                console.error('Erro ao carregar artigos recentes:', error);
+                document.getElementById('recentArticles').innerHTML = 
+                    '<div class="error">Erro ao carregar artigos recentes.</div>';
+            }
+        }
+
+        // Carrega as estatísticas quando a página carrega
+        document.addEventListener('DOMContentLoaded', loadStats);
+    </script>
+</body>
+</html>
