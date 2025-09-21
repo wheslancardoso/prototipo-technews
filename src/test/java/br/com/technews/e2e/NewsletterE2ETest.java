@@ -39,7 +39,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
  * Testes End-to-End (E2E) para simular jornadas completas do usuário
  * Testa cenários reais de uso do sistema de newsletter
  */
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWebMvc
 @ActiveProfiles("test")
 @Transactional

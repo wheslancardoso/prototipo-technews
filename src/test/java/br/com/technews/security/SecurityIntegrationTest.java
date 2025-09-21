@@ -24,7 +24,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 /**
  * Testes de segurança para verificar autenticação, autorização e proteção de rotas
  */
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWebMvc
 @ActiveProfiles("test")
 @Transactional

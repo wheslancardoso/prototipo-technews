@@ -40,7 +40,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
  * Testes de integração para o sistema de newsletter
  * Testa fluxos completos entre camadas (Controller -> Service -> Repository)
  */
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWebMvc
 @ActiveProfiles("test")
 @Transactional
