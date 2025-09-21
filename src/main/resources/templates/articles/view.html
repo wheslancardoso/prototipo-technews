@@ -270,6 +270,98 @@
         </div>
     </div>
 
+    <!-- Comments Section -->
+    <div class="container my-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="comments-section">
+                    <h3 class="mb-4">
+                        <i class="fas fa-comments me-2"></i>
+                        Comentários (<span id="comments-count">0</span>)
+                    </h3>
+
+                    <!-- Comment Form -->
+                    <div class="comment-form-container mb-5">
+                        <div class="card">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-edit me-2"></i>Deixe seu comentário
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <form id="comment-form">
+                                    <input type="hidden" id="article-id" th:value="${article.id}">
+                                    <input type="hidden" id="parent-id" value="">
+                                    
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="author-name" class="form-label">Nome *</label>
+                                            <input type="text" class="form-control" id="author-name" required maxlength="100">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="author-email" class="form-label">Email *</label>
+                                            <input type="email" class="form-control" id="author-email" required maxlength="150">
+                                            <div class="form-text">Seu email não será publicado</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="author-website" class="form-label">Website (opcional)</label>
+                                        <input type="url" class="form-control" id="author-website" maxlength="200">
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="comment-content" class="form-label">Comentário *</label>
+                                        <textarea class="form-control" id="comment-content" rows="4" required maxlength="2000" placeholder="Escreva seu comentário aqui..."></textarea>
+                                        <div class="form-text">
+                                            <span id="char-count">0</span>/2000 caracteres
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="form-text">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            Comentários são moderados antes da publicação
+                                        </div>
+                                        <div>
+                                            <button type="button" id="cancel-reply" class="btn btn-outline-secondary me-2" style="display: none;">
+                                                <i class="fas fa-times me-1"></i>Cancelar Resposta
+                                            </button>
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="fas fa-paper-plane me-1"></i>
+                                                <span id="submit-text">Enviar Comentário</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Comments List -->
+                    <div id="comments-list">
+                        <!-- Comments will be loaded here via JavaScript -->
+                    </div>
+
+                    <!-- Loading Indicator -->
+                    <div id="comments-loading" class="text-center py-4" style="display: none;">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Carregando...</span>
+                        </div>
+                        <p class="mt-2 text-muted">Carregando comentários...</p>
+                    </div>
+
+                    <!-- No Comments Message -->
+                    <div id="no-comments" class="text-center py-5" style="display: none;">
+                        <i class="fas fa-comments fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">Nenhum comentário ainda</h5>
+                        <p class="text-muted">Seja o primeiro a comentar este artigo!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Footer -->
     <footer class="bg-dark text-white py-4">
         <div class="container text-center">
@@ -284,6 +376,272 @@
     <script th:inline="javascript">
         const articleTitle = /*[[${article.title}]]*/ 'Artigo';
         const articleUrl = window.location.href;
+        
+        // Comments Management System
+        class CommentsManager {
+            constructor() {
+                this.articleId = document.getElementById('article-id').value;
+                this.init();
+            }
+
+            init() {
+                this.bindEvents();
+                this.loadComments();
+                this.updateCharCount();
+            }
+
+            bindEvents() {
+                // Form submission
+                document.getElementById('comment-form').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.submitComment();
+                });
+
+                // Character count
+                document.getElementById('comment-content').addEventListener('input', () => {
+                    this.updateCharCount();
+                });
+
+                // Cancel reply
+                document.getElementById('cancel-reply').addEventListener('click', () => {
+                    this.cancelReply();
+                });
+            }
+
+            updateCharCount() {
+                const textarea = document.getElementById('comment-content');
+                const charCount = document.getElementById('char-count');
+                charCount.textContent = textarea.value.length;
+                
+                if (textarea.value.length > 1800) {
+                    charCount.style.color = '#dc3545';
+                } else if (textarea.value.length > 1500) {
+                    charCount.style.color = '#fd7e14';
+                } else {
+                    charCount.style.color = '#6c757d';
+                }
+            }
+
+            async loadComments() {
+                const loadingEl = document.getElementById('comments-loading');
+                const commentsListEl = document.getElementById('comments-list');
+                const noCommentsEl = document.getElementById('no-comments');
+                
+                loadingEl.style.display = 'block';
+                
+                try {
+                    const response = await fetch(`/api/comments/article/${this.articleId}`);
+                    const comments = await response.json();
+                    
+                    loadingEl.style.display = 'none';
+                    
+                    if (comments.length === 0) {
+                        noCommentsEl.style.display = 'block';
+                        commentsListEl.innerHTML = '';
+                    } else {
+                        noCommentsEl.style.display = 'none';
+                        this.renderComments(comments);
+                    }
+                    
+                    this.updateCommentsCount(comments.length);
+                } catch (error) {
+                    console.error('Erro ao carregar comentários:', error);
+                    loadingEl.style.display = 'none';
+                    commentsListEl.innerHTML = '<div class="alert alert-danger">Erro ao carregar comentários. Tente novamente mais tarde.</div>';
+                }
+            }
+
+            renderComments(comments) {
+                const commentsListEl = document.getElementById('comments-list');
+                const commentsHtml = comments.map(comment => this.renderComment(comment)).join('');
+                commentsListEl.innerHTML = commentsHtml;
+                
+                // Bind reply buttons
+                document.querySelectorAll('.reply-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const commentId = e.target.dataset.commentId;
+                        const authorName = e.target.dataset.authorName;
+                        this.replyToComment(commentId, authorName);
+                    });
+                });
+            }
+
+            renderComment(comment, isReply = false) {
+                const marginClass = isReply ? 'ms-4' : '';
+                const replyIcon = isReply ? '<i class="fas fa-reply me-1"></i>' : '';
+                
+                return `
+                    <div class="comment ${marginClass} mb-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div class="comment-author">
+                                        ${replyIcon}
+                                        <strong>${this.escapeHtml(comment.authorName)}</strong>
+                                        ${comment.authorWebsite ? `<a href="${this.escapeHtml(comment.authorWebsite)}" target="_blank" class="ms-2 text-muted small"><i class="fas fa-external-link-alt"></i></a>` : ''}
+                                    </div>
+                                    <small class="text-muted">
+                                        <i class="fas fa-clock me-1"></i>
+                                        ${this.formatDate(comment.createdAt)}
+                                    </small>
+                                </div>
+                                <div class="comment-content">
+                                    ${this.escapeHtml(comment.content).replace(/\n/g, '<br>')}
+                                </div>
+                                ${!isReply ? `
+                                    <div class="comment-actions mt-3">
+                                        <button class="btn btn-outline-primary btn-sm reply-btn" 
+                                                data-comment-id="${comment.id}" 
+                                                data-author-name="${this.escapeHtml(comment.authorName)}">
+                                            <i class="fas fa-reply me-1"></i>Responder
+                                        </button>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                        ${comment.replies && comment.replies.length > 0 ? 
+                            comment.replies.map(reply => this.renderComment(reply, true)).join('') : ''}
+                    </div>
+                `;
+            }
+
+            async submitComment() {
+                const form = document.getElementById('comment-form');
+                const submitBtn = form.querySelector('button[type="submit"]');
+                const originalText = submitBtn.innerHTML;
+                
+                // Validate form
+                if (!this.validateForm()) {
+                    return;
+                }
+                
+                // Disable submit button
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Enviando...';
+                
+                const commentData = {
+                    articleId: this.articleId,
+                    parentId: document.getElementById('parent-id').value || null,
+                    authorName: document.getElementById('author-name').value.trim(),
+                    authorEmail: document.getElementById('author-email').value.trim(),
+                    authorWebsite: document.getElementById('author-website').value.trim() || null,
+                    content: document.getElementById('comment-content').value.trim()
+                };
+                
+                try {
+                    const response = await fetch('/api/comments', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(commentData)
+                    });
+                    
+                    if (response.ok) {
+                        this.showAlert('Comentário enviado com sucesso! Aguarde a moderação.', 'success');
+                        this.resetForm();
+                        this.loadComments(); // Reload comments
+                    } else {
+                        const error = await response.text();
+                        this.showAlert('Erro ao enviar comentário: ' + error, 'danger');
+                    }
+                } catch (error) {
+                    console.error('Erro ao enviar comentário:', error);
+                    this.showAlert('Erro ao enviar comentário. Tente novamente.', 'danger');
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                }
+            }
+
+            validateForm() {
+                const name = document.getElementById('author-name').value.trim();
+                const email = document.getElementById('author-email').value.trim();
+                const content = document.getElementById('comment-content').value.trim();
+                
+                if (!name || !email || !content) {
+                    this.showAlert('Por favor, preencha todos os campos obrigatórios.', 'warning');
+                    return false;
+                }
+                
+                if (content.length > 2000) {
+                    this.showAlert('O comentário não pode ter mais de 2000 caracteres.', 'warning');
+                    return false;
+                }
+                
+                return true;
+            }
+
+            replyToComment(commentId, authorName) {
+                document.getElementById('parent-id').value = commentId;
+                document.getElementById('submit-text').textContent = `Responder a ${authorName}`;
+                document.getElementById('cancel-reply').style.display = 'inline-block';
+                
+                // Scroll to form
+                document.getElementById('comment-form').scrollIntoView({ behavior: 'smooth' });
+                document.getElementById('comment-content').focus();
+            }
+
+            cancelReply() {
+                document.getElementById('parent-id').value = '';
+                document.getElementById('submit-text').textContent = 'Enviar Comentário';
+                document.getElementById('cancel-reply').style.display = 'none';
+            }
+
+            resetForm() {
+                document.getElementById('comment-form').reset();
+                document.getElementById('parent-id').value = '';
+                document.getElementById('submit-text').textContent = 'Enviar Comentário';
+                document.getElementById('cancel-reply').style.display = 'none';
+                this.updateCharCount();
+            }
+
+            updateCommentsCount(count) {
+                document.getElementById('comments-count').textContent = count;
+            }
+
+            showAlert(message, type) {
+                const alertHtml = `
+                    <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                        ${message}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                `;
+                
+                const formContainer = document.querySelector('.comment-form-container');
+                formContainer.insertAdjacentHTML('beforebegin', alertHtml);
+                
+                // Auto-dismiss after 5 seconds
+                setTimeout(() => {
+                    const alert = document.querySelector('.alert');
+                    if (alert) {
+                        alert.remove();
+                    }
+                }, 5000);
+            }
+
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            formatDate(dateString) {
+                const date = new Date(dateString);
+                return date.toLocaleDateString('pt-BR', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            }
+        }
+
+        // Initialize comments when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new CommentsManager();
+        });
         
         function shareOnFacebook() {
             const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(articleUrl)}`;
