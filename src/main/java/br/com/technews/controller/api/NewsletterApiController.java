@@ -23,6 +23,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.Pattern;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -449,10 +450,14 @@ public class NewsletterApiController {
     public static class SubscribeRequest {
         @NotBlank(message = "Email é obrigatório")
         @Email(message = "Email deve ter formato válido")
+        @Pattern(regexp = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$", 
+                 message = "Email deve ter formato válido")
         private String email;
         
         @NotBlank(message = "Nome é obrigatório")
         @Size(min = 2, max = 100, message = "Nome deve ter entre 2 e 100 caracteres")
+        @Pattern(regexp = "^[a-zA-ZÀ-ÿ\\s.'-]+$", 
+                 message = "Nome deve conter apenas letras, espaços e caracteres válidos")
         private String nome;
         
         private Subscriber.SubscriptionFrequency frequencia;

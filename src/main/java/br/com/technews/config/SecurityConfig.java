@@ -46,7 +46,6 @@ public class SecurityConfig {
             )
             .csrf(csrf -> csrf
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                .ignoringRequestMatchers("/api/newsletter/subscribe", "/api/newsletter/unsubscribe/**")
             )
             .headers(headers -> headers.frameOptions().disable());
         
