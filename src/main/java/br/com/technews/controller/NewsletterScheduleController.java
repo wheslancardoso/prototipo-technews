@@ -6,7 +6,8 @@ import br.com.technews.entity.Subscriber;
 import br.com.technews.service.CategoryService;
 import br.com.technews.service.NewsletterScheduleService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -17,8 +18,6 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -33,15 +32,13 @@ import java.util.stream.Collectors;
  */
 @Controller
 @RequestMapping("/admin/newsletter/schedule")
+@RequiredArgsConstructor
 public class NewsletterScheduleController {
 
     private static final Logger log = LoggerFactory.getLogger(NewsletterScheduleController.class);
 
-    @Autowired
-    private NewsletterScheduleService scheduleService;
-    
-    @Autowired
-    private CategoryService categoryService;
+    private final NewsletterScheduleService scheduleService;
+    private final CategoryService categoryService;
 
     /**
      * Lista agendamentos

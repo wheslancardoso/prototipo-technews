@@ -1,33 +1,38 @@
-package com.technews.controller;
+package br.com.technews.controller;
 
-import br.com.technews.service.NewsArticleService;
-import br.com.technews.service.CategoryService;
-import com.technews.service.TagService;
-import com.technews.service.CommentService;
-import br.com.technews.entity.NewsArticle;
 import br.com.technews.entity.Category;
-import com.technews.entity.Tag;
-import com.technews.entity.CommentStatus;
+import br.com.technews.entity.NewsArticle;
+import br.com.technews.entity.Tag;
+import br.com.technews.entity.CommentStatus;
+import br.com.technews.service.CategoryService;
+import br.com.technews.service.CommentService;
+import br.com.technews.service.NewsArticleService;
+import br.com.technews.service.TagService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 import java.util.stream.Collectors;
-
 @RestController
 @RequestMapping("/api/stats")
 @RequiredArgsConstructor
-@Slf4j
 public class StatsController {
     
-    private final NewsArticleService newsArticleService;
-    private final TagService tagService;
-    private final CommentService commentService;
+    private static final Logger log = LoggerFactory.getLogger(StatsController.class);
     
+    private final NewsArticleService newsArticleService;
+    private final CategoryService categoryService;
+    private final TagService tagService;
+    private final CommentService commentService; 
     /**
      * Estatísticas gerais do sistema
      */

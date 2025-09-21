@@ -1,6 +1,6 @@
 package br.com.technews.entity;
 
-import com.technews.entity.Tag;
+import br.com.technews.entity.Tag;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import jakarta.persistence.Id;

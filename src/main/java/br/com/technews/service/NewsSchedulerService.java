@@ -1,7 +1,6 @@
 package br.com.technews.service;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -13,11 +12,11 @@ import java.time.format.DateTimeFormatter;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 @ConditionalOnProperty(name = "technews.scheduler.enabled", havingValue = "true", matchIfMissing = true)
 public class NewsSchedulerService {
 
-    private static final Logger log = LoggerFactory.getLogger(NewsSchedulerService.class);
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(NewsSchedulerService.class);
+
     private final NewsScrapingService newsScrapingService;
     private final EmailService emailService;
     private final NewsCollectionService newsCollectionService;

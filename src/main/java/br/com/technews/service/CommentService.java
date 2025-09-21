@@ -1,8 +1,8 @@
-package com.technews.service;
+package br.com.technews.service;
 
-import com.technews.entity.Comment;
-import com.technews.entity.CommentStatus;
-import com.technews.repository.CommentRepository;
+import br.com.technews.entity.Comment;
+import br.com.technews.entity.CommentStatus;
+import br.com.technews.repository.CommentRepository;
 import br.com.technews.entity.NewsArticle;
 import br.com.technews.repository.NewsArticleRepository;
 import org.springframework.beans.factory.annotation.Autowired;

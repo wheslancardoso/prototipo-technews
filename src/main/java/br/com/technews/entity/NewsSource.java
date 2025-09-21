@@ -59,6 +59,166 @@ public class NewsSource {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
+    // Getters e Setters manuais
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
+    public SourceType getType() {
+        return type;
+    }
+
+    public void setType(SourceType type) {
+        this.type = type;
+    }
+
+    public Category getCategory() {
+        return category;
+    }
+
+    public void setCategory(Category category) {
+        this.category = category;
+    }
+
+    public Boolean getActive() {
+        return active;
+    }
+
+    public void setActive(Boolean active) {
+        this.active = active;
+    }
+
+    public LocalDateTime getLastFetchAt() {
+        return lastFetchAt;
+    }
+
+    public void setLastFetchAt(LocalDateTime lastFetchAt) {
+        this.lastFetchAt = lastFetchAt;
+    }
+
+    public Integer getFetchIntervalMinutes() {
+        return fetchIntervalMinutes;
+    }
+
+    public void setFetchIntervalMinutes(Integer fetchIntervalMinutes) {
+        this.fetchIntervalMinutes = fetchIntervalMinutes;
+    }
+
+    public Integer getMaxArticlesPerFetch() {
+        return maxArticlesPerFetch;
+    }
+
+    public void setMaxArticlesPerFetch(Integer maxArticlesPerFetch) {
+        this.maxArticlesPerFetch = maxArticlesPerFetch;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    // Builder pattern manual
+    public static NewsSourceBuilder builder() {
+        return new NewsSourceBuilder();
+    }
+
+    public static class NewsSourceBuilder {
+        private String name;
+        private String url;
+        private SourceType type;
+        private Category category;
+        private Boolean active = true;
+        private LocalDateTime lastFetchAt;
+        private Integer fetchIntervalMinutes = 60;
+        private Integer maxArticlesPerFetch = 10;
+
+        public NewsSourceBuilder name(String name) {
+            this.name = name;
+            return this;
+        }
+
+        public NewsSourceBuilder url(String url) {
+            this.url = url;
+            return this;
+        }
+
+        public NewsSourceBuilder type(SourceType type) {
+            this.type = type;
+            return this;
+        }
+
+        public NewsSourceBuilder category(Category category) {
+            this.category = category;
+            return this;
+        }
+
+        public NewsSourceBuilder active(Boolean active) {
+            this.active = active;
+            return this;
+        }
+
+        public NewsSourceBuilder lastFetchAt(LocalDateTime lastFetchAt) {
+            this.lastFetchAt = lastFetchAt;
+            return this;
+        }
+
+        public NewsSourceBuilder fetchIntervalMinutes(Integer fetchIntervalMinutes) {
+            this.fetchIntervalMinutes = fetchIntervalMinutes;
+            return this;
+        }
+
+        public NewsSourceBuilder maxArticlesPerFetch(Integer maxArticlesPerFetch) {
+            this.maxArticlesPerFetch = maxArticlesPerFetch;
+            return this;
+        }
+
+        public NewsSource build() {
+            NewsSource newsSource = new NewsSource();
+            newsSource.setName(this.name);
+            newsSource.setUrl(this.url);
+            newsSource.setType(this.type);
+            newsSource.setCategory(this.category);
+            newsSource.setActive(this.active);
+            newsSource.setLastFetchAt(this.lastFetchAt);
+            newsSource.setFetchIntervalMinutes(this.fetchIntervalMinutes);
+            newsSource.setMaxArticlesPerFetch(this.maxArticlesPerFetch);
+            newsSource.setCreatedAt(LocalDateTime.now());
+            newsSource.setUpdatedAt(LocalDateTime.now());
+            return newsSource;
+        }
+    }
+
     public enum SourceType {
         RSS_FEED,
         API,

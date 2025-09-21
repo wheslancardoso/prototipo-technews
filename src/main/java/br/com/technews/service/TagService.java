@@ -1,7 +1,7 @@
-package com.technews.service;
+package br.com.technews.service;
 
-import com.technews.entity.Tag;
-import com.technews.repository.TagRepository;
+import br.com.technews.entity.Tag;
+import br.com.technews.repository.TagRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

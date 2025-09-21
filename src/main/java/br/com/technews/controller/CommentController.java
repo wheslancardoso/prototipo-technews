@@ -1,7 +1,7 @@
-package com.technews.controller;
+package br.com.technews.controller;
 
-import com.technews.entity.Comment;
-import com.technews.service.CommentService;
+import br.com.technews.entity.Comment;
+import br.com.technews.service.CommentService;
 import br.com.technews.entity.NewsArticle;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;

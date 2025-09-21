@@ -1,7 +1,7 @@
-package com.technews.repository;
+package br.com.technews.repository;
 
-import com.technews.entity.Comment;
-import com.technews.entity.CommentStatus;
+import br.com.technews.entity.Comment;
+import br.com.technews.entity.CommentStatus;
 import br.com.technews.entity.NewsArticle;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

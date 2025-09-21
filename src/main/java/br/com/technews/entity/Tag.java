@@ -1,4 +1,4 @@
-package com.technews.entity;
+package br.com.technews.entity;
 
 import br.com.technews.entity.NewsArticle;
 import jakarta.persistence.*;

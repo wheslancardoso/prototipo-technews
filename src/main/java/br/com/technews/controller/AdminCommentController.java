@@ -1,8 +1,8 @@
-package com.technews.controller;
+package br.com.technews.controller;
 
-import com.technews.entity.Comment;
-import com.technews.entity.CommentStatus;
-import com.technews.service.CommentService;
+import br.com.technews.entity.Comment;
+import br.com.technews.entity.CommentStatus;
+import br.com.technews.service.CommentService;
 import br.com.technews.entity.NewsArticle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -245,7 +245,7 @@ public class AdminCommentController {
         dto.setCreatedAt(comment.getCreatedAt().toString());
         dto.setArticleTitle(comment.getArticle().getTitle());
         dto.setArticleId(comment.getArticle().getId());
-        dto.setParentId(comment.getParentComment() != null ? comment.getParentComment().getId() : null);
+        dto.setParentId(comment.getParent() != null ? comment.getParent().getId() : null);
         dto.setHasReplies(comment.getReplies() != null && !comment.getReplies().isEmpty());
         
         return dto;
@@ -263,12 +263,12 @@ public class AdminCommentController {
         dto.setArticleTitle(comment.getArticle().getTitle());
         dto.setArticleId(comment.getArticle().getId());
         dto.setArticleUrl("/articles/" + comment.getArticle().getId());
-        dto.setParentId(comment.getParentComment() != null ? comment.getParentComment().getId() : null);
+        dto.setParentId(comment.getParent() != null ? comment.getParent().getId() : null);
         dto.setHasReplies(comment.getReplies() != null && !comment.getReplies().isEmpty());
         
         // Set parent comment if exists
-        if (comment.getParentComment() != null) {
-            dto.setParentComment(convertToDTO(comment.getParentComment()));
+        if (comment.getParent() != null) {
+            dto.setParentComment(convertToDTO(comment.getParent()));
         }
         
         // Set replies if exist

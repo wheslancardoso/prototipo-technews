@@ -1,7 +1,7 @@
-package com.technews.controller;
+package br.com.technews.controller;
 
-import com.technews.entity.Tag;
-import com.technews.service.TagService;
+import br.com.technews.entity.Tag;
+import br.com.technews.service.TagService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;

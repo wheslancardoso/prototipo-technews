@@ -1,6 +1,6 @@
-package com.technews.repository;
+package br.com.technews.repository;
 
-import com.technews.entity.Tag;
+import br.com.technews.entity.Tag;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

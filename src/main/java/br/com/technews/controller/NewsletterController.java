@@ -5,7 +5,6 @@ import br.com.technews.entity.Category;
 import br.com.technews.service.SubscriberService;
 import br.com.technews.service.CategoryService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -22,14 +21,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-@Slf4j
 @Controller
 @RequestMapping("/newsletter")
 @RequiredArgsConstructor
 public class NewsletterController {
 
     private static final Logger log = LoggerFactory.getLogger(NewsletterController.class);
-    
+
     private final SubscriberService subscriberService;
     private final CategoryService categoryService;
 

@@ -6,8 +6,6 @@ import br.com.technews.repository.CategoryRepository;
 import br.com.technews.repository.NewsArticleRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -26,7 +24,6 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class NewsScrapingService {
 
-    private static final Logger log = LoggerFactory.getLogger(NewsScrapingService.class);
     private final NewsArticleRepository newsArticleRepository;
     private final CategoryRepository categoryRepository;
 

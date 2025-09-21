@@ -1,9 +1,10 @@
-package com.technews.controller;
+package br.com.technews.controller;
 
 import br.com.technews.entity.NewsArticle;
 import br.com.technews.service.NewsArticleService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,8 +18,9 @@ import java.util.Optional;
  */
 @Controller
 @RequiredArgsConstructor
-@Slf4j
 public class ArticleViewController {
+
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ArticleViewController.class);
 
     private final NewsArticleService newsArticleService;
 

@@ -4,7 +4,8 @@ import br.com.technews.entity.NewsArticle;
 import br.com.technews.entity.Subscriber;
 import br.com.technews.entity.CollectedNews;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -23,10 +24,11 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class NewsletterService {
+
+    private static final Logger log = LoggerFactory.getLogger(NewsletterService.class);
 
     private final NewsArticleService newsArticleService;
     private final SubscriberService subscriberService;

@@ -9,7 +9,8 @@ import com.rometools.rome.feed.synd.SyndFeed;
 import com.rometools.rome.io.SyndFeedInput;
 import com.rometools.rome.io.XmlReader;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.springframework.stereotype.Service;
@@ -27,8 +28,9 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class NewsCollectionService {
+
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(NewsCollectionService.class);
 
     private final NewsSourceRepository newsSourceRepository;
     private final CollectedNewsRepository collectedNewsRepository;

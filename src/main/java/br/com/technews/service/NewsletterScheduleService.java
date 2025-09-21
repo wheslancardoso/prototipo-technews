@@ -6,6 +6,9 @@ import br.com.technews.entity.Subscriber;
 import br.com.technews.repository.CategoryRepository;
 import br.com.technews.repository.NewsletterScheduleRepository;
 import br.com.technews.repository.SubscriberRepository;
+import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,8 +16,6 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -30,24 +31,16 @@ import java.util.stream.Collectors;
  */
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class NewsletterScheduleService {
 
     private static final Logger log = LoggerFactory.getLogger(NewsletterScheduleService.class);
 
-    @Autowired
-    private NewsletterScheduleRepository scheduleRepository;
-    
-    @Autowired
-    private CategoryRepository categoryRepository;
-    
-    @Autowired
-    private SubscriberService subscriberService;
-    
-    @Autowired
-    private EmailService emailService;
-    
-    @Autowired
-    private NewsletterService newsletterService;
+    private final NewsletterScheduleRepository scheduleRepository;
+    private final CategoryRepository categoryRepository;
+    private final SubscriberService subscriberService;
+    private final EmailService emailService;
+    private final NewsletterService newsletterService;
 
     /**
      * Cria um novo agendamento de newsletter
