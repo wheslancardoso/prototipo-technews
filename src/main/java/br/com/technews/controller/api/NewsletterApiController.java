@@ -20,6 +20,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -116,10 +119,36 @@ public class NewsletterApiController {
      */
     @DeleteMapping("/unsubscribe/{email}")
     public ResponseEntity<Map<String, Object>> unsubscribe(@PathVariable String email, 
-                                                          @RequestParam(required = false) String reason) {
+                                                          @RequestParam(required = false) String reason,
+                                                          @RequestParam(required = false) String token) {
         Map<String, Object> response = new HashMap<>();
         
         try {
+            // Validar token se fornecido
+            if (token != null && !token.trim().isEmpty()) {
+                Optional<Subscriber> subscriberOpt = subscriberService.findByEmail(email);
+                if (subscriberOpt.isEmpty()) {
+                    response.put("success", false);
+                    response.put("message", "Email não encontrado");
+                    response.put("code", "EMAIL_NOT_FOUND");
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+                }
+                
+                Subscriber subscriber = subscriberOpt.get();
+                if (!token.equals(subscriber.getManageToken())) {
+                    response.put("success", false);
+                    response.put("message", "Token inválido");
+                    response.put("code", "INVALID_TOKEN");
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+                }
+            } else {
+                // Se não há token, retornar erro
+                response.put("success", false);
+                response.put("message", "Token de gerenciamento é obrigatório");
+                response.put("code", "TOKEN_REQUIRED");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            }
+            
             boolean success = subscriberService.unsubscribe(email, reason);
             
             if (success) {
@@ -418,8 +447,14 @@ public class NewsletterApiController {
 
     // Classes de Request
     public static class SubscribeRequest {
+        @NotBlank(message = "Email é obrigatório")
+        @Email(message = "Email deve ter formato válido")
         private String email;
+        
+        @NotBlank(message = "Nome é obrigatório")
+        @Size(min = 2, max = 100, message = "Nome deve ter entre 2 e 100 caracteres")
         private String nome;
+        
         private Subscriber.SubscriptionFrequency frequencia;
         private String categorias;
 
