@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title th:text="${newsletter.subject ?: 'TechNews'}">TechNews</title>
+    <style>
+        /* Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #1a1a1a;
+            background-color: #ffffff;
+            margin: 0;
+            padding: 0;
+            -webkit-text-size-adjust: 100%;
+            -ms-text-size-adjust: 100%;
+        }
+        
+        table {
+            border-collapse: collapse;
+            mso-table-lspace: 0pt;
+            mso-table-rspace: 0pt;
+        }
+        
+        img {
+            border: 0;
+            height: auto;
+            line-height: 100%;
+            outline: none;
+            text-decoration: none;
+            -ms-interpolation-mode: bicubic;
+            max-width: 100%;
+        }
+        
+        /* Container */
+        .email-wrapper {
+            width: 100%;
+            background-color: #f8f9fa;
+            padding: 20px 0;
+        }
+        
+        .email-container {
+            max-width: 680px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+        
+        /* Header - Estilo The News */
+        .email-header {
+            background-color: #ffffff;
+            padding: 40px 40px 20px 40px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1a1a1a;
+            text-decoration: none;
+            letter-spacing: -0.5px;
+        }
+        
+        .issue-date {
+            font-size: 14px;
+            color: #6b7280;
+            font-weight: 500;
+        }
+        
+        .newsletter-title {
+            font-size: 32px;
+            font-weight: 800;
+            color: #1a1a1a;
+            line-height: 1.2;
+            margin-bottom: 12px;
+            letter-spacing: -1px;
+        }
+        
+        .newsletter-subtitle {
+            font-size: 18px;
+            color: #6b7280;
+            line-height: 1.4;
+            font-weight: 400;
+        }
+        
+        /* Content */
+        .email-content {
+            padding: 0 40px 40px 40px;
+        }
+        
+        /* Greeting */
+        .greeting {
+            font-size: 16px;
+            color: #374151;
+            margin: 30px 0 40px 0;
+            line-height: 1.5;
+        }
+        
+        /* Section Headers */
+        .section {
+            margin-bottom: 50px;
+        }
+        
+        .section-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #f3f4f6;
+        }
+        
+        .section-number {
+            background-color: #1a1a1a;
+            color: #ffffff;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 700;
+            margin-right: 16px;
+        }
+        
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1a1a1a;
+            letter-spacing: -0.3px;
+        }
+        
+        /* Article Cards - Estilo The News */
+        .article-item {
+            margin-bottom: 32px;
+            padding-bottom: 32px;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        
+        .article-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        
+        .article-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .article-number {
+            background-color: #f3f4f6;
+            color: #6b7280;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+        
+        .article-category {
+            background-color: #dbeafe;
+            color: #1e40af;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .article-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1a1a1a;
+            text-decoration: none;
+            line-height: 1.3;
+            margin: 12px 0;
+            display: block;
+            letter-spacing: -0.3px;
+        }
+        
+        .article-title:hover {
+            color: #2563eb;
+        }
+        
+        .article-summary {
+            font-size: 16px;
+            color: #4b5563;
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+        
+        .article-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 14px;
+            color: #6b7280;
+        }
+        
+        .article-author {
+            font-weight: 500;
+        }
+        
+        .article-date {
+            font-weight: 400;
+        }
+        
+        .read-more {
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            margin-top: 12px;
+        }
+        
+        .read-more:hover {
+            color: #1d4ed8;
+        }
+        
+        .read-more::after {
+            content: "→";
+            margin-left: 6px;
+            transition: transform 0.2s ease;
+        }
+        
+        .read-more:hover::after {
+            transform: translateX(2px);
+        }
+        
+        /* Stats Section */
+        .stats-section {
+            background-color: #f9fafb;
+            border-radius: 8px;
+            padding: 30px;
+            margin: 40px 0;
+            text-align: center;
+        }
+        
+        .stats-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 20px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 20px;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-number {
+            display: block;
+            font-size: 28px;
+            font-weight: 800;
+            color: #1a1a1a;
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: #6b7280;
+            font-weight: 500;
+        }
+        
+        /* Footer */
+        .email-footer {
+            background-color: #f9fafb;
+            padding: 40px;
+            text-align: center;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        .footer-content {
+            margin-bottom: 30px;
+        }
+        
+        .footer-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 8px;
+        }
+        
+        .footer-description {
+            font-size: 16px;
+            color: #6b7280;
+            line-height: 1.5;
+        }
+        
+        .footer-links {
+            margin: 30px 0;
+        }
+        
+        .footer-link {
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: 600;
+            margin: 0 16px;
+            font-size: 14px;
+        }
+        
+        .footer-link:hover {
+            color: #1d4ed8;
+        }
+        
+        .unsubscribe-section {
+            font-size: 14px;
+            color: #9ca3af;
+            line-height: 1.5;
+        }
+        
+        .unsubscribe-link {
+            color: #6b7280;
+            text-decoration: none;
+        }
+        
+        .unsubscribe-link:hover {
+            color: #374151;
+        }
+        
+        /* Responsive */
+        @media only screen and (max-width: 600px) {
+            .email-wrapper {
+                padding: 10px;
+            }
+            
+            .email-header,
+            .email-content,
+            .email-footer {
+                padding: 30px 20px;
+            }
+            
+            .header-top {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .newsletter-title {
+                font-size: 28px;
+            }
+            
+            .newsletter-subtitle {
+                font-size: 16px;
+            }
+            
+            .article-title {
+                font-size: 18px;
+            }
+            
+            .article-summary {
+                font-size: 15px;
+            }
+            
+            .article-meta {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .footer-link {
+                display: block;
+                margin: 8px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-wrapper">
+        <div class="email-container">
+            <!-- Header -->
+            <div class="email-header">
+                <div class="header-top">
+                    <a href="#" class="logo" th:href="${baseUrl}">TechNews</a>
+                    <div class="issue-date" th:text="${#temporals.format(newsletter.createdAt ?: #temporals.createNow(), 'dd MMM yyyy')}">20 Set 2024</div>
+                </div>
+                <h1 class="newsletter-title" th:text="${newsletter.title ?: 'Sua dose diária de tecnologia'}">Sua dose diária de tecnologia</h1>
+                <p class="newsletter-subtitle">As principais notícias de tech, cuidadosamente selecionadas para você</p>
+            </div>
+
+            <!-- Content -->
+            <div class="email-content">
+                <!-- Greeting -->
+                <div class="greeting">
+                    Olá <span th:text="${subscriber.nome ?: 'leitor'}">leitor</span>! 👋<br>
+                    Aqui estão as notícias mais importantes de hoje no mundo da tecnologia.
+                </div>
+
+                <!-- Featured Articles -->
+                <div class="section" th:if="${featuredArticles and !featuredArticles.empty}">
+                    <div class="section-header">
+                        <div class="section-number">1</div>
+                        <h2 class="section-title">Destaques do Dia</h2>
+                    </div>
+                    
+                    <div th:each="article, iterStat : ${featuredArticles}" class="article-item">
+                        <div class="article-header">
+                            <div class="article-number" th:text="${iterStat.count}">1</div>
+                            <div class="article-category" th:text="${article.category ?: 'Tech'}">Tech</div>
+                        </div>
+                        
+                        <a th:href="${baseUrl + '/articles/' + article.id}" class="article-title" th:text="${article.title}">
+                            Título do Artigo em Destaque
+                        </a>
+                        
+                        <div class="article-summary" th:text="${article.summary ?: #strings.abbreviate(article.content, 200)}">
+                            Resumo do artigo com as principais informações que o leitor precisa saber sobre este tópico importante.
+                        </div>
+                        
+                        <div class="article-meta">
+                            <div class="article-author" th:if="${article.author}" th:text="'Por ' + ${article.author}">Por Autor</div>
+                            <div class="article-date" th:text="${#temporals.format(article.publishedAt ?: article.createdAt, 'dd/MM/yyyy')}">20/09/2024</div>
+                        </div>
+                        
+                        <a th:href="${baseUrl + '/articles/' + article.id}" class="read-more">Ler artigo completo</a>
+                    </div>
+                </div>
+
+                <!-- Latest Articles -->
+                <div class="section" th:if="${latestArticles and !latestArticles.empty}">
+                    <div class="section-header">
+                        <div class="section-number">2</div>
+                        <h2 class="section-title">Últimas Notícias</h2>
+                    </div>
+                    
+                    <div th:each="article, iterStat : ${latestArticles}" class="article-item">
+                        <div class="article-header">
+                            <div class="article-number" th:text="${iterStat.count}">1</div>
+                            <div class="article-category" th:text="${article.category ?: 'Tech'}">Tech</div>
+                        </div>
+                        
+                        <a th:href="${baseUrl + '/articles/' + article.id}" class="article-title" th:text="${article.title}">
+                            Título da Última Notícia
+                        </a>
+                        
+                        <div class="article-summary" th:text="${article.summary ?: #strings.abbreviate(article.content, 180)}">
+                            Resumo da notícia mais recente com informações relevantes.
+                        </div>
+                        
+                        <div class="article-meta">
+                            <div class="article-author" th:if="${article.author}" th:text="'Por ' + ${article.author}">Por Autor</div>
+                            <div class="article-date" th:text="${#temporals.format(article.publishedAt ?: article.createdAt, 'dd/MM/yyyy')}">20/09/2024</div>
+                        </div>
+                        
+                        <a th:href="${baseUrl + '/articles/' + article.id}" class="read-more">Ler mais</a>
+                    </div>
+                </div>
+
+                <!-- Popular Articles -->
+                <div class="section" th:if="${popularArticles and !popularArticles.empty}">
+                    <div class="section-header">
+                        <div class="section-number">3</div>
+                        <h2 class="section-title">Mais Lidos</h2>
+                    </div>
+                    
+                    <div th:each="article, iterStat : ${popularArticles}" class="article-item">
+                        <div class="article-header">
+                            <div class="article-number" th:text="${iterStat.count}">1</div>
+                            <div class="article-category" th:text="${article.category ?: 'Tech'}">Tech</div>
+                        </div>
+                        
+                        <a th:href="${baseUrl + '/articles/' + article.id}" class="article-title" th:text="${article.title}">
+                            Artigo Mais Popular
+                        </a>
+                        
+                        <div class="article-summary" th:text="${article.summary ?: #strings.abbreviate(article.content, 180)}">
+                            Resumo do artigo mais popular entre os leitores.
+                        </div>
+                        
+                        <div class="article-meta">
+                            <div class="article-author" th:if="${article.author}" th:text="'Por ' + ${article.author}">Por Autor</div>
+                            <div class="article-date" th:text="${#temporals.format(article.publishedAt ?: article.createdAt, 'dd/MM/yyyy')}">20/09/2024</div>
+                        </div>
+                        
+                        <a th:href="${baseUrl + '/articles/' + article.id}" class="read-more">Ler mais</a>
+                    </div>
+                </div>
+
+                <!-- Stats Section -->
+                <div class="stats-section" th:if="${stats}">
+                    <h3 class="stats-title">📊 Estatísticas da Semana</h3>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <span class="stat-number" th:text="${stats.newArticles ?: '12'}">12</span>
+                            <div class="stat-label">Novos Artigos</div>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number" th:text="${stats.totalViews ?: '45K'}">45K</span>
+                            <div class="stat-label">Visualizações</div>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number" th:text="${stats.newSubscribers ?: '234'}">234</span>
+                            <div class="stat-label">Novos Leitores</div>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number" th:text="${stats.totalSubscribers ?: '15K'}">15K</span>
+                            <div class="stat-label">Total Leitores</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="email-footer">
+                <div class="footer-content">
+                    <div class="footer-title">TechNews</div>
+                    <div class="footer-description">
+                        Sua fonte confiável de notícias de tecnologia.<br>
+                        Mantendo você atualizado com as últimas tendências e inovações.
+                    </div>
+                </div>
+
+                <div class="footer-links">
+                    <a th:href="${baseUrl}" class="footer-link">Visite o Site</a>
+                    <a th:href="${baseUrl + '/articles'}" class="footer-link">Todos os Artigos</a>
+                    <a th:href="${baseUrl + '/about'}" class="footer-link">Sobre Nós</a>
+                </div>
+
+                <div class="unsubscribe-section">
+                    <p>
+                        Você está recebendo este email porque se inscreveu em nossa newsletter.<br>
+                        <a th:href="${baseUrl + '/newsletter/unsubscribe?token=' + (subscriber.unsubscribeToken ?: 'token')}" 
+                           class="unsubscribe-link">Cancelar inscrição</a> | 
+                        <a th:href="${baseUrl + '/newsletter/preferences?token=' + (subscriber.unsubscribeToken ?: 'token')}" 
+                           class="unsubscribe-link">Gerenciar preferências</a>
+                    </p>
+                    <p style="margin-top: 15px;">
+                        TechNews &copy; <span th:text="${#temporals.year(#temporals.createNow())}">2024</span>. 
+                        Todos os direitos reservados.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

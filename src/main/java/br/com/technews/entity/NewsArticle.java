@@ -82,6 +82,9 @@ public class NewsArticle {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
     
+    @Column(name = "views")
+    private Long views = 0L;
+    
     // Relacionamento com tags
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
@@ -280,5 +283,13 @@ public class NewsArticle {
     
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+    
+    public Long getViews() {
+        return views;
+    }
+    
+    public void setViews(Long views) {
+        this.views = views;
     }
 }
