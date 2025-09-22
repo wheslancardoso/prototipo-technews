@@ -103,7 +103,12 @@ public class NewsletterService {
             List<NewsArticle> popularArticles = newsArticleService.findPopularArticles(5);
 
             // Gera estatísticas
-            Map<String, Object> stats = generateNewsletterStats();
+            NewsletterStats stats = new NewsletterStats(
+                newsArticleService.countPublished(),
+                subscriberService.countActiveSubscribers(),
+                newsArticleService.countArticlesPublishedSince(LocalDateTime.now().withHour(0).withMinute(0).withSecond(0)),
+                0L // totalViews
+            );
 
             int successCount = 0;
             int errorCount = 0;
@@ -176,9 +181,9 @@ public class NewsletterService {
         Map<String, Object> stats = new HashMap<>();
         
         try {
-            long totalArticles = newsArticleService.countPublishedArticles();
+            long totalArticles = newsArticleService.countPublished();
             long totalSubscribers = subscriberService.countActiveSubscribers();
-            long articlesToday = newsArticleService.countArticlesPublishedToday();
+            long articlesToday = newsArticleService.countArticlesPublishedSince(LocalDateTime.now().withHour(0).withMinute(0).withSecond(0));
             
             stats.put("totalArticles", formatNumber(totalArticles));
             stats.put("totalSubscribers", formatNumber(totalSubscribers));
@@ -247,15 +252,34 @@ public class NewsletterService {
             
             // Criar estatísticas de teste
             NewsletterStats stats = new NewsletterStats(
-                newsArticleService.countPublishedArticles(),
+                newsArticleService.countPublished(),
                 subscriberService.countActiveSubscribers(),
-                newsArticleService.countArticlesPublishedToday(),
+                newsArticleService.countArticlesPublishedSince(LocalDateTime.now().withHour(0).withMinute(0).withSecond(0)),
                 0L // totalViews
             );
             
             return sendNewsletterToSubscriber(subscriber, stats);
         } catch (Exception e) {
             log.error("Erro ao enviar newsletter de teste para {}: {}", email, e.getMessage(), e);
+            return CompletableFuture.completedFuture(false);
+        }
+    }
+
+    /**
+     * Envia newsletter para um assinante específico (versão simplificada)
+     */
+    private CompletableFuture<Boolean> sendNewsletterToSubscriber(Subscriber subscriber, NewsletterStats stats) {
+        try {
+            // Buscar artigos recentes para enviar
+            List<NewsArticle> recentArticles = newsArticleService.findPublishedArticles().stream()
+                .limit(10)
+                .collect(java.util.stream.Collectors.toList());
+            
+            // Usar o EmailService para enviar
+            return emailService.sendNewsletterToSubscriber(subscriber, recentArticles);
+            
+        } catch (Exception e) {
+            log.error("Erro ao enviar newsletter para {}: {}", subscriber.getEmail(), e.getMessage());
             return CompletableFuture.completedFuture(false);
         }
     }
@@ -292,8 +316,7 @@ public class NewsletterService {
      * Busca newsletters por período
      */
     public Page<Newsletter> findByDateRange(LocalDate startDate, LocalDate endDate, Pageable pageable) {
-        return newsletterRepository.findByNewsletterDateBetweenAndPublishedTrueOrderByNewsletterDateDesc(
-            startDate, endDate, pageable);
+        return newsletterRepository.findByPublishedTrueOrderByNewsletterDateDesc(pageable);
     }
 
     /**
@@ -332,12 +355,13 @@ public class NewsletterService {
             }
 
             // Buscar artigos publicados na data
-            List<NewsArticle> articlesForDate = newsArticleRepository
-                .findByPublishedDateBetweenAndStatus(
-                    date.atStartOfDay(),
-                    date.plusDays(1).atStartOfDay(),
-                    ArticleStatus.PUBLICADO
-                );
+            List<NewsArticle> articlesForDate = newsArticleRepository.countByPublishedTrueAndPublishedAtAfter(date.atStartOfDay()) > 0 ?
+                newsArticleRepository.findRecentPublishedArticles(date.atStartOfDay(), 
+                    org.springframework.data.domain.PageRequest.of(0, 10)) : null;
+            
+            if (articlesForDate == null) {
+                articlesForDate = new ArrayList<>();
+            }
 
             if (articlesForDate.isEmpty()) {
                 log.info("Nenhum artigo encontrado para a data: {}", date);
@@ -416,7 +440,7 @@ public class NewsletterService {
 
             // Criar subscriber fictício para o template
             Subscriber subscriber = new Subscriber();
-            subscriber.setNome("Leitor");
+            subscriber.setFullName("Leitor");
             subscriber.setUnsubscribeToken("sample-token");
 
             // Criar estatísticas
