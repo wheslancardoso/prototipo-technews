@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${newsletter.title + ' - TechNews'}">Newsletter - TechNews</title>
+    <meta name="description" th:content="${newsletter.description}">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #6366f1;
+            --secondary-color: #8b5cf6;
+            --accent-color: #06b6d4;
+            --dark-bg: #1e293b;
+            --card-bg: #f8fafc;
+            --text-color: #334155;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            min-height: 100vh;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: var(--text-color);
+        }
+
+        .newsletter-header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            color: white;
+        }
+
+        .newsletter-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .newsletter-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            align-items: center;
+            margin-top: 1rem;
+            font-size: 1rem;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .newsletter-description {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin: 1rem 0;
+            line-height: 1.6;
+        }
+
+        .main-content {
+            background: white;
+            border-radius: 20px;
+            padding: 0;
+            margin-bottom: 2rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .content-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .content-body {
+            padding: 2rem;
+        }
+
+        .articles-section {
+            margin-bottom: 3rem;
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--dark-bg);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 2rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            border-radius: 2px;
+        }
+
+        .article-card {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .article-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+        }
+
+        .article-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border-color: var(--primary-color);
+        }
+
+        .article-category {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .article-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--dark-bg);
+            margin-bottom: 0.75rem;
+            line-height: 1.4;
+        }
+
+        .article-title a {
+            color: inherit;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .article-title a:hover {
+            color: var(--primary-color);
+        }
+
+        .article-summary {
+            color: #64748b;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+            font-size: 0.95rem;
+        }
+
+        .article-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            color: #64748b;
+            margin-bottom: 1rem;
+        }
+
+        .article-stats {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .article-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .btn-read-article {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .btn-read-article:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(99, 102, 241, 0.4);
+            color: white;
+        }
+
+        .btn-share {
+            background: transparent;
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .btn-share:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .sidebar {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .sidebar-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--dark-bg);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .related-newsletter {
+            display: block;
+            padding: 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            margin-bottom: 0.75rem;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.3s ease;
+        }
+
+        .related-newsletter:hover {
+            border-color: var(--primary-color);
+            transform: translateX(5px);
+            color: inherit;
+        }
+
+        .related-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            color: var(--dark-bg);
+        }
+
+        .related-date {
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+
+        .back-button {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .share-section {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+            text-align: center;
+        }
+
+        .share-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .share-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 1.2rem;
+        }
+
+        .share-btn:hover {
+            transform: translateY(-3px);
+            color: white;
+        }
+
+        .share-btn.twitter { background: #1da1f2; }
+        .share-btn.linkedin { background: #0077b5; }
+        .share-btn.whatsapp { background: #25d366; }
+        .share-btn.email { background: #ea4335; }
+
+        .empty-articles {
+            text-align: center;
+            padding: 3rem;
+            color: #64748b;
+        }
+
+        .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        @media (max-width: 768px) {
+            .newsletter-title {
+                font-size: 2rem;
+            }
+            
+            .newsletter-meta {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+            
+            .article-actions {
+                flex-direction: column;
+            }
+            
+            .share-buttons {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Newsletter Header -->
+    <div class="newsletter-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="newsletter-title" th:text="${newsletter.title}">
+                        TechNews - Edição Diária
+                    </h1>
+                    
+                    <p class="newsletter-description" th:text="${newsletter.description}">
+                        As principais notícias de tecnologia, inovação e startups do dia.
+                    </p>
+                    
+                    <div class="newsletter-meta">
+                        <div class="meta-item">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span th:text="${#temporals.format(newsletter.newsletterDate, 'dd \'de\' MMMM \'de\' yyyy', new java.util.Locale('pt', 'BR'))}">
+                                01 de Janeiro de 2024
+                            </span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-newspaper"></i>
+                            <span th:text="${newsletter.articles.size()} + ' artigos'">5 artigos</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-eye"></i>
+                            <span th:text="${newsletter.views} + ' visualizações'">120 visualizações</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 text-end">
+                    <a href="/newsletter/arquivo" class="back-button">
+                        <i class="fas fa-arrow-left"></i>
+                        Voltar ao Arquivo
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <!-- Main Content -->
+            <div class="col-lg-8">
+                <div class="main-content">
+                    <div class="content-header">
+                        <h2>
+                            <i class="fas fa-newspaper me-2"></i>
+                            Artigos desta Edição
+                        </h2>
+                        <p class="mb-0">
+                            Confira todas as notícias selecionadas para 
+                            <span th:text="${#temporals.format(newsletter.newsletterDate, 'dd/MM/yyyy')}">01/01/2024</span>
+                        </p>
+                    </div>
+                    
+                    <div class="content-body">
+                        <!-- Articles Section -->
+                        <div class="articles-section" th:if="${articles != null and !articles.isEmpty()}">
+                            <div class="article-card" th:each="article, iterStat : ${articles}">
+                                <div class="article-category" th:if="${article.category}" 
+                                     th:text="${article.category}">Tecnologia</div>
+                                
+                                <h3 class="article-title">
+                                    <a th:href="@{/artigos/{slug}(slug=${article.slug})}" 
+                                       th:text="${article.title}">
+                                        Título do Artigo
+                                    </a>
+                                </h3>
+                                
+                                <div class="article-summary" th:if="${article.summary}" 
+                                     th:text="${article.summary}">
+                                    Resumo do artigo com as principais informações...
+                                </div>
+                                
+                                <div class="article-meta">
+                                    <div class="article-stats">
+                                        <div class="stat-item" th:if="${article.publishedAt}">
+                                            <i class="fas fa-clock"></i>
+                                            <span th:text="${#temporals.format(article.publishedAt, 'HH:mm')}">14:30</span>
+                                        </div>
+                                        <div class="stat-item" th:if="${article.views}">
+                                            <i class="fas fa-eye"></i>
+                                            <span th:text="${article.views}">150</span>
+                                        </div>
+                                        <div class="stat-item" th:if="${article.author}">
+                                            <i class="fas fa-user"></i>
+                                            <span th:text="${article.author}">Autor</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="article-actions">
+                                    <a th:href="@{/artigos/{slug}(slug=${article.slug})}" 
+                                       class="btn-read-article">
+                                        <i class="fas fa-book-open"></i>
+                                        Ler Artigo Completo
+                                    </a>
+                                    <button class="btn-share" 
+                                            th:onclick="'shareArticle(\'' + ${article.title} + '\', \'' + ${article.slug} + '\')'">
+                                        <i class="fas fa-share-alt"></i>
+                                        Compartilhar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Empty State -->
+                        <div class="empty-articles" th:if="${articles == null or articles.isEmpty()}">
+                            <div class="empty-icon">
+                                <i class="fas fa-newspaper"></i>
+                            </div>
+                            <h3>Nenhum artigo encontrado</h3>
+                            <p>Esta newsletter ainda não possui artigos publicados.</p>
+                        </div>
+
+                        <!-- Share Section -->
+                        <div class="share-section">
+                            <h4>
+                                <i class="fas fa-share-alt me-2"></i>
+                                Compartilhe esta Newsletter
+                            </h4>
+                            <p>Ajude outros a ficarem atualizados com as notícias de tecnologia!</p>
+                            <div class="share-buttons">
+                                <a href="#" class="share-btn twitter" onclick="shareOnTwitter()">
+                                    <i class="fab fa-twitter"></i>
+                                </a>
+                                <a href="#" class="share-btn linkedin" onclick="shareOnLinkedIn()">
+                                    <i class="fab fa-linkedin-in"></i>
+                                </a>
+                                <a href="#" class="share-btn whatsapp" onclick="shareOnWhatsApp()">
+                                    <i class="fab fa-whatsapp"></i>
+                                </a>
+                                <a href="#" class="share-btn email" onclick="shareByEmail()">
+                                    <i class="fas fa-envelope"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <!-- Related Newsletters -->
+                <div class="sidebar" th:if="${relatedNewsletters != null and !relatedNewsletters.isEmpty()}">
+                    <h3 class="sidebar-title">
+                        <i class="fas fa-history"></i>
+                        Outras Edições
+                    </h3>
+                    
+                    <div th:each="related : ${relatedNewsletters}">
+                        <a th:href="@{/newsletter/{slug}(slug=${related.slug})}" 
+                           class="related-newsletter">
+                            <div class="related-title" th:text="${related.title}">
+                                Newsletter Relacionada
+                            </div>
+                            <div class="related-date">
+                                <i class="fas fa-calendar-alt me-1"></i>
+                                <span th:text="${#temporals.format(related.newsletterDate, 'dd/MM/yyyy')}">
+                                    01/01/2024
+                                </span>
+                                <span class="ms-2">
+                                    <i class="fas fa-newspaper me-1"></i>
+                                    <span th:text="${related.articles.size()}">3</span> artigos
+                                </span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Newsletter Stats -->
+                <div class="sidebar">
+                    <h3 class="sidebar-title">
+                        <i class="fas fa-chart-bar"></i>
+                        Estatísticas
+                    </h3>
+                    
+                    <div class="stat-item mb-3">
+                        <strong>Data de Publicação:</strong><br>
+                        <span th:text="${#temporals.format(newsletter.publishedAt ?: newsletter.createdAt, 'dd/MM/yyyy \'às\' HH:mm')}">
+                            01/01/2024 às 08:00
+                        </span>
+                    </div>
+                    
+                    <div class="stat-item mb-3">
+                        <strong>Total de Artigos:</strong><br>
+                        <span th:text="${newsletter.articles.size()}">5</span> artigos selecionados
+                    </div>
+                    
+                    <div class="stat-item">
+                        <strong>Visualizações:</strong><br>
+                        <span th:text="${newsletter.views}">120</span> pessoas leram
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:inline="javascript">
+        const newsletterTitle = /*[[${newsletter.title}]]*/ 'Newsletter';
+        const newsletterUrl = window.location.href;
+        const newsletterDescription = /*[[${newsletter.description}]]*/ 'Newsletter de tecnologia';
+
+        function shareOnTwitter() {
+            const text = `Confira esta newsletter: ${newsletterTitle}`;
+            const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(newsletterUrl)}`;
+            window.open(url, '_blank');
+        }
+
+        function shareOnLinkedIn() {
+            const url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(newsletterUrl)}`;
+            window.open(url, '_blank');
+        }
+
+        function shareOnWhatsApp() {
+            const text = `${newsletterTitle} - ${newsletterUrl}`;
+            const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+            window.open(url, '_blank');
+        }
+
+        function shareByEmail() {
+            const subject = `Confira: ${newsletterTitle}`;
+            const body = `Olá!\n\nGostaria de compartilhar esta newsletter interessante:\n\n${newsletterTitle}\n${newsletterDescription}\n\nAcesse: ${newsletterUrl}`;
+            const url = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            window.location.href = url;
+        }
+
+        function shareArticle(title, slug) {
+            const articleUrl = `${window.location.origin}/artigos/${slug}`;
+            const text = `Confira este artigo: ${title}`;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: title,
+                    text: text,
+                    url: articleUrl
+                });
+            } else {
+                // Fallback para navegadores que não suportam Web Share API
+                const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(articleUrl)}`;
+                window.open(url, '_blank');
+            }
+        }
+
+        // Smooth scrolling para links internos
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

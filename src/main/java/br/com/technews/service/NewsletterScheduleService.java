@@ -241,9 +241,8 @@ public class NewsletterScheduleService {
 
             for (Subscriber subscriber : recipients) {
                 try {
-                    // Usar o NewsletterService para enviar newsletter completa
-                    newsletterService.sendNewsletterToSubscriber(subscriber, 
-                        List.of(), List.of(), List.of(), Map.of());
+                    // Usar o EmailService para enviar newsletter
+                    emailService.sendNewsletterToSubscriber(subscriber, List.of()).get();
                     successCount++;
                 } catch (Exception e) {
                     log.warn("Erro ao enviar newsletter para {}: {}", subscriber.getEmail(), e.getMessage());

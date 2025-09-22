@@ -2,23 +2,32 @@ package br.com.technews.controller;
 
 import br.com.technews.entity.Subscriber;
 import br.com.technews.entity.Category;
+import br.com.technews.entity.Newsletter;
 import br.com.technews.service.SubscriberService;
 import br.com.technews.service.CategoryService;
+import br.com.technews.service.NewsletterService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.data.domain.PageRequest;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -33,430 +42,316 @@ public class NewsletterController {
 
     private final SubscriberService subscriberService;
     private final CategoryService categoryService;
+    private final NewsletterService newsletterService;
 
     /**
      * Página de inscrição na newsletter
      */
     @GetMapping("/subscribe")
     public String showSubscribePage(Model model,
-                                  @RequestParam(required = false) String success,
-                                  @RequestParam(required = false) String error) {
-        List<Category> categories = categoryService.findAllActive();
+                                  @RequestParam(value = "success", required = false) String success,
+                                  @RequestParam(value = "error", required = false) String error) {
+        
+        // Buscar todas as categorias disponíveis
+        List<Category> categories = categoryService.findAll(PageRequest.of(0, 100)).getContent();
         model.addAttribute("categories", categories);
-        model.addAttribute("frequencies", Subscriber.SubscriptionFrequency.values());
         
-        // Adicionar estatísticas para exibir na página
-        try {
-            var stats = subscriberService.getStats();
-            model.addAttribute("stats", stats);
-        } catch (Exception e) {
-            log.warn("Erro ao carregar estatísticas: {}", e.getMessage());
-        }
-        
-        // Adicionar flags para success/error
+        // Adicionar mensagens de feedback
         if (success != null) {
-            model.addAttribute("success", true);
+            model.addAttribute("successMessage", "Inscrição realizada com sucesso!");
         }
         if (error != null) {
-            model.addAttribute("error", true);
+            model.addAttribute("errorMessage", "Erro ao realizar inscrição. Tente novamente.");
         }
         
-        return "newsletter/newsletter-subscription";
+        return "newsletter/subscribe";
     }
 
     /**
-     * Processa inscrição na newsletter
+     * Processar inscrição na newsletter
      */
     @PostMapping("/subscribe")
     public String processSubscription(@RequestParam String email,
-                                    @RequestParam String fullName,
-                                    @RequestParam(required = false) Subscriber.SubscriptionFrequency frequency,
-                                    @RequestParam(required = false) Set<Long> categoryIds,
+                                    @RequestParam String name,
+                                    @RequestParam(required = false) List<Long> categoryIds,
                                     RedirectAttributes redirectAttributes) {
         try {
-            subscriberService.subscribe(email, fullName, frequency, categoryIds);
-            
-            redirectAttributes.addFlashAttribute("successMessage", 
-                "Inscrição realizada com sucesso! Verifique seu email para confirmar a inscrição.");
-            
-            log.info("Nova inscrição processada: {}", email);
-            return "redirect:/newsletter/subscribe?success";
-            
-        } catch (IllegalArgumentException e) {
-            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
-            redirectAttributes.addFlashAttribute("email", email);
-            redirectAttributes.addFlashAttribute("fullName", fullName);
-            redirectAttributes.addFlashAttribute("frequency", frequency);
-            redirectAttributes.addFlashAttribute("categoryIds", categoryIds);
-            
-            return "redirect:/newsletter/subscribe?error";
-        } catch (Exception e) {
-            log.error("Erro ao processar inscrição para {}: {}", email, e.getMessage());
-            redirectAttributes.addFlashAttribute("errorMessage", 
-                "Ocorreu um erro interno. Tente novamente mais tarde.");
-            
-            return "redirect:/newsletter/subscribe?error";
-        }
-    }
-
-    /**
-     * Verifica email do assinante
-     */
-    @GetMapping("/verify")
-    public String verifyEmail(@RequestParam String token, Model model) {
-        try {
-            boolean verified = subscriberService.verifyEmail(token);
-            
-            if (verified) {
-                model.addAttribute("successMessage", 
-                    "Email verificado com sucesso! Você receberá nossa newsletter conforme sua frequência escolhida.");
-                model.addAttribute("verified", true);
-                
-                log.info("Email verificado com sucesso para token: {}", token);
-            } else {
-                model.addAttribute("errorMessage", 
-                    "Token de verificação inválido ou expirado. Solicite uma nova verificação.");
-                model.addAttribute("verified", false);
+            // Verificar se o email já está cadastrado
+            if (subscriberService.isEmailSubscribed(email)) {
+                redirectAttributes.addAttribute("error", "email_exists");
+                return "redirect:/newsletter/subscribe";
             }
+
+            // Criar novo subscriber
+            Subscriber subscriber = new Subscriber();
+            subscriber.setEmail(email);
+            subscriber.setFullName(name);
+            subscriber.setActive(true);
+
+            // Adicionar categorias selecionadas
+            if (categoryIds != null && !categoryIds.isEmpty()) {
+                Set<Category> selectedCategories = categoryIds.stream()
+                    .map(categoryService::findById)
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
+                    .collect(Collectors.toSet());
+                
+                // Usar o método addCategory para cada categoria
+                selectedCategories.forEach(subscriber::addCategory);
+            }
+
+            subscriberService.save(subscriber);
+            
+            redirectAttributes.addAttribute("success", "true");
+            return "redirect:/newsletter/subscribe";
             
         } catch (Exception e) {
-            log.error("Erro ao verificar email com token {}: {}", token, e.getMessage());
-            model.addAttribute("errorMessage", 
-                "Ocorreu um erro ao verificar seu email. Tente novamente mais tarde.");
-            model.addAttribute("verified", false);
+            log.error("Erro ao processar inscrição: ", e);
+            redirectAttributes.addAttribute("error", "processing_error");
+            return "redirect:/newsletter/subscribe";
         }
-        
-        return "newsletter/verify";
     }
 
     /**
      * Página de cancelamento de inscrição
      */
     @GetMapping("/unsubscribe")
-    public String showUnsubscribePage(@RequestParam String token, Model model) {
-        try {
-            Optional<Subscriber> subscriberOpt = subscriberService.findByManageToken(token);
-            
-            if (subscriberOpt.isPresent()) {
-                Subscriber subscriber = subscriberOpt.get();
-                model.addAttribute("subscriber", subscriber);
-                model.addAttribute("token", token);
-                model.addAttribute("validToken", true);
-            } else {
-                model.addAttribute("validToken", false);
-                model.addAttribute("errorMessage", "Token inválido ou expirado.");
-            }
-            
-        } catch (Exception e) {
-            log.error("Erro ao carregar página de cancelamento para token {}: {}", token, e.getMessage());
-            model.addAttribute("validToken", false);
-            model.addAttribute("errorMessage", "Ocorreu um erro. Tente novamente mais tarde.");
+    public String showUnsubscribePage(@RequestParam(required = false) String token,
+                                    @RequestParam(value = "success", required = false) String success,
+                                    Model model) {
+        
+        if (token != null) {
+            model.addAttribute("token", token);
+        }
+        
+        if (success != null) {
+            model.addAttribute("successMessage", "Inscrição cancelada com sucesso!");
         }
         
         return "newsletter/unsubscribe";
     }
 
     /**
-     * Processa cancelamento de inscrição
+     * Processar cancelamento de inscrição
      */
     @PostMapping("/unsubscribe")
-    public String processUnsubscription(@RequestParam String token, 
+    public String processUnsubscription(@RequestParam String email,
                                       RedirectAttributes redirectAttributes) {
         try {
-            boolean unsubscribed = subscriberService.unsubscribe(token);
-            
-            if (unsubscribed) {
-                redirectAttributes.addFlashAttribute("successMessage", 
-                    "Inscrição cancelada com sucesso. Você receberá um email de confirmação.");
-                
-                log.info("Inscrição cancelada com sucesso para token: {}", token);
-                return "redirect:/newsletter/unsubscribe?token=" + token + "&success";
-            } else {
-                redirectAttributes.addFlashAttribute("errorMessage", 
-                    "Token inválido ou inscrição já cancelada.");
-                
-                return "redirect:/newsletter/unsubscribe?token=" + token + "&error";
-            }
-            
-        } catch (Exception e) {
-            log.error("Erro ao cancelar inscrição para token {}: {}", token, e.getMessage());
-            redirectAttributes.addFlashAttribute("errorMessage", 
-                "Ocorreu um erro ao cancelar a inscrição. Tente novamente mais tarde.");
-            
-            return "redirect:/newsletter/unsubscribe?token=" + token + "&error";
-        }
-    }
-
-    /**
-     * Página de gerenciamento de preferências
-     */
-    @GetMapping("/manage")
-    public String showManagePage(@RequestParam String token, Model model) {
-        try {
-            Optional<Subscriber> subscriberOpt = subscriberService.findByManageToken(token);
+            Optional<Subscriber> subscriberOpt = subscriberService.findByEmail(email);
             
             if (subscriberOpt.isPresent()) {
                 Subscriber subscriber = subscriberOpt.get();
-                List<Category> allCategories = categoryService.findAllActive();
+                subscriber.setActive(false);
+                subscriberService.save(subscriber);
                 
-                model.addAttribute("subscriber", subscriber);
-                model.addAttribute("categories", allCategories);
-                model.addAttribute("frequencies", Subscriber.SubscriptionFrequency.values());
-                model.addAttribute("token", token);
-                model.addAttribute("validToken", true);
+                redirectAttributes.addAttribute("success", "true");
             } else {
-                model.addAttribute("validToken", false);
-                model.addAttribute("errorMessage", "Token inválido ou expirado.");
+                redirectAttributes.addAttribute("error", "email_not_found");
             }
             
-        } catch (Exception e) {
-            log.error("Erro ao carregar página de gerenciamento para token {}: {}", token, e.getMessage());
-            model.addAttribute("validToken", false);
-            model.addAttribute("errorMessage", "Ocorreu um erro. Tente novamente mais tarde.");
-        }
-        
-        return "newsletter/manage";
-    }
-
-    /**
-     * Atualiza preferências do assinante
-     */
-    @PostMapping("/manage")
-    public String updatePreferences(@RequestParam String token,
-                                  @RequestParam(required = false) String fullName,
-                                  @RequestParam(required = false) Subscriber.SubscriptionFrequency frequency,
-                                  @RequestParam(required = false) Set<Long> categoryIds,
-                                  RedirectAttributes redirectAttributes) {
-        try {
-            subscriberService.updatePreferences(token, frequency, categoryIds, fullName);
-            
-            redirectAttributes.addFlashAttribute("successMessage", 
-                "Preferências atualizadas com sucesso!");
-            
-            log.info("Preferências atualizadas para token: {}", token);
-            return "redirect:/newsletter/manage?token=" + token + "&success";
-            
-        } catch (IllegalArgumentException e) {
-            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
-            return "redirect:/newsletter/manage?token=" + token + "&error";
+            return "redirect:/newsletter/unsubscribe";
             
         } catch (Exception e) {
-            log.error("Erro ao atualizar preferências para token {}: {}", token, e.getMessage());
-            redirectAttributes.addFlashAttribute("errorMessage", 
-                "Ocorreu um erro ao atualizar suas preferências. Tente novamente mais tarde.");
-            
-            return "redirect:/newsletter/manage?token=" + token + "&error";
+            log.error("Erro ao cancelar inscrição: ", e);
+            redirectAttributes.addAttribute("error", "processing_error");
+            return "redirect:/newsletter/unsubscribe";
         }
     }
 
     /**
-     * API para verificar se email já está inscrito
+     * API para verificar se email já está cadastrado
      */
     @GetMapping("/api/check-email")
     @ResponseBody
-    public ResponseEntity<CheckEmailResponse> checkEmail(@RequestParam String email) {
-        try {
-            Optional<Subscriber> subscriber = subscriberService.findByEmail(email);
-            
-            if (subscriber.isPresent()) {
-                Subscriber sub = subscriber.get();
-                return ResponseEntity.ok(new CheckEmailResponse(
-                    true, 
-                    sub.isActive(), 
-                    sub.isEmailVerified(),
-                    sub.isActive() ? "Este email já está inscrito na newsletter." : 
-                                   "Este email estava inscrito mas foi cancelado."
-                ));
-            } else {
-                return ResponseEntity.ok(new CheckEmailResponse(false, false, false, null));
-            }
-            
-        } catch (Exception e) {
-            log.error("Erro ao verificar email {}: {}", email, e.getMessage());
-            return ResponseEntity.ok(new CheckEmailResponse(false, false, false, 
-                "Erro ao verificar email."));
-        }
+    public ResponseEntity<Boolean> checkEmailExists(@RequestParam String email) {
+        boolean exists = subscriberService.isEmailSubscribed(email);
+        return ResponseEntity.ok(exists);
     }
 
     /**
-     * Página de reativação de inscrição
+     * Página principal das newsletters
      */
-    @GetMapping("/reactivate")
-    public String showReactivatePage() {
-        return "newsletter/reactivate";
-    }
-
-    /**
-     * Processa reativação de inscrição
-     */
-    @PostMapping("/reactivate")
-    public String processReactivation(@RequestParam String email,
-                                    RedirectAttributes redirectAttributes) {
-        try {
-            boolean reactivated = subscriberService.reactivateSubscription(email);
-            
-            if (reactivated) {
-                redirectAttributes.addFlashAttribute("successMessage", 
-                    "Inscrição reativada com sucesso! Você voltará a receber nossa newsletter.");
-                
-                log.info("Inscrição reativada para: {}", email);
-                return "redirect:/newsletter/reactivate?success";
-            } else {
-                redirectAttributes.addFlashAttribute("errorMessage", 
-                    "Email não encontrado ou não foi cancelado anteriormente.");
-                
-                return "redirect:/newsletter/reactivate?error";
-            }
-            
-        } catch (IllegalStateException e) {
-            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
-            return "redirect:/newsletter/reactivate?error";
-            
-        } catch (Exception e) {
-            log.error("Erro ao reativar inscrição para {}: {}", email, e.getMessage());
-            redirectAttributes.addFlashAttribute("errorMessage", 
-                "Ocorreu um erro ao reativar a inscrição. Tente novamente mais tarde.");
-            
-            return "redirect:/newsletter/reactivate?error";
-        }
-    }
-
-    /**
-     * Página de sucesso genérica
-     */
-    @GetMapping("/success")
-    public String showSuccessPage(@RequestParam(required = false) String message, Model model) {
-        if (message != null) {
-            model.addAttribute("message", message);
-        }
-        return "newsletter/success";
-    }
-
-    /**
-     * Página de arquivo de newsletters anteriores
-     */
-    @GetMapping("/archive")
-    public String listNewsletters(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "12") int size,
-            Model model) {
+    @GetMapping
+    public String showNewsletterHome(Model model) {
+        // Buscar newsletter mais recente
+        Optional<Newsletter> latestNewsletter = newsletterService.findLatestPublished();
         
+        if (latestNewsletter.isPresent()) {
+            model.addAttribute("latestNewsletter", latestNewsletter.get());
+        }
+        
+        // Buscar estatísticas
+        long totalSubscribers = subscriberService.countActiveSubscribers();
+        long totalNewsletters = newsletterService.countPublished();
+        
+        model.addAttribute("totalSubscribers", totalSubscribers);
+        model.addAttribute("totalNewsletters", totalNewsletters);
+        
+        return "newsletter/home";
+    }
+
+    /**
+     * Exibir newsletter específica
+     */
+    @GetMapping("/{slug}")
+    public String showNewsletter(@PathVariable String slug, Model model) {
+        Optional<Newsletter> newsletterOpt = newsletterService.findBySlug(slug);
+        
+        if (newsletterOpt.isEmpty()) {
+            return "redirect:/newsletter";
+        }
+        
+        Newsletter newsletter = newsletterOpt.get();
+        
+        // Verificar se está publicada
+        if (!newsletter.getPublished()) {
+            return "redirect:/newsletter";
+        }
+        
+        model.addAttribute("newsletter", newsletter);
+        
+        return "newsletter/view";
+    }
+
+    /**
+     * Exibir newsletter por data
+     */
+    @GetMapping("/data/{date}")
+    public String showNewsletterByDate(@PathVariable String date, Model model) {
         try {
-            // Buscar assinantes que receberam newsletters (têm lastEmailSentAt preenchido)
-            // Isso simula um histórico de newsletters enviadas
-            List<Subscriber> subscribersWithEmails = subscriberService.getAllSubscribers()
-                .stream()
-                .filter(s -> s.getLastEmailSentAt() != null)
-                .sorted((s1, s2) -> s2.getLastEmailSentAt().compareTo(s1.getLastEmailSentAt()))
-                .collect(Collectors.toList());
-
-            // Criar uma lista simulada de newsletters baseada nas datas de envio
-            List<NewsletterInfo> newsletters = subscribersWithEmails.stream()
-                .map(Subscriber::getLastEmailSentAt)
-                .distinct()
-                .sorted((d1, d2) -> d2.compareTo(d1))
-                .limit(50) // Limitar a 50 newsletters mais recentes
-                .map(this::createNewsletterInfo)
-                .collect(Collectors.toList());
-
-            // Implementar paginação manual
-            int start = page * size;
-            int end = Math.min(start + size, newsletters.size());
-            List<NewsletterInfo> paginatedNewsletters = newsletters.subList(start, end);
+            LocalDate newsletterDate = parseDate(date);
+            Optional<Newsletter> newsletterOpt = newsletterService.findByDate(newsletterDate);
             
-            int totalPages = (int) Math.ceil((double) newsletters.size() / size);
+            if (newsletterOpt.isEmpty()) {
+                model.addAttribute("errorMessage", "Nenhuma newsletter encontrada para a data: " + date);
+                return "newsletter/not-found";
+            }
+            
+            Newsletter newsletter = newsletterOpt.get();
+            
+            // Verificar se está publicada
+            if (!newsletter.getPublished()) {
+                model.addAttribute("errorMessage", "Newsletter não está disponível.");
+                return "newsletter/not-found";
+            }
+            
+            model.addAttribute("newsletter", newsletter);
+            
+            return "newsletter/view";
+            
+        } catch (DateTimeParseException e) {
+            model.addAttribute("errorMessage", "Formato de data inválido: " + date);
+            return "newsletter/not-found";
+        }
+    }
 
-            model.addAttribute("newsletters", paginatedNewsletters);
+    /**
+     * Página de arquivo de newsletters
+     */
+    @GetMapping("/arquivo")
+    public String showNewsletterArchive(Model model,
+                                      @RequestParam(defaultValue = "0") int page,
+                                      @RequestParam(defaultValue = "10") int size) {
+        try {
+            Pageable pageable = PageRequest.of(page, size);
+            Page<Newsletter> newsletters = newsletterService.findAllPublished(pageable);
+            
+            model.addAttribute("newsletters", newsletters);
             model.addAttribute("currentPage", page);
-            model.addAttribute("totalPages", totalPages);
-            model.addAttribute("totalElements", newsletters.size());
-            model.addAttribute("hasNext", page < totalPages - 1);
-            model.addAttribute("hasPrevious", page > 0);
-
+            model.addAttribute("totalPages", newsletters.getTotalPages());
+            model.addAttribute("totalElements", newsletters.getTotalElements());
+            
+            return "newsletter/archive";
+            
         } catch (Exception e) {
-            // Em caso de erro, criar lista vazia
-            model.addAttribute("newsletters", List.of());
-            model.addAttribute("currentPage", 0);
-            model.addAttribute("totalPages", 0);
-            model.addAttribute("totalElements", 0);
-            model.addAttribute("hasNext", false);
-            model.addAttribute("hasPrevious", false);
-            model.addAttribute("error", "Erro ao carregar newsletters: " + e.getMessage());
+            log.error("Erro ao carregar arquivo de newsletters: ", e);
+            model.addAttribute("errorMessage", "Erro ao carregar newsletters.");
+            return "newsletter/archive";
         }
-
-        return "newsletters/archive";
     }
 
-    private NewsletterInfo createNewsletterInfo(LocalDateTime sentDate) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-        DateTimeFormatter weekFormatter = DateTimeFormatter.ofPattern("'Semana de' dd/MM/yyyy");
+    /**
+     * API para buscar newsletters por período
+     */
+    @GetMapping("/api/search")
+    @ResponseBody
+    public ResponseEntity<Page<Newsletter>> searchNewsletters(
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
         
-        String title = "TechNews - " + sentDate.format(weekFormatter);
-        String description = "Newsletter semanal com as principais notícias de tecnologia, " +
-                           "inovação e startups da semana.";
-        
-        return new NewsletterInfo(
-            title,
-            description,
-            sentDate,
-            sentDate.format(formatter),
-            generateNewsletterUrl(sentDate)
+        try {
+            Pageable pageable = PageRequest.of(page, size);
+            Page<Newsletter> newsletters;
+            
+            if (startDate != null && endDate != null) {
+                LocalDate start = parseDate(startDate);
+                LocalDate end = parseDate(endDate);
+                newsletters = newsletterService.findByDateRange(start, end, pageable);
+            } else {
+                newsletters = newsletterService.findAllPublished(pageable);
+            }
+            
+            return ResponseEntity.ok(newsletters);
+            
+        } catch (Exception e) {
+            log.error("Erro ao buscar newsletters: ", e);
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    /**
+     * Gerar newsletter para uma data específica
+     */
+    @PostMapping("/api/generate/{date}")
+    @ResponseBody
+    public ResponseEntity<String> generateNewsletterForDate(@PathVariable String date) {
+        try {
+            LocalDate newsletterDate = parseDate(date);
+            
+            // Verificar se já existe newsletter para esta data
+            if (newsletterService.existsForDate(newsletterDate)) {
+                return ResponseEntity.badRequest().body("Já existe newsletter para esta data");
+            }
+            
+            // Gerar newsletter
+            Newsletter newsletter = newsletterService.generateDailyNewsletter(newsletterDate);
+            
+            if (newsletter != null) {
+                return ResponseEntity.ok("Newsletter gerada com sucesso para " + date);
+            } else {
+                return ResponseEntity.badRequest().body("Não foi possível gerar newsletter para esta data");
+            }
+            
+        } catch (DateTimeParseException e) {
+            return ResponseEntity.badRequest().body("Formato de data inválido: " + date);
+        } catch (Exception e) {
+            log.error("Erro ao gerar newsletter: ", e);
+            return ResponseEntity.internalServerError().body("Erro interno do servidor");
+        }
+    }
+
+    /**
+     * Método auxiliar para fazer parse de datas em diferentes formatos
+     */
+    private LocalDate parseDate(String dateStr) throws DateTimeParseException {
+        List<DateTimeFormatter> formatters = List.of(
+            DateTimeFormatter.ofPattern("yyyy-MM-dd"),
+            DateTimeFormatter.ofPattern("dd/MM/yyyy"),
+            DateTimeFormatter.ofPattern("dd-MM-yyyy"),
+            DateTimeFormatter.ofPattern("yyyy/MM/dd")
         );
-    }
-
-    private String generateNewsletterUrl(LocalDateTime sentDate) {
-        // Por enquanto, retorna uma URL placeholder
-        // Futuramente pode ser implementado um sistema de arquivo de newsletters
-        return "#newsletter-" + sentDate.toLocalDate().toString();
-    }
-
-    /**
-     * Classe para resposta da verificação de email
-     */
-    public static class CheckEmailResponse {
-        private final boolean exists;
-        private final boolean active;
-        private final boolean verified;
-        private final String message;
-
-        public CheckEmailResponse(boolean exists, boolean active, boolean verified, String message) {
-            this.exists = exists;
-            this.active = active;
-            this.verified = verified;
-            this.message = message;
+        
+        for (DateTimeFormatter formatter : formatters) {
+            try {
+                return LocalDate.parse(dateStr, formatter);
+            } catch (DateTimeParseException ignored) {
+                // Tentar próximo formato
+            }
         }
-
-        // Getters
-        public boolean isExists() { return exists; }
-        public boolean isActive() { return active; }
-        public boolean isVerified() { return verified; }
-        public String getMessage() { return message; }
-    }
-
-    /**
-     * Classe interna para representar informações da newsletter
-     */
-    public static class NewsletterInfo {
-        private String title;
-        private String description;
-        private LocalDateTime sentDate;
-        private String formattedDate;
-        private String url;
-
-        public NewsletterInfo(String title, String description, LocalDateTime sentDate, 
-                            String formattedDate, String url) {
-            this.title = title;
-            this.description = description;
-            this.sentDate = sentDate;
-            this.formattedDate = formattedDate;
-            this.url = url;
-        }
-
-        // Getters
-        public String getTitle() { return title; }
-        public String getDescription() { return description; }
-        public LocalDateTime getSentDate() { return sentDate; }
-        public String getFormattedDate() { return formattedDate; }
-        public String getUrl() { return url; }
+        
+        throw new DateTimeParseException("Formato de data não suportado: " + dateStr, dateStr, 0);
     }
 }

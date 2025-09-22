@@ -63,6 +63,9 @@ public class NewsArticle {
     @Column(name = "source_domain", length = 100)
     private String sourceDomain;
     
+    @Column(unique = true, length = 200)
+    private String slug;
+    
     @Column(name = "published")
     private Boolean published = false;
     
@@ -226,11 +229,19 @@ public class NewsArticle {
     public String getSource() {
         return sourceDomain;
     }
-    
+
     public void setSource(String source) {
         this.sourceDomain = source;
     }
     
+    public String getSlug() {
+        return slug;
+    }
+    
+    public void setSlug(String slug) {
+        this.slug = slug;
+    }
+
     public Boolean getPublished() {
         return published;
     }

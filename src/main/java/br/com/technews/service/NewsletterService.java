@@ -1,12 +1,19 @@
 package br.com.technews.service;
 
+import br.com.technews.dto.NewsletterStats;
 import br.com.technews.entity.NewsArticle;
+import br.com.technews.entity.Newsletter;
+import br.com.technews.entity.ArticleStatus;
 import br.com.technews.entity.Subscriber;
 import br.com.technews.entity.CollectedNews;
+import br.com.technews.repository.NewsletterRepository;
+import br.com.technews.repository.NewsArticleRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,12 +21,10 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 import java.text.DecimalFormat;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -35,6 +40,10 @@ public class NewsletterService {
     private final EmailService emailService;
     private final TemplateEngine templateEngine;
     private final NewsCurationService newsCurationService;
+    
+    // Novos repositórios para funcionalidade de newsletter diária
+    private final NewsletterRepository newsletterRepository;
+    private final NewsArticleRepository newsArticleRepository;
 
     @Value("${app.base-url}")
     private String baseUrl;
@@ -86,99 +95,47 @@ public class NewsletterService {
             log.info("Newsletter enviada - Sucessos: {}, Erros: {}", successCount, errorCount);
             
         } catch (Exception e) {
-            log.error("Erro ao enviar newsletter diária", e);
-            throw new RuntimeException("Falha no envio da newsletter", e);
+            log.error("Erro crítico no envio da newsletter: {}", e.getMessage(), e);
         }
     }
 
     /**
-     * Envia newsletter personalizada para um assinante específico
+     * Envia newsletter para um assinante específico
      */
-    public void sendNewsletterToSubscriber(Subscriber subscriber, 
-                                         List<NewsArticle> featuredArticles,
-                                         List<NewsArticle> latestArticles,
-                                         List<NewsArticle> popularArticles,
-                                         Map<String, Object> stats) {
+    private void sendNewsletterToSubscriber(Subscriber subscriber, 
+                                          List<NewsArticle> featuredArticles,
+                                          List<NewsArticle> latestArticles, 
+                                          List<NewsArticle> popularArticles,
+                                          NewsletterStats stats) {
+        
         try {
-            String subject = generateNewsletterSubject(featuredArticles);
+            // Combinar todos os artigos
+            List<NewsArticle> allArticles = new ArrayList<>();
+            allArticles.addAll(featuredArticles);
+            allArticles.addAll(latestArticles);
+            allArticles.addAll(popularArticles);
             
-            // Prepara contexto do template
-            Context context = new Context();
-            context.setVariable("subscriber", subscriber);
-            context.setVariable("baseUrl", baseUrl);
-            context.setVariable("newsletter", Map.of(
-                "subject", subject,
-                "createdAt", LocalDateTime.now()
-            ));
-            context.setVariable("featuredArticles", featuredArticles);
-            context.setVariable("latestArticles", latestArticles);
-            context.setVariable("popularArticles", popularArticles);
-            context.setVariable("stats", stats);
-
-            String htmlContent = templateEngine.process("newsletter/newsletter-email", context);
-
-            // Enviar email usando o método correto do EmailService
-            CompletableFuture<Boolean> result = emailService.sendNewsletterToSubscriber(subscriber, 
-                Stream.concat(
-                    Stream.concat(featuredArticles.stream(), latestArticles.stream()),
-                    popularArticles.stream()
-                ).collect(Collectors.toList()));
+            // Remover duplicatas mantendo a ordem
+            Set<Long> seenIds = new HashSet<>();
+            List<NewsArticle> uniqueArticles = allArticles.stream()
+                .filter(article -> seenIds.add(article.getId()))
+                .collect(Collectors.toList());
             
+            // Enviar newsletter
+            CompletableFuture<Boolean> result = emailService.sendNewsletterToSubscriber(subscriber,
+                uniqueArticles);
+            
+            // Aguardar resultado e atualizar contador
             if (result.get()) {
-                // Atualizar última data de envio
-                subscriber.setLastEmailSentAt(LocalDateTime.now());
-                subscriberService.save(subscriber);
-            }
-            
-            log.debug("Newsletter enviada para: {}", subscriber.getEmail());
-            
-        } catch (Exception e) {
-            log.error("Erro ao enviar newsletter para {}: {}", subscriber.getEmail(), e.getMessage());
-            throw new RuntimeException("Falha no envio da newsletter para " + subscriber.getEmail(), e);
-        }
-    }
-
-    /**
-     * Envia newsletter de boas-vindas para novo assinante
-     */
-    public void sendWelcomeNewsletter(Subscriber subscriber) {
-        try {
-            log.info("Enviando newsletter de boas-vindas para: {}", subscriber.getEmail());
-            
-            // Busca artigos populares para o novo assinante
-            List<NewsArticle> popularArticles = newsArticleService.findPopularArticles(5);
-            List<NewsArticle> recentArticles = newsArticleService.findLatestPublishedArticles(3);
-            
-            Context context = new Context();
-            context.setVariable("subscriberName", subscriber.getName());
-            context.setVariable("subscriberEmail", subscriber.getEmail());
-            context.setVariable("featuredArticles", popularArticles);
-            context.setVariable("latestArticles", recentArticles);
-            context.setVariable("baseUrl", baseUrl);
-            context.setVariable("isWelcome", true);
-            
-            String unsubscribeToken = generateUnsubscribeToken(subscriber);
-            String preferencesToken = generatePreferencesToken(subscriber);
-            context.setVariable("unsubscribeToken", unsubscribeToken);
-            context.setVariable("preferencesToken", preferencesToken);
-
-            String htmlContent = templateEngine.process("newsletter/welcome-template", context);
-            String subject = "Bem-vindo ao TechNews! 🚀";
-            
-            // Usar o método correto do EmailService
-            CompletableFuture<Boolean> result = emailService.sendNewsletterToSubscriber(subscriber, List.of());
-            
-            if (result.get()) {
-                subscriber.setLastEmailSentAt(LocalDateTime.now());
-                subscriberService.save(subscriber);
-                log.info("Newsletter de boas-vindas enviada para: {}", subscriber.getEmail());
+                subscriber.incrementEmailCount();
+                subscriberRepository.save(subscriber);
+                logger.info("Newsletter enviada com sucesso para: {}", subscriber.getEmail());
             } else {
-                log.error("Falha ao enviar newsletter de boas-vindas para: {}", subscriber.getEmail());
+                logger.warn("Falha ao enviar newsletter para: {}", subscriber.getEmail());
             }
             
         } catch (Exception e) {
-            log.error("Erro ao enviar newsletter de boas-vindas para {}: {}", subscriber.getEmail(), e.getMessage());
-            throw new RuntimeException("Falha no envio da newsletter de boas-vindas", e);
+            logger.error("Erro ao enviar newsletter para {}: {}", subscriber.getEmail(), e.getMessage());
         }
     }
 
@@ -189,261 +146,409 @@ public class NewsletterService {
         Map<String, Object> stats = new HashMap<>();
         
         try {
-            // Estatísticas dos últimos 7 dias
-            LocalDateTime weekAgo = LocalDateTime.now().minusDays(7);
-            
-            long totalArticles = newsArticleService.countArticlesPublishedSince(weekAgo);
-            long totalViews = newsArticleService.getTotalViewsLastWeek();
+            long totalArticles = newsArticleService.countPublishedArticles();
             long totalSubscribers = subscriberService.countActiveSubscribers();
+            long articlesToday = newsArticleService.countArticlesPublishedToday();
             
-            stats.put("totalArticles", totalArticles);
-            stats.put("totalViews", formatNumber(totalViews));
-            stats.put("totalSubscribers", totalSubscribers);
+            stats.put("totalArticles", formatNumber(totalArticles));
+            stats.put("totalSubscribers", formatNumber(totalSubscribers));
+            stats.put("articlesToday", formatNumber(articlesToday));
             
         } catch (Exception e) {
             log.warn("Erro ao gerar estatísticas da newsletter: {}", e.getMessage());
-            // Valores padrão em caso de erro
-            stats.put("totalArticles", 0L);
-            stats.put("totalViews", "0");
-            stats.put("totalSubscribers", 0L);
+            stats.put("totalArticles", "N/A");
+            stats.put("totalSubscribers", "N/A");
+            stats.put("articlesToday", "N/A");
         }
         
         return stats;
     }
 
     /**
-     * Gera assunto personalizado baseado nos artigos em destaque
-     */
-    private String generateNewsletterSubject(List<NewsArticle> featuredArticles) {
-        if (featuredArticles == null || featuredArticles.isEmpty()) {
-            return "TechNews - Newsletter Diária 📰";
-        }
-        
-        // Usa o primeiro artigo em destaque para personalizar o assunto
-        NewsArticle topArticle = featuredArticles.get(0);
-        String category = topArticle.getCategory();
-        
-        return String.format("TechNews - %s e mais novidades tech 🚀", 
-                           category != null ? category : "Últimas notícias");
-    }
-
-    /**
-     * Gera token seguro para cancelamento de inscrição
-     */
-    private String generateUnsubscribeToken(Subscriber subscriber) {
-        // Implementação simples - em produção, usar JWT ou similar
-        return UUID.randomUUID().toString() + "-" + subscriber.getId();
-    }
-
-    /**
-     * Gera token seguro para gerenciar preferências
-     */
-    private String generatePreferencesToken(Subscriber subscriber) {
-        // Implementação simples - em produção, usar JWT ou similar
-        return UUID.randomUUID().toString() + "-pref-" + subscriber.getId();
-    }
-
-    /**
-     * Formata números grandes para exibição (ex: 1.2K, 5.3M)
+     * Formata números para exibição
      */
     private String formatNumber(long number) {
-        if (number < 1000) {
-            return String.valueOf(number);
-        } else if (number < 1000000) {
-            return String.format("%.1fK", number / 1000.0);
+        if (number >= 1000000) {
+            return new DecimalFormat("#.#M").format(number / 1000000.0);
+        } else if (number >= 1000) {
+            return new DecimalFormat("#.#K").format(number / 1000.0);
         } else {
-            return String.format("%.1fM", number / 1000000.0);
+            return String.valueOf(number);
         }
     }
 
     /**
-     * Envia newsletter de teste para um email específico
+     * Gera URL de cancelamento de inscrição
      */
-    public void sendTestNewsletter(String testEmail) {
-        try {
-            log.info("Enviando newsletter de teste para: {}", testEmail);
-            
-            // Cria assinante temporário para teste
-            Subscriber testSubscriber = new Subscriber();
-            testSubscriber.setEmail(testEmail);
-            testSubscriber.setName("Teste");
-            
-            List<NewsArticle> featuredArticles = newsArticleService.findFeaturedArticles(3);
-            List<NewsArticle> latestArticles = newsArticleService.findLatestPublishedArticles(2);
-            List<NewsArticle> popularArticles = newsArticleService.findPopularArticles(2);
-            Map<String, Object> stats = generateNewsletterStats();
-            
-            sendNewsletterToSubscriber(testSubscriber, featuredArticles, latestArticles, popularArticles, stats);
-            
-            log.info("Newsletter de teste enviada com sucesso para: {}", testEmail);
-            
-        } catch (Exception e) {
-            log.error("Erro ao enviar newsletter de teste para {}: {}", testEmail, e.getMessage());
-            throw new RuntimeException("Falha no envio da newsletter de teste", e);
-        }
+    private String generateUnsubscribeUrl(Subscriber subscriber) {
+        return baseUrl + "/newsletter/unsubscribe?token=" + subscriber.getManageToken();
     }
 
     /**
-     * Agenda envio automático da newsletter diária
+     * Gera URL de gerenciamento de preferências
      */
-    public void scheduleWeeklyNewsletter() {
-        // Este método será chamado pelo scheduler
-        try {
-            sendWeeklyNewsletter();
-        } catch (Exception e) {
-            log.error("Erro no envio automático da newsletter diária", e);
-        }
+    private String generateManageUrl(Subscriber subscriber) {
+        return baseUrl + "/newsletter/manage?token=" + subscriber.getManageToken();
     }
 
     /**
-     * Gera e envia newsletter automática com notícias coletadas
+     * Agenda envio automático da newsletter
+     * Executa todos os dias às 8:00
+     */
+    @Scheduled(cron = "0 0 8 * * ?")
+    public void scheduledNewsletterSend() {
+        log.info("Executando envio automático da newsletter");
+        sendWeeklyNewsletter();
+    }
+
+    /**
+     * Envia newsletter de teste para um assinante específico
      */
     @Transactional
-    public void generateAndSendAutomaticNewsletter() {
+    public CompletableFuture<Boolean> sendTestNewsletter(String email) {
         try {
-            log.info("Iniciando geração automática de newsletter com notícias coletadas");
+            Optional<Subscriber> subscriberOpt = subscriberService.findByEmail(email);
+            if (subscriberOpt.isEmpty()) {
+                log.warn("Assinante não encontrado para email: {}", email);
+                return CompletableFuture.completedFuture(false);
+            }
+
+            Subscriber subscriber = subscriberOpt.get();
             
+            // Criar estatísticas de teste
+            NewsletterStats stats = new NewsletterStats(
+                newsArticleService.countPublishedArticles(),
+                subscriberService.countActiveSubscribers(),
+                newsArticleService.countArticlesPublishedToday(),
+                0L // totalViews
+            );
+            
+            return sendNewsletterToSubscriber(subscriber, stats);
+        } catch (Exception e) {
+            log.error("Erro ao enviar newsletter de teste para {}: {}", email, e.getMessage(), e);
+            return CompletableFuture.completedFuture(false);
+        }
+    }
+
+    /**
+     * Busca newsletter por ID
+     */
+    public Optional<Newsletter> findById(Long id) {
+        return newsletterRepository.findById(id);
+    }
+
+    /**
+     * Busca newsletter por slug
+     */
+    public Optional<Newsletter> findBySlug(String slug) {
+        return newsletterRepository.findBySlug(slug);
+    }
+
+    /**
+     * Busca newsletter por data
+     */
+    public Optional<Newsletter> findByDate(LocalDate date) {
+        return newsletterRepository.findByNewsletterDate(date);
+    }
+
+    /**
+     * Busca todas as newsletters publicadas com paginação
+     */
+    public Page<Newsletter> findAllPublished(Pageable pageable) {
+        return newsletterRepository.findByPublishedTrueOrderByNewsletterDateDesc(pageable);
+    }
+
+    /**
+     * Busca newsletters por período
+     */
+    public Page<Newsletter> findByDateRange(LocalDate startDate, LocalDate endDate, Pageable pageable) {
+        return newsletterRepository.findByNewsletterDateBetweenAndPublishedTrueOrderByNewsletterDateDesc(
+            startDate, endDate, pageable);
+    }
+
+    /**
+     * Busca a newsletter mais recente publicada
+     */
+    public Optional<Newsletter> findLatestPublished() {
+        return newsletterRepository.findFirstByPublishedTrueOrderByNewsletterDateDesc();
+    }
+
+    /**
+     * Conta newsletters publicadas
+     */
+    public long countPublished() {
+        return newsletterRepository.countByPublishedTrue();
+    }
+
+    /**
+     * Verifica se existe newsletter para uma data
+     */
+    public boolean existsForDate(LocalDate date) {
+        return newsletterRepository.existsByNewsletterDate(date);
+    }
+
+    /**
+     * Gera newsletter diária para uma data específica
+     */
+    @Transactional
+    public Newsletter generateDailyNewsletter(LocalDate date) {
+        try {
+            log.info("Gerando newsletter para a data: {}", date);
+
+            // Verificar se já existe newsletter para esta data
+            if (existsForDate(date)) {
+                log.warn("Já existe newsletter para a data: {}", date);
+                return null;
+            }
+
+            // Buscar artigos publicados na data
+            List<NewsArticle> articlesForDate = newsArticleRepository
+                .findByPublishedDateBetweenAndStatus(
+                    date.atStartOfDay(),
+                    date.plusDays(1).atStartOfDay(),
+                    ArticleStatus.PUBLICADO
+                );
+
+            if (articlesForDate.isEmpty()) {
+                log.info("Nenhum artigo encontrado para a data: {}", date);
+                return null;
+            }
+
+            // Criar nova newsletter
+            Newsletter newsletter = new Newsletter();
+            newsletter.setTitle("TechNews - " + date.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+            newsletter.setSlug(generateSlug(date));
+            newsletter.setNewsletterDate(date);
+            newsletter.setPublished(true);
+            newsletter.setCreatedAt(LocalDateTime.now());
+            newsletter.setViews(0L);
+
+            // Gerar conteúdo HTML
+            String htmlContent = generateNewsletterContent(articlesForDate, date);
+            newsletter.setContent(htmlContent);
+
+            // Salvar newsletter
+            newsletter = newsletterRepository.save(newsletter);
+
+            // Associar artigos à newsletter
+            for (NewsArticle article : articlesForDate) {
+                newsletter.addArticle(article);
+            }
+            
+            // Salvar newsletter novamente com os artigos associados
+            newsletter = newsletterRepository.save(newsletter);
+
+            log.info("Newsletter gerada com sucesso para a data: {} com {} artigos", 
+                date, articlesForDate.size());
+
+            return newsletter;
+
+        } catch (Exception e) {
+            log.error("Erro ao gerar newsletter para a data {}: {}", date, e.getMessage(), e);
+            throw new RuntimeException("Erro ao gerar newsletter", e);
+        }
+    }
+
+    /**
+     * Gera slug único para a newsletter
+     */
+    private String generateSlug(LocalDate date) {
+        return "newsletter-" + date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+    }
+
+    /**
+     * Gera conteúdo HTML da newsletter
+     */
+    private String generateNewsletterContent(List<NewsArticle> articles, LocalDate date) {
+        try {
+            Context context = new Context();
+            context.setVariable("articles", articles);
+            context.setVariable("date", date);
+            context.setVariable("formattedDate", date.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+            context.setVariable("baseUrl", baseUrl);
+            context.setVariable("totalArticles", articles.size());
+
+            // Separar artigos por categoria se necessário
+            Map<String, List<NewsArticle>> articlesByCategory = articles.stream()
+                .collect(Collectors.groupingBy(article -> 
+                    article.getCategory() != null ? article.getCategory() : "Geral"));
+            
+            context.setVariable("articlesByCategory", articlesByCategory);
+
+            return templateEngine.process("newsletter/daily-newsletter", context);
+
+        } catch (Exception e) {
+            log.error("Erro ao gerar conteúdo HTML da newsletter: {}", e.getMessage());
+            
+            // Fallback: gerar conteúdo simples
+            StringBuilder content = new StringBuilder();
+            content.append("<h1>TechNews - ").append(date.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))).append("</h1>");
+            content.append("<p>").append(articles.size()).append(" artigos encontrados:</p>");
+            content.append("<ul>");
+            
+            for (NewsArticle article : articles) {
+                content.append("<li><a href=\"").append(baseUrl).append("/articles/").append(article.getSlug())
+                       .append("\">").append(article.getTitle()).append("</a></li>");
+            }
+            
+            content.append("</ul>");
+            
+            return content.toString();
+        }
+    }
+
+    /**
+     * Incrementa visualizações da newsletter
+     */
+    @Transactional
+    public void incrementViews(String slug) {
+        try {
+            Optional<Newsletter> newsletterOpt = findBySlug(slug);
+            if (newsletterOpt.isPresent()) {
+                Newsletter newsletter = newsletterOpt.get();
+                newsletter.setViews(newsletter.getViews() + 1);
+                newsletterRepository.save(newsletter);
+            }
+        } catch (Exception e) {
+            log.warn("Erro ao incrementar visualizações para newsletter {}: {}", slug, e.getMessage());
+        }
+    }
+
+    /**
+     * Busca newsletters publicadas ordenadas por data
+     */
+    public List<Newsletter> findPublishedNewsletters() {
+        return newsletterRepository.findByPublishedTrueOrderByNewsletterDateDesc();
+    }
+
+    /**
+     * Busca todas as newsletters publicadas (sem paginação)
+     */
+    public List<Newsletter> findAllPublished() {
+        return newsletterRepository.findByPublishedTrueOrderByNewsletterDateDesc();
+    }
+
+    /**
+     * Gera newsletter automaticamente todos os dias às 6:00
+     */
+    @Scheduled(cron = "0 0 6 * * ?")
+    public void scheduledDailyNewsletterGeneration() {
+        try {
+            LocalDate yesterday = LocalDate.now().minusDays(1);
+            log.info("Executando geração automática de newsletter para: {}", yesterday);
+            
+            Newsletter newsletter = generateDailyNewsletter(yesterday);
+            
+            if (newsletter != null) {
+                log.info("Newsletter gerada automaticamente: {}", newsletter.getSlug());
+            } else {
+                log.info("Nenhuma newsletter gerada para: {}", yesterday);
+            }
+            
+        } catch (Exception e) {
+            log.error("Erro na geração automática de newsletter: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Envia newsletter diária para todos os assinantes
+     */
+    @Scheduled(cron = "0 30 8 * * ?")
+    public void scheduledDailyNewsletterSend() {
+        try {
+            log.info("Executando envio automático da newsletter diária");
+            
+            // Buscar newsletter de ontem (que deve ter sido gerada às 6:00)
+            LocalDate yesterday = LocalDate.now().minusDays(1);
+            Optional<Newsletter> newsletterOpt = findByDate(yesterday);
+            
+            if (newsletterOpt.isEmpty()) {
+                log.warn("Nenhuma newsletter encontrada para envio da data: {}", yesterday);
+                return;
+            }
+            
+            Newsletter newsletter = newsletterOpt.get();
+            
+            if (!newsletter.getPublished()) {
+                log.warn("Newsletter não está publicada para envio: {}", newsletter.getSlug());
+                return;
+            }
+            
+            // Enviar para todos os assinantes ativos
+            sendNewsletterToAllSubscribers(newsletter);
+            
+        } catch (Exception e) {
+            log.error("Erro no envio automático da newsletter diária: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Envia newsletter específica para todos os assinantes
+     */
+    private void sendNewsletterToAllSubscribers(Newsletter newsletter) {
+        try {
             List<Subscriber> activeSubscribers = subscriberService.findActiveSubscribers();
-            if (activeSubscribers.isEmpty()) {
-                log.info("Nenhum assinante ativo encontrado para newsletter automática");
-                return;
-            }
-
-            // Busca notícias coletadas de alta qualidade
-            List<CollectedNews> topCollectedNews = newsCurationService.getTopQualityNews(10);
-            List<CollectedNews> recentCollectedNews = newsCurationService.getRecentApprovedNews(3);
             
-            if (topCollectedNews.isEmpty() && recentCollectedNews.isEmpty()) {
-                log.info("Nenhuma notícia coletada de qualidade encontrada para newsletter");
+            if (activeSubscribers.isEmpty()) {
+                log.info("Nenhum assinante ativo encontrado para envio da newsletter");
                 return;
             }
-
-            // Combina com artigos tradicionais se disponíveis
-            List<NewsArticle> featuredArticles = newsArticleService.findFeaturedArticles(3);
-            List<NewsArticle> latestArticles = newsArticleService.findLatestPublishedArticles(5);
-
-            // Gera estatísticas incluindo notícias coletadas
-            Map<String, Object> stats = generateAutomaticNewsletterStats();
-
+            
+            log.info("Enviando newsletter '{}' para {} assinantes", 
+                newsletter.getTitle(), activeSubscribers.size());
+            
             int successCount = 0;
             int errorCount = 0;
-
+            
             for (Subscriber subscriber : activeSubscribers) {
                 try {
-                    sendAutomaticNewsletterToSubscriber(subscriber, topCollectedNews, 
-                        recentCollectedNews, featuredArticles, latestArticles, stats);
+                    sendNewsletterEmailToSubscriber(subscriber, newsletter);
                     successCount++;
                     
                     // Pequena pausa para evitar sobrecarga
                     Thread.sleep(100);
                     
                 } catch (Exception e) {
-                    log.error("Erro ao enviar newsletter automática para {}: {}", 
-                        subscriber.getEmail(), e.getMessage());
+                    log.error("Erro ao enviar newsletter para {}: {}", subscriber.getEmail(), e.getMessage());
                     errorCount++;
                 }
             }
-
-            // Marca notícias como publicadas
-            markCollectedNewsAsPublished(topCollectedNews);
-            markCollectedNewsAsPublished(recentCollectedNews);
-
-            log.info("Newsletter automática enviada - Sucessos: {}, Erros: {}", successCount, errorCount);
             
+            log.info("Newsletter '{}' enviada - Sucessos: {}, Erros: {}", 
+                newsletter.getTitle(), successCount, errorCount);
+                
         } catch (Exception e) {
-            log.error("Erro ao gerar newsletter automática", e);
-            throw new RuntimeException("Falha na geração da newsletter automática", e);
+            log.error("Erro crítico no envio da newsletter: {}", e.getMessage(), e);
         }
     }
 
-    private void sendAutomaticNewsletterToSubscriber(Subscriber subscriber,
-                                                   List<CollectedNews> topNews,
-                                                   List<CollectedNews> recentNews,
-                                                   List<NewsArticle> featuredArticles,
-                                                   List<NewsArticle> latestArticles,
-                                                   Map<String, Object> stats) {
+    /**
+     * Envia email da newsletter para um assinante específico
+     */
+    private void sendNewsletterEmailToSubscriber(Subscriber subscriber, Newsletter newsletter) {
         try {
-            String subject = generateAutomaticNewsletterSubject(topNews, featuredArticles);
-            
             Context context = new Context();
             context.setVariable("subscriber", subscriber);
+            context.setVariable("newsletter", newsletter);
             context.setVariable("baseUrl", baseUrl);
-            context.setVariable("newsletter", Map.of(
-                "subject", subject,
-                "createdAt", LocalDateTime.now(),
-                "type", "automatic"
-            ));
-            context.setVariable("topCollectedNews", topNews);
-            context.setVariable("recentCollectedNews", recentNews);
-            context.setVariable("featuredArticles", featuredArticles);
-            context.setVariable("latestArticles", latestArticles);
-            context.setVariable("stats", stats);
-
-            String htmlContent = templateEngine.process("newsletter/automatic-newsletter-email", context);
-
-            // Enviar email
+            context.setVariable("unsubscribeUrl", generateUnsubscribeUrl(subscriber));
+            context.setVariable("manageUrl", generateManageUrl(subscriber));
+            context.setVariable("newsletterUrl", baseUrl + "/newsletter/" + newsletter.getSlug());
+            
+            String htmlContent = templateEngine.process("email/newsletter-daily", context);
+            String subject = newsletter.getTitle();
+            
             emailService.sendHtmlEmail(subscriber.getEmail(), subject, htmlContent);
             
-            // Atualizar última data de envio
+            // Atualizar data do último email enviado
             subscriber.setLastEmailSentAt(LocalDateTime.now());
             subscriberService.save(subscriber);
             
-            log.debug("Newsletter automática enviada para: {}", subscriber.getEmail());
+            log.debug("Newsletter enviada com sucesso para: {}", subscriber.getEmail());
             
         } catch (Exception e) {
-            log.error("Erro ao enviar newsletter automática para {}: {}", 
-                subscriber.getEmail(), e.getMessage());
-            throw new RuntimeException("Falha no envio da newsletter automática para " + 
-                subscriber.getEmail(), e);
+            log.error("Erro ao enviar newsletter para {}: {}", subscriber.getEmail(), e.getMessage());
+            throw e;
         }
-    }
-
-    private String generateAutomaticNewsletterSubject(List<CollectedNews> topNews, 
-                                                    List<NewsArticle> featuredArticles) {
-        String baseSubject = "TechNews - Últimas Notícias de Tecnologia";
-        
-        if (!topNews.isEmpty()) {
-            String firstTitle = topNews.get(0).getTitle();
-            if (firstTitle.length() > 50) {
-                firstTitle = firstTitle.substring(0, 47) + "...";
-            }
-            return baseSubject + " - " + firstTitle;
-        } else if (!featuredArticles.isEmpty()) {
-            return baseSubject + " - " + featuredArticles.get(0).getTitle();
-        }
-        
-        return baseSubject + " - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
-    }
-
-    private Map<String, Object> generateAutomaticNewsletterStats() {
-        Map<String, Object> stats = new HashMap<>();
-        
-        try {
-            // Estatísticas tradicionais
-            long totalArticles = newsArticleService.countAll();
-            long publishedArticles = newsArticleService.countPublished();
-            
-            // Estatísticas de notícias coletadas
-            long totalCollected = newsCurationService.getTopQualityNews(1000).size();
-            long approvedCollected = newsCurationService.getRecentApprovedNews(30).size();
-            
-            stats.put("totalArticles", totalArticles);
-            stats.put("publishedArticles", publishedArticles);
-            stats.put("totalCollectedNews", totalCollected);
-            stats.put("approvedCollectedNews", approvedCollected);
-            stats.put("generatedAt", LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
-            
-        } catch (Exception e) {
-            log.warn("Erro ao gerar estatísticas da newsletter automática", e);
-            stats.put("error", "Estatísticas indisponíveis");
-        }
-        
-        return stats;
-    }
-
-    private void markCollectedNewsAsPublished(List<CollectedNews> newsList) {
-        // Esta funcionalidade será implementada quando necessário
-        // Por enquanto, apenas logamos
-        log.debug("Marcando {} notícias coletadas como publicadas", newsList.size());
     }
 }
