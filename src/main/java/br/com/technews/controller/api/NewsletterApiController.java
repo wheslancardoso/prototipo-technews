@@ -5,6 +5,7 @@ import br.com.technews.entity.Category;
 import br.com.technews.service.SubscriberService;
 import br.com.technews.service.EmailService;
 import br.com.technews.repository.CategoryRepository;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -59,6 +60,7 @@ public class NewsletterApiController {
         Map<String, Object> response = new HashMap<>();
         
         try {
+            
             // Verificar se email já existe
             if (subscriberService.isEmailSubscribed(request.getEmail())) {
                 response.put("success", false);
@@ -72,7 +74,7 @@ public class NewsletterApiController {
                 request.getEmail(),
                 request.getNome(),
                 request.getFrequencia(),
-                null // Converter categorias string para Set<Long> se necessário
+                request.getCategorias() // Agora é Set<Long>
             );
 
             response.put("success", true);
@@ -466,12 +468,14 @@ public class NewsletterApiController {
         
         @NotBlank(message = "Nome é obrigatório")
         @Size(min = 2, max = 100, message = "Nome deve ter entre 2 e 100 caracteres")
-        @Pattern(regexp = "^[a-zA-ZÀ-ÿ\\s.'-]+$", 
+        @Pattern(regexp = "^[\\p{L}\\s.'-]+$", 
                  message = "Nome deve conter apenas letras, espaços e caracteres válidos")
         private String nome;
         
         private Subscriber.SubscriptionFrequency frequencia;
-        private String categorias;
+        
+        @JsonProperty("categorias")
+        private Set<Long> categorias;
 
         // Getters e Setters
         public String getEmail() { return email; }
@@ -483,8 +487,8 @@ public class NewsletterApiController {
         public Subscriber.SubscriptionFrequency getFrequencia() { return frequencia; }
         public void setFrequencia(Subscriber.SubscriptionFrequency frequencia) { this.frequencia = frequencia; }
         
-        public String getCategorias() { return categorias; }
-        public void setCategorias(String categorias) { this.categorias = categorias; }
+        public Set<Long> getCategorias() { return categorias; }
+        public void setCategorias(Set<Long> categorias) { this.categorias = categorias; }
     }
 
     public static class PreferencesRequest {

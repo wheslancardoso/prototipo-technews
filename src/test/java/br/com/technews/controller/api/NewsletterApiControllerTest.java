@@ -31,7 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
 @WebMvcTest(NewsletterApiController.class)
-@Import(br.com.technews.controller.TestSecurityConfig.class)
+@Import(br.com.technews.config.TestSecurityConfig.class)
 @WithMockUser
 class NewsletterApiControllerTest {
 
@@ -46,6 +46,9 @@ class NewsletterApiControllerTest {
 
     @MockBean
     private EmailService emailService;
+
+    @MockBean
+    private br.com.technews.repository.CategoryRepository categoryRepository;
 
     @Test
     void shouldSubscribeSuccessfully() throws Exception {
