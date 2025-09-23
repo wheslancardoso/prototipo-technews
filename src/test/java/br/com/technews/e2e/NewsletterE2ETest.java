@@ -335,7 +335,7 @@ class NewsletterE2ETest {
         mockMvc.perform(delete("/api/newsletter/unsubscribe/nonexistent@example.com")
                 .with(csrf())
                 .param("token", "invalid-token"))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isNotFound());
 
         // 4. VERIFICAÇÃO DE STATUS DE EMAIL INEXISTENTE
         mockMvc.perform(get("/api/newsletter/status/nonexistent@example.com"))

@@ -1,8 +1,10 @@
 package br.com.technews.controller.api;
 
 import br.com.technews.entity.Subscriber;
+import br.com.technews.entity.Category;
 import br.com.technews.service.SubscriberService;
 import br.com.technews.service.EmailService;
+import br.com.technews.repository.CategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,6 +30,8 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * API REST Controller para gerenciamento de newsletter
@@ -44,6 +48,9 @@ public class NewsletterApiController {
     @Autowired
     private EmailService emailService;
 
+    @Autowired
+    private CategoryRepository categoryRepository;
+
     /**
      * Criar nova inscrição via API
      */
@@ -57,7 +64,7 @@ public class NewsletterApiController {
                 response.put("success", false);
                 response.put("message", "Email já está inscrito na newsletter");
                 response.put("code", "EMAIL_ALREADY_EXISTS");
-                return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
             }
 
             // Criar nova inscrição
@@ -75,6 +82,11 @@ public class NewsletterApiController {
             
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
             
+        } catch (IllegalArgumentException e) {
+            response.put("success", false);
+            response.put("message", "Dados inválidos: " + e.getMessage());
+            response.put("code", "INVALID_DATA");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         } catch (Exception e) {
             response.put("success", false);
             response.put("message", "Erro interno do servidor: " + e.getMessage());
@@ -101,13 +113,14 @@ public class NewsletterApiController {
                 response.put("frequency", subscriber.getFrequency().toString());
                 response.put("subscriptionDate", subscriber.getSubscribedAt());
                 response.put("categories", subscriber.getSubscribedCategories());
+                return ResponseEntity.ok(response);
             } else {
                 response.put("subscribed", false);
                 response.put("active", false);
                 response.put("verified", false);
+                response.put("message", "Email não encontrado");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
             }
-            
-            return ResponseEntity.ok(response);
             
         } catch (Exception e) {
             response.put("error", "Erro ao verificar status: " + e.getMessage());
@@ -125,41 +138,37 @@ public class NewsletterApiController {
         Map<String, Object> response = new HashMap<>();
         
         try {
+            // Verificar se o email existe primeiro
+            Optional<Subscriber> subscriberOpt = subscriberService.findByEmail(email);
+            if (subscriberOpt.isEmpty()) {
+                response.put("success", false);
+                response.put("message", "Email não encontrado");
+                response.put("code", "EMAIL_NOT_FOUND");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            }
+            
+            Subscriber subscriber = subscriberOpt.get();
+            
             // Validar token se fornecido
             if (token != null && !token.trim().isEmpty()) {
-                Optional<Subscriber> subscriberOpt = subscriberService.findByEmail(email);
-                if (subscriberOpt.isEmpty()) {
-                    response.put("success", false);
-                    response.put("message", "Email não encontrado");
-                    response.put("code", "EMAIL_NOT_FOUND");
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-                }
-                
-                Subscriber subscriber = subscriberOpt.get();
                 if (!token.equals(subscriber.getManageToken())) {
                     response.put("success", false);
                     response.put("message", "Token inválido");
                     response.put("code", "INVALID_TOKEN");
                     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
                 }
-            } else {
-                // Se não há token, retornar erro
-                response.put("success", false);
-                response.put("message", "Token de gerenciamento é obrigatório");
-                response.put("code", "TOKEN_REQUIRED");
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
             }
             
-            boolean success = subscriberService.unsubscribe(email, reason);
+            boolean success = subscriberService.unsubscribe(email, token);
             
             if (success) {
                 response.put("success", true);
                 response.put("message", "Inscrição cancelada com sucesso");
             } else {
                 response.put("success", false);
-                response.put("message", "Email não encontrado ou já cancelado");
-                response.put("code", "EMAIL_NOT_FOUND");
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+                response.put("message", "Erro ao cancelar inscrição");
+                response.put("code", "UNSUBSCRIBE_FAILED");
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
             }
             
             return ResponseEntity.ok(response);
@@ -199,9 +208,10 @@ public class NewsletterApiController {
                 subscriber.setFrequency(request.getFrequencia());
             }
             if (request.getCategorias() != null) {
-                // Converter String para Set<Category> se necessário
-                // Por enquanto, vamos comentar esta linha até implementar a conversão adequada
-                // subscriber.setSubscribedCategories(request.getCategorias());
+                // Buscar categorias por IDs
+                Set<Category> categories = categoryRepository.findAllById(request.getCategorias())
+                    .stream().collect(Collectors.toSet());
+                subscriber.setSubscribedCategories(categories);
             }
             
             subscriber.setUpdatedAt(LocalDateTime.now());
@@ -480,7 +490,7 @@ public class NewsletterApiController {
     public static class PreferencesRequest {
         private String nome;
         private Subscriber.SubscriptionFrequency frequencia;
-        private String categorias;
+        private Set<Long> categorias;
 
         // Getters e Setters
         public String getNome() { return nome; }
@@ -489,8 +499,8 @@ public class NewsletterApiController {
         public Subscriber.SubscriptionFrequency getFrequencia() { return frequencia; }
         public void setFrequencia(Subscriber.SubscriptionFrequency frequencia) { this.frequencia = frequencia; }
         
-        public String getCategorias() { return categorias; }
-        public void setCategorias(String categorias) { this.categorias = categorias; }
+        public Set<Long> getCategorias() { return categorias; }
+        public void setCategorias(Set<Long> categorias) { this.categorias = categorias; }
     }
 
     public static class SendNewsletterRequest {

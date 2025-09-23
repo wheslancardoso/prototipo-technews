@@ -72,6 +72,7 @@ public class SubscriberService {
         subscriber.setVerificationToken(UUID.randomUUID().toString());
         subscriber.setVerificationTokenExpiresAt(LocalDateTime.now().plusHours(24));
         subscriber.setUnsubscribeToken(UUID.randomUUID().toString());
+        subscriber.setManageToken(UUID.randomUUID().toString());
 
         subscriber = subscriberRepository.save(subscriber);
 
@@ -194,6 +195,10 @@ public class SubscriberService {
             
             if (subscriber.getUnsubscribeToken() == null) {
                 subscriber.setUnsubscribeToken(UUID.randomUUID().toString());
+            }
+            
+            if (subscriber.getManageToken() == null) {
+                subscriber.setManageToken(UUID.randomUUID().toString());
             }
             
             if (!subscriber.isEmailVerified() && subscriber.getVerificationToken() == null) {

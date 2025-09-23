@@ -23,18 +23,19 @@ public class SecurityConfig {
             .authorizeHttpRequests(authz -> authz
                 // Recursos estáticos primeiro
                 .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
-                // Páginas públicas
-                .requestMatchers("/", "/subscribe", "/unsubscribe/**", "/verify/**").permitAll()
-                // Newsletter páginas públicas
-                .requestMatchers("/newsletter/archive", "/newsletter/manage", "/newsletter/pause").permitAll()
-                // Endpoints públicos da API
+                // Endpoints públicos da API - DEVE VIR ANTES das páginas web
                 .requestMatchers("/api/newsletter/subscribe", "/api/newsletter/status/**", 
                                "/api/newsletter/unsubscribe/**", "/api/newsletter/reactivate",
-                               "/api/newsletter/verify", "/api/news/**").permitAll()
+                               "/api/newsletter/verify", "/api/newsletter/preferences/**",
+                               "/api/news/**").permitAll()
                 // Endpoints administrativos da API - requerem autenticação ADMIN
                 .requestMatchers("/api/newsletter/subscribers", "/api/newsletter/stats", 
                                "/api/newsletter/send", "/api/newsletter/templates/**",
                                "/api/newsletter/schedule/**").hasRole("ADMIN")
+                // Páginas públicas
+                .requestMatchers("/", "/subscribe", "/unsubscribe/**", "/verify/**").permitAll()
+                // Newsletter páginas públicas
+                .requestMatchers("/newsletter/**").permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
