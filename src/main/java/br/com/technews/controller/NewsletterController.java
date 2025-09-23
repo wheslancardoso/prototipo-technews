@@ -56,6 +56,9 @@ public class NewsletterController {
         List<Category> categories = categoryService.findAll(PageRequest.of(0, 100)).getContent();
         model.addAttribute("categories", categories);
         
+        // Adicionar frequências disponíveis
+        model.addAttribute("frequencies", Subscriber.SubscriptionFrequency.values());
+        
         // Adicionar mensagens de feedback
         if (success != null) {
             model.addAttribute("successMessage", "Inscrição realizada com sucesso!");
@@ -72,7 +75,8 @@ public class NewsletterController {
      */
     @PostMapping("/subscribe")
     public String processSubscription(@RequestParam String email,
-                                    @RequestParam String name,
+                                    @RequestParam String fullName,
+                                    @RequestParam(required = false) Subscriber.SubscriptionFrequency frequency,
                                     @RequestParam(required = false) List<Long> categoryIds,
                                     RedirectAttributes redirectAttributes) {
         try {
@@ -85,8 +89,15 @@ public class NewsletterController {
             // Criar novo subscriber
             Subscriber subscriber = new Subscriber();
             subscriber.setEmail(email);
-            subscriber.setFullName(name);
+            subscriber.setFullName(fullName);
             subscriber.setActive(true);
+            
+            // Definir frequência (padrão DAILY se não especificada)
+            if (frequency != null) {
+                subscriber.setFrequency(frequency);
+            } else {
+                subscriber.setFrequency(Subscriber.SubscriptionFrequency.DAILY);
+            }
 
             // Adicionar categorias selecionadas
             if (categoryIds != null && !categoryIds.isEmpty()) {
