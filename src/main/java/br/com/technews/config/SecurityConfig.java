@@ -23,34 +23,36 @@ public class SecurityConfig {
             .authorizeHttpRequests(authz -> authz
                 // Recursos estáticos primeiro
                 .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
-                // Endpoints públicos da API - DEVE VIR ANTES das páginas web
+                // Newsletter páginas públicas - DEVE VIR PRIMEIRO
+                .requestMatchers("/newsletter/**").permitAll()
+                // Páginas públicas
+                .requestMatchers("/", "/subscribe", "/unsubscribe/**", "/verify/**").permitAll()
+                // Endpoints públicos da API
                 .requestMatchers("/api/newsletter/subscribe", "/api/newsletter/status/**", 
                                "/api/newsletter/unsubscribe/**", "/api/newsletter/reactivate",
                                "/api/newsletter/verify", "/api/newsletter/preferences/**",
                                "/api/news/**").permitAll()
-                // Endpoints administrativos da API - requerem autenticação ADMIN
-                .requestMatchers("/api/newsletter/subscribers", "/api/newsletter/stats", 
-                               "/api/newsletter/send", "/api/newsletter/templates/**",
-                               "/api/newsletter/schedule/**").hasRole("ADMIN")
-                // Páginas públicas
-                .requestMatchers("/", "/subscribe", "/unsubscribe/**", "/verify/**").permitAll()
-                // Newsletter páginas públicas
-                .requestMatchers("/newsletter/**").permitAll()
-                .requestMatchers("/admin/**").hasRole("ADMIN")
-                .anyRequest().authenticated()
+                // ADMIN DESATIVADO - Todas as rotas administrativas agora são públicas
+                // .requestMatchers("/api/newsletter/subscribers", "/api/newsletter/stats", 
+                //                "/api/newsletter/send", "/api/newsletter/templates/**",
+                //                "/api/newsletter/schedule/**").hasRole("ADMIN")
+                // .requestMatchers("/admin/**").hasRole("ADMIN")
+                .anyRequest().permitAll() // Permitir acesso a todas as outras rotas
             )
-            .formLogin(form -> form
-                .loginPage("/login")
-                .defaultSuccessUrl("/admin", true)
-                .permitAll()
-            )
-            .logout(logout -> logout
-                .logoutUrl("/logout")
-                .logoutSuccessUrl("/")
-                .permitAll()
-            )
+            // FORM LOGIN DESATIVADO
+            // .formLogin(form -> form
+            //     .loginPage("/login")
+            //     .defaultSuccessUrl("/admin", true)
+            //     .permitAll()
+            // )
+            // .logout(logout -> logout
+            //     .logoutUrl("/logout")
+            //     .logoutSuccessUrl("/")
+            //     .permitAll()
+            // )
             .csrf(csrf -> csrf
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                .ignoringRequestMatchers("/api/newsletter/**") // Ignorar CSRF para API endpoints
             )
             .headers(headers -> headers.frameOptions().disable());
         
