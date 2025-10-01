@@ -140,40 +140,18 @@ public class NewsletterApiController {
         Map<String, Object> response = new HashMap<>();
         
         try {
-            // Verificar se o email existe primeiro
-            Optional<Subscriber> subscriberOpt = subscriberService.findByEmail(email);
-            if (subscriberOpt.isEmpty()) {
-                response.put("success", false);
-                response.put("message", "Email não encontrado");
-                response.put("code", "EMAIL_NOT_FOUND");
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-            }
-            
-            Subscriber subscriber = subscriberOpt.get();
-            
-            // Validar token se fornecido
-            if (token != null && !token.trim().isEmpty()) {
-                if (!token.equals(subscriber.getManageToken())) {
-                    response.put("success", false);
-                    response.put("message", "Token inválido");
-                    response.put("code", "INVALID_TOKEN");
-                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-                }
-            }
-            
             boolean success = subscriberService.unsubscribe(email, token);
             
             if (success) {
                 response.put("success", true);
                 response.put("message", "Inscrição cancelada com sucesso");
+                return ResponseEntity.ok(response);
             } else {
                 response.put("success", false);
-                response.put("message", "Erro ao cancelar inscrição");
-                response.put("code", "UNSUBSCRIBE_FAILED");
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+                response.put("message", "Email não encontrado ou já cancelado");
+                response.put("code", "EMAIL_NOT_FOUND");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
             }
-            
-            return ResponseEntity.ok(response);
             
         } catch (Exception e) {
             response.put("success", false);

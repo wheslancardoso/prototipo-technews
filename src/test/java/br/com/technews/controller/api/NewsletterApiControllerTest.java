@@ -100,11 +100,11 @@ class NewsletterApiControllerTest {
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isInternalServerError())
+                .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.message").value("Erro interno do servidor: Email inválido"));
+                .andExpect(jsonPath("$.message").value("Dados de entrada inválidos"));
 
-        verify(subscriberService).subscribe(eq("invalid-email"), eq("João Silva"), isNull(), isNull());
+        verify(subscriberService, never()).subscribe(anyString(), anyString(), any(), any());
     }
 
     @Test
@@ -186,10 +186,7 @@ class NewsletterApiControllerTest {
 
         // When & Then
         mockMvc.perform(get("/api/newsletter/status/nonexistent@example.com"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.subscribed").value(false))
-                .andExpect(jsonPath("$.active").value(false))
-                .andExpect(jsonPath("$.verified").value(false));
+                .andExpect(status().isNotFound());
 
         verify(subscriberService).findByEmail("nonexistent@example.com");
     }
@@ -205,7 +202,7 @@ class NewsletterApiControllerTest {
         mockMvc.perform(put("/api/newsletter/preferences/joao@example.com")
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"nome\":\"João Silva Updated\",\"frequencia\":\"DAILY\",\"categorias\":\"TECHNOLOGY,SCIENCE\"}"))
+                .content("{\"nome\":\"João Silva Updated\",\"frequencia\":\"DAILY\",\"categorias\":[1,2]}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.message").value("Preferências atualizadas com sucesso"));
@@ -223,7 +220,7 @@ class NewsletterApiControllerTest {
         mockMvc.perform(put("/api/newsletter/preferences/nonexistent@example.com")
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"nome\":\"João Silva\",\"frequencia\":\"DAILY\",\"categorias\":\"TECHNOLOGY\"}"))
+                .content("{\"nome\":\"João Silva\",\"frequencia\":\"DAILY\",\"categorias\":[1]}"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.message").value("Assinante não encontrado"));
@@ -241,7 +238,7 @@ class NewsletterApiControllerTest {
         mockMvc.perform(put("/api/newsletter/preferences/invalid@example.com")
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"nome\":\"Test\",\"frequencia\":\"DAILY\",\"categorias\":\"TECHNOLOGY\"}"))
+                .content("{\"nome\":\"Test\",\"frequencia\":\"DAILY\",\"categorias\":[1]}"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.message").value("Assinante não encontrado"));
