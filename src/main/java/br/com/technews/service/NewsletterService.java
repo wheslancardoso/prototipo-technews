@@ -39,6 +39,7 @@ public class NewsletterService {
     private final NewsArticleService newsArticleService;
     private final SubscriberService subscriberService;
     private final EmailService emailService;
+    private final BeehiivService beehiivService;
     private final TemplateEngine templateEngine;
     private final NewsCurationService newsCurationService;
     
@@ -85,52 +86,40 @@ public class NewsletterService {
     }
 
     /**
-     * Envia newsletter para todos os assinantes ativos
+     * Envia newsletter para todos os assinantes ativos usando Beehiiv
      */
     public void sendWeeklyNewsletter() {
         try {
-            log.info("Iniciando envio da newsletter diária");
+            log.info("Iniciando envio da newsletter via Beehiiv");
             
-            List<Subscriber> activeSubscribers = subscriberService.findActiveSubscribers();
-            if (activeSubscribers.isEmpty()) {
-                log.info("Nenhum assinante ativo encontrado");
-                return;
-            }
-
             // Busca artigos para a newsletter
             List<NewsArticle> featuredArticles = newsArticleService.findFeaturedArticles(featuredArticlesLimit);
             List<NewsArticle> latestArticles = newsArticleService.findLatestPublishedArticles(latestArticlesLimit);
             List<NewsArticle> popularArticles = newsArticleService.findPopularArticles(5);
 
-            // Gera estatísticas
-            NewsletterStats stats = new NewsletterStats(
-                newsArticleService.countPublished(),
-                subscriberService.countActiveSubscribers(),
-                newsArticleService.countArticlesPublishedSince(LocalDateTime.now().withHour(0).withMinute(0).withSecond(0)),
-                0L // totalViews
-            );
+            // Combinar todos os artigos únicos
+            List<NewsArticle> allArticles = new ArrayList<>();
+            allArticles.addAll(featuredArticles);
+            allArticles.addAll(latestArticles);
+            allArticles.addAll(popularArticles);
+            
+            // Remover duplicatas mantendo a ordem
+            Set<Long> seenIds = new HashSet<>();
+            List<NewsArticle> uniqueArticles = allArticles.stream()
+                .filter(article -> seenIds.add(article.getId()))
+                .collect(Collectors.toList());
 
-            int successCount = 0;
-            int errorCount = 0;
+            // Criar título da newsletter
+            String title = "TechNews - " + LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+            String content = "Confira as principais notícias de tecnologia selecionadas para você!";
 
-            for (Subscriber subscriber : activeSubscribers) {
-                try {
-                    sendNewsletterToSubscriber(subscriber, featuredArticles, latestArticles, popularArticles, stats);
-                    successCount++;
-                    
-                    // Pequena pausa para evitar sobrecarga do servidor de email
-                    Thread.sleep(100);
-                    
-                } catch (Exception e) {
-                    log.error("Erro ao enviar newsletter para {}: {}", subscriber.getEmail(), e.getMessage());
-                    errorCount++;
-                }
-            }
-
-            log.info("Newsletter enviada - Sucessos: {}, Erros: {}", successCount, errorCount);
+            // Criar post no Beehiiv (que será enviado automaticamente para todos os assinantes)
+            BeehiivService.BeehiivPostResponse response = beehiivService.createPost(title, content, uniqueArticles);
+            
+            log.info("Newsletter enviada via Beehiiv - Post ID: {}", response.getId());
             
         } catch (Exception e) {
-            log.error("Erro crítico no envio da newsletter: {}", e.getMessage(), e);
+            log.error("Erro crítico no envio da newsletter via Beehiiv: {}", e.getMessage(), e);
         }
     }
 

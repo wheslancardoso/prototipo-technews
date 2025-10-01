@@ -1,5 +1,6 @@
 package br.com.technews.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -12,10 +13,16 @@ import java.util.Arrays;
 
 /**
  * Configuração da API REST
- * Inclui configurações de CORS
+ * Inclui configurações de CORS e propriedades da API
  */
 @Configuration
 public class ApiConfig implements WebMvcConfigurer {
+
+    @Value("${mailgun.api.key}")
+    private String mailgunApiKey;
+
+    @Value("${mailgun.domain}")
+    private String mailgunDomain;
 
     /**
      * Configuração global de CORS
@@ -45,5 +52,14 @@ public class ApiConfig implements WebMvcConfigurer {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/api/**", configuration);
         return source;
+    }
+
+    // Getters para as propriedades do Mailgun
+    public String getMailgunApiKey() {
+        return mailgunApiKey;
+    }
+
+    public String getMailgunDomain() {
+        return mailgunDomain;
     }
 }

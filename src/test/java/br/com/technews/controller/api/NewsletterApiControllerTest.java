@@ -56,7 +56,7 @@ class NewsletterApiControllerTest {
         String email = "test@example.com";
         String fullName = "Test User";
         String frequency = "WEEKLY";
-        String categoryIds = "1,2";
+        String categoryIds = "[1,2]";
 
         Subscriber subscriber = new Subscriber();
         subscriber.setId(1L);
@@ -74,7 +74,7 @@ class NewsletterApiControllerTest {
         mockMvc.perform(post("/api/newsletter/subscribe")
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"email\":\"" + email + "\",\"nome\":\"" + fullName + "\",\"frequencia\":\"" + frequency + "\",\"categorias\":\"" + categoryIds + "\"}"))
+                .content("{\"email\":\"" + email + "\",\"nome\":\"" + fullName + "\",\"frequencia\":\"" + frequency + "\",\"categorias\":" + categoryIds + "}"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.message").value("Inscrição realizada com sucesso. Verifique seu email para confirmar."))

@@ -31,6 +31,7 @@ public class SubscriberService {
     private final SubscriberRepository subscriberRepository;
     private final CategoryRepository categoryRepository;
     private final EmailService emailService;
+    private final BeehiivService beehiivService;
 
     private static final Pattern EMAIL_PATTERN = Pattern.compile(
         "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$"
@@ -75,6 +76,15 @@ public class SubscriberService {
         subscriber.setManageToken(UUID.randomUUID().toString());
 
         subscriber = subscriberRepository.save(subscriber);
+
+        try {
+            // Criar assinante no Beehiiv
+            BeehiivService.BeehiivSubscriptionResponse beehiivResponse = beehiivService.createSubscriber(subscriber);
+            log.info("Assinante criado no Beehiiv: {} - Status: {}", email, beehiivResponse.getStatus());
+        } catch (Exception e) {
+            log.error("Erro ao criar assinante no Beehiiv: {}", e.getMessage(), e);
+            // Continua com o processo local mesmo se falhar no Beehiiv
+        }
 
         // Envia email de verificação
         emailService.sendVerificationEmail(subscriber);
@@ -132,6 +142,15 @@ public class SubscriberService {
         subscriber.setUnsubscribedAt(LocalDateTime.now());
 
         subscriberRepository.save(subscriber);
+
+        try {
+            // Remover assinante do Beehiiv
+            beehiivService.removeSubscriber(subscriber.getEmail());
+            log.info("Assinante removido do Beehiiv: {}", subscriber.getEmail());
+        } catch (Exception e) {
+            log.error("Erro ao remover assinante do Beehiiv: {}", e.getMessage(), e);
+            // Continua com o processo local mesmo se falhar no Beehiiv
+        }
 
         // Envia email de confirmação
         emailService.sendUnsubscribeConfirmationEmail(subscriber);
