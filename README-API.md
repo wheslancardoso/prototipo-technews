@@ -303,3 +303,39 @@ print(response.json())
 - A API é stateless e não requer autenticação por padrão
 - Timestamps são retornados no formato ISO 8601
 - A paginação segue o padrão Spring Data (page, size, sort)
+
+## Configuração de Email (Mailgun)
+- Por padrão, o envio usa SMTP (ex.: Gmail). Opcionalmente, você pode habilitar o envio via API do Mailgun.
+- Para evitar expor segredos, todas as credenciais do Mailgun são lidas via variáveis de ambiente.
+
+### Variáveis de ambiente
+- `MAILGUN_ENABLED` → `true` para usar a API do Mailgun; `false` usa SMTP.
+- `MAILGUN_DOMAIN` → seu domínio no Mailgun (ex.: `sandbox123.mailgun.org`).
+- `MAILGUN_API_KEY` → sua chave de API (ex.: `key-xxxxxxxxxxxxxxxxxxxx`).
+- `GNEWS_API_KEY` → chave da API GNews (antes era fixa, agora via env).
+
+### Onde colocar as chaves
+- Windows PowerShell (persistente):
+  - `setx MAILGUN_ENABLED "true"`
+  - `setx MAILGUN_DOMAIN "sandbox123.mailgun.org"`
+  - `setx MAILGUN_API_KEY "key-xxxxxxxxxxxxxxxxxxxx"`
+  - `setx GNEWS_API_KEY "sua_chave_gnews"`
+- WSL/Linux (na sessão atual):
+  - `export MAILGUN_ENABLED=true`
+  - `export MAILGUN_DOMAIN=sandbox123.mailgun.org`
+  - `export MAILGUN_API_KEY=key-xxxxxxxxxxxxxxxxxxxx`
+  - `export GNEWS_API_KEY=sua_chave_gnews`
+- Arquivo `.env` (não versionado):
+  - Crie `.env` na raiz com as variáveis acima. O Spring lê propriedades via ambiente; use ferramentas como direnv ou scripts de shell para carregar.
+
+### SMTP com Mailgun (alternativa sem API key exposta)
+- Configure:
+  - `spring.mail.host=smtp.mailgun.org`
+  - `spring.mail.port=587`
+  - `spring.mail.username=postmaster@SEU_DOMINIO`
+  - `spring.mail.password` via env (ex.: `MAIL_PASSWORD`)
+- Mantém chave de API fora do projeto, usando apenas credenciais SMTP.
+
+### Comportamento
+- Se `MAILGUN_ENABLED=true` e variáveis válidas, o `EmailService` envia via HTTP API do Mailgun.
+- Caso contrário, faz fallback para SMTP (`JavaMailSender`).

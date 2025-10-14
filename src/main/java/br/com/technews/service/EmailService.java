@@ -16,6 +16,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -49,6 +56,15 @@ public class EmailService {
 
     @Value("${app.name}")
     private String appName;
+
+    @Value("${mailgun.enabled:false}")
+    private boolean mailgunEnabled;
+
+    @Value("${mailgun.domain:}")
+    private String mailgunDomain;
+
+    @Value("${mailgun.api.key:}")
+    private String mailgunApiKey;
 
     /**
      * Envia email de verificação para novo assinante
@@ -89,6 +105,12 @@ public class EmailService {
     @Async
     public CompletableFuture<Boolean> sendHtmlEmail(String toEmail, String subject, String htmlContent) {
         try {
+            if (mailgunEnabled && mailgunApiKey != null && !mailgunApiKey.isBlank() && mailgunDomain != null && !mailgunDomain.isBlank()) {
+                boolean ok = sendViaMailgunHttp(toEmail, subject, htmlContent);
+                log.info("Email HTML enviado via Mailgun HTTP para: {} (status: {})", toEmail, ok);
+                return CompletableFuture.completedFuture(ok);
+            }
+
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
@@ -99,7 +121,7 @@ public class EmailService {
 
             mailSender.send(message);
             
-            log.info("Email HTML enviado para: {}", toEmail);
+            log.info("Email HTML enviado via SMTP para: {}", toEmail);
             return CompletableFuture.completedFuture(true);
 
         } catch (Exception e) {
@@ -146,6 +168,36 @@ public class EmailService {
         } catch (Exception e) {
             log.error("Erro ao enviar newsletter para {}: {}", subscriber.getEmail(), e.getMessage());
             return CompletableFuture.completedFuture(false);
+        }
+    }
+
+    private boolean sendViaMailgunHttp(String toEmail, String subject, String htmlContent) {
+        try {
+            String url = "https://api.mailgun.net/v3/" + mailgunDomain + "/messages";
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+            headers.setBasicAuth("api", mailgunApiKey);
+
+            MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
+            form.add("from", String.format("%s <%s>", fromName, fromEmail));
+            form.add("to", toEmail);
+            form.add("subject", subject);
+            form.add("html", htmlContent);
+
+            HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(form, headers);
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
+
+            int status = response.getStatusCode().value();
+            if (status >= 200 && status < 300) {
+                return true;
+            }
+            log.warn("Mailgun HTTP respondeu com status {} para envio a {}", status, toEmail);
+            return false;
+        } catch (Exception ex) {
+            log.error("Falha ao enviar via Mailgun HTTP para {}: {}", toEmail, ex.getMessage());
+            return false;
         }
     }
 
