@@ -313,6 +313,7 @@ print(response.json())
 - `MAILGUN_DOMAIN` → seu domínio no Mailgun (ex.: `sandbox123.mailgun.org`).
 - `MAILGUN_API_KEY` → sua chave de API (ex.: `key-xxxxxxxxxxxxxxxxxxxx`).
 - `GNEWS_API_KEY` → chave da API GNews (antes era fixa, agora via env).
+- `MAIL_FROM` → remetente (ex.: `postmaster@SEU_DOMINIO`). Use um endereço do seu domínio verificado no Mailgun.
 
 ### Onde colocar as chaves
 - Windows PowerShell (persistente):
