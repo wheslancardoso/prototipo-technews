@@ -21,6 +21,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestBody;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
@@ -438,6 +440,59 @@ public class NewsletterApiController {
         } catch (Exception e) {
             response.put("success", false);
             response.put("message", "Erro ao verificar email: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
+    /**
+     * Endpoint de smoke test de envio de email
+     * Permite disparar um envio HTML simples para verificar configuração
+     * Parâmetros: to (opcional), subject (opcional), html (opcional)
+     */
+    @GetMapping("/email/smoke")
+    public ResponseEntity<Map<String, Object>> emailSmoke(
+            @RequestParam(required = false) String to,
+            @RequestParam(required = false) String subject,
+            @RequestParam(required = false) String html
+    ) {
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            String toEmail = (to != null && !to.trim().isEmpty()) ? to :
+                    System.getenv().getOrDefault(
+                            "MAILGUN_TEST_TO",
+                            System.getenv().getOrDefault(
+                                    "MAIL_TO",
+                                    System.getenv().getOrDefault("GMAIL_USERNAME", System.getenv().getOrDefault("MAIL_FROM", ""))
+                            )
+                    );
+
+            if (toEmail == null || toEmail.trim().isEmpty()) {
+                response.put("success", false);
+                response.put("message", "Destinatário de teste não definido; informe 'to' ou configure MAILGUN_TEST_TO/MAIL_TO.");
+                response.put("code", "MISSING_TEST_RECIPIENT");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            }
+
+            String usedSubject = (subject != null && !subject.trim().isEmpty()) ? subject : "Smoke Test - TechNews Mailgun";
+            String usedHtml = (html != null && !html.trim().isEmpty()) ? html : "<h1>Smoke Test</h1><p>Verificando envio via Mailgun HTTP API.</p>";
+
+            CompletableFuture<Boolean> resultFuture = emailService.sendHtmlEmail(toEmail, usedSubject, usedHtml);
+            Boolean ok = resultFuture.get(20, TimeUnit.SECONDS);
+
+            response.put("success", ok);
+            response.put("ok", ok);
+            response.put("to", toEmail);
+            response.put("subject", usedSubject);
+            response.put("timestamp", LocalDateTime.now());
+            response.put("message", ok ? "Email de teste enviado com sucesso" : "Falha ao enviar email de teste");
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Erro ao executar smoke test: " + e.getMessage());
+            response.put("code", "SMOKE_TEST_ERROR");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
