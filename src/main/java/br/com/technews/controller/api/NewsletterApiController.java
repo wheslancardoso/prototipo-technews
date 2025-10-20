@@ -5,6 +5,7 @@ import br.com.technews.entity.Category;
 import br.com.technews.service.SubscriberService;
 import br.com.technews.service.EmailService;
 import br.com.technews.repository.CategoryRepository;
+import br.com.technews.service.NewsArticleService;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -35,6 +36,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.List;
 
 /**
  * API REST Controller para gerenciamento de newsletter
@@ -53,6 +55,9 @@ public class NewsletterApiController {
 
     @Autowired
     private CategoryRepository categoryRepository;
+
+    @Autowired
+    private NewsArticleService newsArticleService;
 
     /**
      * Criar nova inscrição via API
@@ -494,6 +499,27 @@ public class NewsletterApiController {
             response.put("message", "Erro ao executar smoke test: " + e.getMessage());
             response.put("code", "SMOKE_TEST_ERROR");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
+    /**
+     * Preview HTML da newsletter com artigos publicados recentes.
+     * Parâmetros: limit (opcional), hero (opcional), nome (opcional)
+     */
+    @GetMapping(value = "/email/preview", produces = "text/html; charset=UTF-8")
+    public ResponseEntity<String> emailPreview(
+            @RequestParam(required = false) Integer limit,
+            @RequestParam(required = false, name = "hero") String heroImageUrl,
+            @RequestParam(required = false, name = "nome") String subscriberName
+    ) {
+        try {
+            int usedLimit = (limit != null && limit > 0 && limit <= 20) ? limit : 6;
+            List<br.com.technews.entity.NewsArticle> articles = newsArticleService.findLatestPublishedArticles(usedLimit);
+            String html = emailService.renderNewsletterPreview(articles, subscriberName, heroImageUrl);
+            return ResponseEntity.ok().header("Content-Type", "text/html; charset=UTF-8").body(html);
+        } catch (Exception e) {
+            String errorHtml = "<html><body><h1>Erro ao gerar preview</h1><p>" + e.getMessage() + "</p></body></html>";
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).header("Content-Type", "text/html; charset=UTF-8").body(errorHtml);
         }
     }
 

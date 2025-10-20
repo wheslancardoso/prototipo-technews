@@ -26,6 +26,7 @@ import org.springframework.web.client.RestTemplate;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import java.util.UUID;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -86,7 +87,20 @@ public class EmailService {
             helper.setFrom(fromEmail, fromName);
             helper.setTo(subscriber.getEmail());
             helper.setSubject("Confirme sua inscrição na newsletter - " + appName);
-            helper.setText(htmlContent, true);
+            // Gera alternativa em texto simples para melhorar entregabilidade
+            String plainTextVerification = htmlContent
+                .replaceAll("(?s)<style.*?</style>", " ")
+                .replaceAll("(?s)<script.*?</script>", " ")
+                .replaceAll("(?s)<[^>]+>", " ")
+                .replace("&nbsp;", " ")
+                .replaceAll("\\s{2,}", " ")
+                .trim();
+            helper.setText(plainTextVerification, htmlContent);
+            // Cabeçalhos úteis anti-spam e de gerenciamento
+            message.addHeader("List-Unsubscribe", "<" + baseUrl + "/newsletter/unsubscribe?token=" + subscriber.getUnsubscribeToken() + ">");
+            message.addHeader("List-Unsubscribe-Post", "List-Unsubscribe=One-Click");
+            message.addHeader("X-Entity-Ref-ID", java.util.UUID.randomUUID().toString());
+            helper.setReplyTo(fromEmail);
 
             mailSender.send(message);
             
@@ -117,7 +131,21 @@ public class EmailService {
             helper.setFrom(fromEmail, fromName);
             helper.setTo(toEmail);
             helper.setSubject(subject);
-            helper.setText(htmlContent, true);
+            // Gera alternativa em texto simples para melhorar entregabilidade
+            String plainText = htmlContent
+                .replaceAll("(?s)<style.*?</style>", " ")
+                .replaceAll("(?s)<script.*?</script>", " ")
+                .replaceAll("(?s)<[^>]+>", " ")
+                .replace("&nbsp;", " ")
+                .replaceAll("\\s{2,}", " ")
+                .trim();
+            helper.setText(plainText, htmlContent);
+
+            // Cabeçalhos úteis anti-spam e de gerenciamento
+            message.addHeader("List-Unsubscribe", "<" + baseUrl + "/newsletter/unsubscribe>");
+            message.addHeader("List-Unsubscribe-Post", "List-Unsubscribe=One-Click");
+            message.addHeader("X-Entity-Ref-ID", UUID.randomUUID().toString());
+            helper.setReplyTo(fromEmail);
 
             mailSender.send(message);
             
@@ -153,7 +181,19 @@ public class EmailService {
             helper.setFrom(fromEmail, fromName);
             helper.setTo(subscriber.getEmail());
             helper.setSubject(generateNewsletterSubject(articles.size()));
-            helper.setText(htmlContent, true);
+            String plainTextNewsletter = htmlContent
+                .replaceAll("(?s)<style.*?</style>", " ")
+                .replaceAll("(?s)<script.*?</script>", " ")
+                .replaceAll("(?s)<[^>]+>", " ")
+                .replace("&nbsp;", " ")
+                .replaceAll("\\s{2,}", " ")
+                .trim();
+            helper.setText(plainTextNewsletter, htmlContent);
+            String unsubscribeHeaderUrl = baseUrl + "/newsletter/unsubscribe?token=" + subscriber.getUnsubscribeToken();
+            message.addHeader("List-Unsubscribe", "<" + unsubscribeHeaderUrl + ">");
+            message.addHeader("List-Unsubscribe-Post", "List-Unsubscribe=One-Click");
+            message.addHeader("X-Entity-Ref-ID", java.util.UUID.randomUUID().toString());
+            helper.setReplyTo(fromEmail);
 
             mailSender.send(message);
 
@@ -185,6 +225,19 @@ public class EmailService {
             form.add("subject", subject);
             form.add("html", htmlContent);
 
+            // Adiciona texto simples e cabeçalhos anti-spam
+            String plainText = htmlContent
+                .replaceAll("(?s)<style.*?</style>", " ")
+                .replaceAll("(?s)<script.*?</script>", " ")
+                .replaceAll("(?s)<[^>]+>", " ")
+                .replace("&nbsp;", " ")
+                .replaceAll("\\s{2,}", " ")
+                .trim();
+            form.add("text", plainText);
+            form.add("h:Reply-To", fromEmail);
+            form.add("h:List-Unsubscribe", "<" + baseUrl + "/newsletter/unsubscribe>");
+            form.add("h:List-Unsubscribe-Post", "List-Unsubscribe=One-Click");
+
             HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(form, headers);
             RestTemplate restTemplate = new RestTemplate();
             ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
@@ -195,8 +248,8 @@ public class EmailService {
             }
             log.warn("Mailgun HTTP respondeu com status {} para envio a {}", status, toEmail);
             return false;
-        } catch (Exception ex) {
-            log.error("Falha ao enviar via Mailgun HTTP para {}: {}", toEmail, ex.getMessage());
+        } catch (Exception e) {
+            log.error("Erro ao enviar via Mailgun HTTP: {}", e.getMessage());
             return false;
         }
     }
@@ -355,7 +408,18 @@ public class EmailService {
             helper.setFrom(fromEmail, fromName);
             helper.setTo(subscriber.getEmail());
             helper.setSubject("Bem-vindo à nossa newsletter! - " + appName);
-            helper.setText(htmlContent, true);
+            String plainTextWelcome = htmlContent
+                .replaceAll("(?s)<style.*?</style>", " ")
+                .replaceAll("(?s)<script.*?</script>", " ")
+                .replaceAll("(?s)<[^>]+>", " ")
+                .replace("&nbsp;", " ")
+                .replaceAll("\\s{2,}", " ")
+                .trim();
+            helper.setText(plainTextWelcome, htmlContent);
+            message.addHeader("List-Unsubscribe", "<" + baseUrl + "/newsletter/unsubscribe?token=" + subscriber.getUnsubscribeToken() + ">");
+            message.addHeader("List-Unsubscribe-Post", "List-Unsubscribe=One-Click");
+            message.addHeader("X-Entity-Ref-ID", java.util.UUID.randomUUID().toString());
+            helper.setReplyTo(fromEmail);
 
             mailSender.send(message);
             
@@ -563,5 +627,43 @@ public class EmailService {
             log.error("Erro ao enviar email de teste: {}", e.getMessage());
             return false;
         }
+    }
+
+    /**
+     * Renderiza HTML de preview da newsletter com dados de exemplo.
+     */
+    public String renderNewsletterPreview(List<NewsArticle> articles, String subscriberName, String heroImageUrl) {
+        Context context = new Context(Locale.forLanguageTag("pt-BR"));
+
+        // Dados básicos
+        context.setVariable("appName", appName);
+        context.setVariable("baseUrl", baseUrl);
+        context.setVariable("newsletterTitle", "Resumo semanal da TechNews");
+        context.setVariable("newsletterDate", java.time.LocalDate.now());
+        context.setVariable("subscriberName", (subscriberName == null || subscriberName.isBlank()) ? "Leitor" : subscriberName);
+        context.setVariable("newsletterDescription", "Nesta edição, os destaques em IA, produtos e tendências globais.");
+        context.setVariable("heroImageUrl", (heroImageUrl == null || heroImageUrl.isBlank()) ?
+                "https://images.unsplash.com/photo-1518779578993-ec3579fee39f?w=1200&q=80&auto=format&fit=crop" : heroImageUrl);
+
+        // Artigos
+        List<NewsArticle> safeArticles = (articles == null) ? java.util.List.of() : articles;
+        context.setVariable("articles", safeArticles);
+        if (!safeArticles.isEmpty()) {
+            context.setVariable("featuredArticle", safeArticles.get(0));
+        }
+
+        // Estatísticas básicas
+        context.setVariable("totalArticles", safeArticles.size());
+        context.setVariable("totalSources", safeArticles.stream().map(NewsArticle::getSourceDomain).filter(java.util.Objects::nonNull).collect(Collectors.toSet()).size());
+        context.setVariable("totalCategories", safeArticles.stream().map(NewsArticle::getCategory).filter(java.util.Objects::nonNull).collect(Collectors.toSet()).size());
+
+        // Preferências fictícias para rodapé
+        context.setVariable("subscriberFrequency", "Semanal");
+        context.setVariable("subscriberCategories", "Todas");
+        context.setVariable("manageToken", "preview-token");
+        context.setVariable("unsubscribeToken", "preview-token");
+        context.setVariable("pauseToken", "preview-token");
+
+        return templateEngine.process("email/newsletter", context);
     }
 }
