@@ -96,10 +96,26 @@ public class EmailService {
                 .replaceAll("\\s{2,}", " ")
                 .trim();
             helper.setText(plainTextVerification, htmlContent);
-            // Cabeçalhos úteis anti-spam e de gerenciamento
+            // Cabeçalhos anti-spam e de gerenciamento aprimorados
             message.addHeader("List-Unsubscribe", "<" + baseUrl + "/newsletter/unsubscribe?token=" + subscriber.getUnsubscribeToken() + ">");
             message.addHeader("List-Unsubscribe-Post", "List-Unsubscribe=One-Click");
             message.addHeader("X-Entity-Ref-ID", java.util.UUID.randomUUID().toString());
+            
+            // Headers adicionais para melhorar deliverability
+            message.addHeader("X-Mailer", appName + " Newsletter System");
+            message.addHeader("X-Priority", "3"); // Normal priority
+            message.addHeader("X-MSMail-Priority", "Normal");
+            message.addHeader("Importance", "Normal");
+            message.addHeader("X-Auto-Response-Suppress", "OOF, DR, RN, NRN, AutoReply");
+            message.addHeader("Precedence", "bulk");
+            message.addHeader("List-ID", "<newsletter." + fromEmail.split("@")[1] + ">");
+            message.addHeader("X-Campaign-ID", "verification-" + subscriber.getId());
+            
+            // Headers de autenticação e reputação
+            message.addHeader("Message-ID", "<" + UUID.randomUUID().toString() + "@" + fromEmail.split("@")[1] + ">");
+            message.addHeader("X-Sender", fromEmail);
+            message.addHeader("Return-Path", fromEmail);
+            
             helper.setReplyTo(fromEmail);
 
             mailSender.send(message);
@@ -141,10 +157,26 @@ public class EmailService {
                 .trim();
             helper.setText(plainText, htmlContent);
 
-            // Cabeçalhos úteis anti-spam e de gerenciamento
+            // Cabeçalhos anti-spam e de gerenciamento aprimorados
             message.addHeader("List-Unsubscribe", "<" + baseUrl + "/newsletter/unsubscribe>");
             message.addHeader("List-Unsubscribe-Post", "List-Unsubscribe=One-Click");
             message.addHeader("X-Entity-Ref-ID", UUID.randomUUID().toString());
+            
+            // Headers adicionais para melhorar deliverability
+            message.addHeader("X-Mailer", appName + " Newsletter System");
+            message.addHeader("X-Priority", "3"); // Normal priority
+            message.addHeader("X-MSMail-Priority", "Normal");
+            message.addHeader("Importance", "Normal");
+            message.addHeader("X-Auto-Response-Suppress", "OOF, DR, RN, NRN, AutoReply");
+            message.addHeader("Precedence", "bulk");
+            message.addHeader("List-ID", "<newsletter." + fromEmail.split("@")[1] + ">");
+            message.addHeader("X-Campaign-ID", "html-email-" + System.currentTimeMillis());
+            
+            // Headers de autenticação e reputação
+            message.addHeader("Message-ID", "<" + UUID.randomUUID().toString() + "@" + fromEmail.split("@")[1] + ">");
+            message.addHeader("X-Sender", fromEmail);
+            message.addHeader("Return-Path", fromEmail);
+            
             helper.setReplyTo(fromEmail);
 
             mailSender.send(message);
@@ -193,6 +225,22 @@ public class EmailService {
             message.addHeader("List-Unsubscribe", "<" + unsubscribeHeaderUrl + ">");
             message.addHeader("List-Unsubscribe-Post", "List-Unsubscribe=One-Click");
             message.addHeader("X-Entity-Ref-ID", java.util.UUID.randomUUID().toString());
+            
+            // Headers adicionais para melhorar deliverability da newsletter
+            message.addHeader("X-Mailer", appName + " Newsletter System");
+            message.addHeader("X-Priority", "3"); // Normal priority
+            message.addHeader("X-MSMail-Priority", "Normal");
+            message.addHeader("Importance", "Normal");
+            message.addHeader("X-Auto-Response-Suppress", "OOF, DR, RN, NRN, AutoReply");
+            message.addHeader("Precedence", "bulk");
+            message.addHeader("List-ID", "<newsletter." + fromEmail.split("@")[1] + ">");
+            message.addHeader("X-Campaign-ID", "newsletter-" + subscriber.getId() + "-" + System.currentTimeMillis());
+            
+            // Headers de autenticação e reputação
+            message.addHeader("Message-ID", "<" + UUID.randomUUID().toString() + "@" + fromEmail.split("@")[1] + ">");
+            message.addHeader("X-Sender", fromEmail);
+            message.addHeader("Return-Path", fromEmail);
+            
             helper.setReplyTo(fromEmail);
 
             mailSender.send(message);
