@@ -12,16 +12,16 @@ Este repositório contém um protótipo funcional (MVP) do TechNews, com backend
 - GET `/api/newsletter/email/smoke`: executa teste de envio (Mailgun/SMTP). Requer variáveis no `.env`.
 - GET `/h2-console`: console do H2 (apenas no dev).
 - Páginas estáticas:
-  - `/static/index.html`: home da demo.
-  - `/static/newsletter.html`: preview da newsletter + botão de smoke.
+  - `/` ou `/index.html`: home da demo.
+  - `/newsletter.html`: preview da newsletter + botão de smoke.
 
 ## Executando para Apresentação
 1. Build: `mvn -q -DskipTests package`
 2. Executar (porta 8083):
    - `java -jar .\target\technews-0.0.1-SNAPSHOT.jar --server.port=8083 --spring.profiles.active=dev`
 3. Abrir no navegador:
-   - `http://localhost:8083/static/index.html`
-   - `http://localhost:8083/static/newsletter.html`
+   - `http://localhost:8083/`
+   - `http://localhost:8083/newsletter.html`
 
 ## Mailgun (Opcional para envio real)
 Defina no `.env`:
