@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TechNews – Newsletter</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <style>
+    .actions { display: flex; gap: .75rem; margin-bottom: 1rem; }
+    iframe { width: 100%; height: 70vh; border: 1px solid #ddd; }
+    #status { padding: .5rem .75rem; border-radius: .375rem; }
+    .ok { background: #e6ffed; color: #046b1a; border: 1px solid #b7f5c9; }
+    .err { background: #ffecec; color: #8b0000; border: 1px solid #ffb8b8; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Newsletter – Preview e Smoke Test</h1>
+    <nav><a href="/static/index.html">← Voltar</a></nav>
+  </header>
+
+  <main>
+    <section class="actions">
+      <button id="btnReload">Atualizar Preview</button>
+      <button id="btnSmoke">Executar Smoke de Email</button>
+      <span id="status" aria-live="polite"></span>
+    </section>
+
+    <section>
+      <iframe id="previewFrame" src="/api/newsletter/email/preview?limit=6&nome=Leitor" title="Preview da Newsletter"></iframe>
+    </section>
+  </main>
+
+  <script>
+    const statusEl = document.getElementById('status');
+    const frameEl = document.getElementById('previewFrame');
+    const setStatus = (msg, ok=false) => {
+      statusEl.textContent = msg;
+      statusEl.className = ok ? 'ok' : 'err';
+    };
+
+    document.getElementById('btnReload').addEventListener('click', () => {
+      const url = '/api/newsletter/email/preview?limit=6&nome=Leitor&_ts=' + Date.now();
+      frameEl.src = url;
+      setStatus('Preview recarregado.', true);
+    });
+
+    document.getElementById('btnSmoke').addEventListener('click', async () => {
+      setStatus('Executando smoke de email…');
+      try {
+        const resp = await fetch('/api/newsletter/email/smoke');
+        const text = await resp.text();
+        if (resp.ok) {
+          setStatus('Smoke OK: ' + (text || 'entrega em processamento.'), true);
+        } else {
+          setStatus('Falha no smoke (' + resp.status + '): ' + text);
+        }
+      } catch (e) {
+        setStatus('Erro de rede no smoke: ' + e.message);
+      }
+    });
+  </script>
+</body>
+</html>

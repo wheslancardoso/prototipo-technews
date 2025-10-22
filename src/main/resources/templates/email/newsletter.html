@@ -313,6 +313,18 @@
             color: #667eea;
         }
         
+        /* Hero image */
+        .hero {
+            margin: 20px 0 0 0;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+        }
+        .hero img {
+            width: 100%;
+            display: block;
+        }
+        
         .footer {
             background: #f8f9fa;
             padding: 30px;
@@ -411,8 +423,11 @@
         <div class="header">
             <h1>TechNews</h1>
             <p class="tagline">Sua fonte confiável de notícias de tecnologia</p>
-            <div class="date" th:text="${#temporals.format(newsletterDate, 'dd \'de\' MMMM \'de\' yyyy', new java.util.Locale('pt', 'BR'))}">
+            <div class="date" th:text="${#temporals.format(newsletterDate, 'dd de MMMM de yyyy')}">
                 [Data da Newsletter]
+            </div>
+            <div class="hero">
+                <img th:src="${heroImageUrl != null ? heroImageUrl : 'https://images.unsplash.com/photo-1518779578993-ec3579fee39f?w=1200&q=80&auto=format&fit=crop'}" alt="TechNews hero" />
             </div>
         </div>
         
@@ -443,21 +458,24 @@
                 <div class="article-card featured-article">
                     <div class="article-header">
                         <div class="featured-badge">Destaque</div>
-                        <div class="article-category" th:text="${featuredArticle.categoria.nome}">Categoria</div>
+                        <div class="article-category" th:text="${featuredArticle.categoria != null && featuredArticle.categoria.nome != null ? featuredArticle.categoria.nome : featuredArticle.category}">Categoria</div>
                         <h3 class="article-title">
-                            <a th:href="${featuredArticle.url}" th:text="${featuredArticle.titulo}">Título do Artigo</a>
+                            <a th:href="${featuredArticle.url}" th:text="${featuredArticle.titulo != null ? featuredArticle.titulo : featuredArticle.title}">Título do Artigo</a>
                         </h3>
                         <div class="article-meta">
                             <div class="source">
                                 <span>🔗</span>
-                                <span th:text="${featuredArticle.fonte.nome}">Fonte</span>
+                                <span th:text="${featuredArticle.fonte != null && featuredArticle.fonte.nome != null ? featuredArticle.fonte.nome : featuredArticle.sourceDomain}">Fonte</span>
                             </div>
                             <div class="date">
                                 <span>📅</span>
-                                <span th:text="${#temporals.format(featuredArticle.dataPublicacao, 'dd/MM/yyyy')}">Data</span>
+                                <span th:text="${#temporals.format(featuredArticle.dataPublicacao != null ? featuredArticle.dataPublicacao : featuredArticle.publishedAt, 'dd/MM/yyyy')}">Data</span>
                             </div>
                         </div>
-                        <p class="article-summary" th:text="${featuredArticle.resumo}">
+                        <div class="article-image" th:if="${featuredArticle.imageUrl}">
+                            <img th:src="${featuredArticle.imageUrl}" alt="Imagem do destaque" style="width:100%; border-radius:10px; margin:10px 0;" />
+                        </div>
+                        <p class="article-summary" th:text="${featuredArticle.resumo != null ? featuredArticle.resumo : featuredArticle.summary}">
                             Resumo do artigo em destaque...
                         </p>
                     </div>
@@ -470,30 +488,72 @@
                 </div>
             </div>
             
-            <!-- Regular Articles by Category -->
-            <div th:each="categoryEntry : ${articlesByCategory}" class="articles-section">
+            <!-- Regular Articles -->
+            <div th:if="${articles}" class="articles-section">
                 <h2 class="section-title">
-                    <span class="icon" th:text="${categoryEntry.key.icone}">📱</span>
-                    <span th:text="${categoryEntry.key.nome}">Categoria</span>
+                    <span class="icon">🗞️</span>
+                    Principais artigos
                 </h2>
                 
-                <div th:each="article : ${categoryEntry.value}" class="article-card">
+                <div th:each="article : ${articles}" class="article-card">
                     <div class="article-header">
-                        <div class="article-category" th:text="${article.categoria.nome}">Categoria</div>
+                        <div class="article-category" th:text="${article.categoria != null && article.categoria.nome != null ? article.categoria.nome : article.category}">Categoria</div>
                         <h3 class="article-title">
-                            <a th:href="${article.url}" th:text="${article.titulo}">Título do Artigo</a>
+                            <a th:href="${article.url}" th:text="${article.titulo != null ? article.titulo : article.title}">Título do Artigo</a>
                         </h3>
                         <div class="article-meta">
                             <div class="source">
                                 <span>🔗</span>
-                                <span th:text="${article.fonte.nome}">Fonte</span>
+                                <span th:text="${article.fonte != null && article.fonte.nome != null ? article.fonte.nome : article.sourceDomain}">Fonte</span>
                             </div>
                             <div class="date">
                                 <span>📅</span>
-                                <span th:text="${#temporals.format(article.dataPublicacao, 'dd/MM/yyyy')}">Data</span>
+                                <span th:text="${#temporals.format(article.dataPublicacao != null ? article.dataPublicacao : article.publishedAt, 'dd/MM/yyyy')}">Data</span>
                             </div>
                         </div>
-                        <p class="article-summary" th:text="${article.resumo}">
+                        <div class="article-image" th:if="${article.imageUrl}">
+                            <img th:src="${article.imageUrl}" alt="Imagem do artigo" style="width:100%; border-radius:10px; margin:10px 0;" />
+                        </div>
+                        <p class="article-summary" th:text="${article.resumo != null ? article.resumo : article.summary}">
+                            Resumo do artigo...
+                        </p>
+                    </div>
+                    <div class="article-footer">
+                        <div class="article-tags">
+                            <span class="tag" th:each="tag : ${article.tags}" th:text="${tag}">Tag</span>
+                        </div>
+                        <a th:href="${article.url}" class="read-more">Ler Mais</a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Regular Articles by Category -->
+            <div th:if="${articlesByCategory}" th:each="categoryEntry : ${articlesByCategory}" class="articles-section">
+                <h2 class="section-title">
+                    <span class="icon" th:text="${categoryEntry.key.icone != null ? categoryEntry.key.icone : '📱'}">📱</span>
+                    <span th:text="${categoryEntry.key.nome != null ? categoryEntry.key.nome : categoryEntry.key.name}">Categoria</span>
+                </h2>
+                
+                <div th:each="article : ${categoryEntry.value}" class="article-card">
+                    <div class="article-header">
+                        <div class="article-category" th:text="${article.categoria != null && article.categoria.nome != null ? article.categoria.nome : article.category}">Categoria</div>
+                        <h3 class="article-title">
+                            <a th:href="${article.url}" th:text="${article.titulo != null ? article.titulo : article.title}">Título do Artigo</a>
+                        </h3>
+                        <div class="article-meta">
+                            <div class="source">
+                                <span>🔗</span>
+                                <span th:text="${article.fonte != null && article.fonte.nome != null ? article.fonte.nome : article.sourceDomain}">Fonte</span>
+                            </div>
+                            <div class="date">
+                                <span>📅</span>
+                                <span th:text="${#temporals.format(article.dataPublicacao != null ? article.dataPublicacao : article.publishedAt, 'dd/MM/yyyy')}">Data</span>
+                            </div>
+                        </div>
+                        <div class="article-image" th:if="${article.imageUrl}">
+                            <img th:src="${article.imageUrl}" alt="Imagem do artigo" style="width:100%; border-radius:10px; margin:10px 0;" />
+                        </div>
+                        <p class="article-summary" th:text="${article.resumo != null ? article.resumo : article.summary}">
                             Resumo do artigo...
                         </p>
                     </div>

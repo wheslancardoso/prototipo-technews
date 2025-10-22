@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TechNews – MVP</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <header>
+    <h1>TechNews – Protótipo Funcional (MVP)</h1>
+    <p>Primeira versão navegável para apresentação: frontend simples + backend Spring Boot + BD H2.</p>
+  </header>
+
+  <main>
+    <section>
+      <h2>Funcionalidades Essenciais</h2>
+      <ul>
+        <li><a href="/static/newsletter.html">Preview da Newsletter</a> (conteúdo HTML gerado pelo backend)</li>
+        <li><a href="/api/newsletter/email/preview?limit=6&nome=Leitor" target="_blank">Abrir Preview bruto (endpoint)</a></li>
+        <li><a href="/h2-console" target="_blank">Console H2</a> (ambiente de desenvolvimento)</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Rotas de Backend</h2>
+      <ul>
+        <li>GET <code>/api/newsletter/email/preview</code>: retorna HTML da newsletter</li>
+        <li>GET <code>/api/newsletter/email/smoke</code>: teste de envio (Mailgun/SMTP)</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Estado do Ambiente</h2>
+      <p>Perfil ativo: <strong>dev</strong> (H2 em memória). Para envio real, configure Mailgun no <code>.env</code>.</p>
+    </section>
+  </main>
+
+  <footer>
+    <small>© TechNews – MVP de apresentação</small>
+  </footer>
+</body>
+</html>
