@@ -12,6 +12,16 @@
         .hero h1 { font-weight: 800; }
         .section-title { color: #fff; font-weight: 700; }
         .card { background: #111827; border: 1px solid #1f2937; }
+        /* Estatísticas: estilo glass para evitar box preto */
+        .stats-card {
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            color: #fff;
+            backdrop-filter: blur(6px);
+        }
+        .stats-card .text-muted { color: #e5e7eb !important; opacity: 0.85; }
+        /* Fundo alternativo para seções de destaques e categorias */
+        .section-alt { background: #0b1220; }
         .badge-category { background: #1d4ed8; color: #fff; border-radius: 20px; padding: 4px 10px; font-size: 0.75rem; }
         .article-meta { color: #9ca3af; font-size: 0.85rem; }
         a.card-link { text-decoration: none; color: inherit; }
@@ -44,7 +54,7 @@
                     </div>
                 </div>
                 <div class="col-lg-4 mt-4 mt-lg-0">
-                    <div class="card">
+                    <div class="card stats-card">
                         <div class="card-body">
                             <div class="d-flex align-items-center mb-3">
                                 <i class="fas fa-chart-bar text-primary me-2"></i>
@@ -72,7 +82,7 @@
     </section>
 
     <!-- Artigos em destaque -->
-    <section class="py-5">
+    <section class="section-alt py-5">
         <div class="container">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h2 class="section-title h4 mb-0">Destaques recentes</h2>
@@ -113,7 +123,7 @@
     </section>
 
     <!-- Categorias -->
-    <section id="categorias" class="py-5">
+    <section id="categorias" class="section-alt py-5">
         <div class="container">
             <h2 class="section-title h4 mb-3">Categorias</h2>
             <div class="row g-3" th:if="${#lists.isEmpty(categories)}">
