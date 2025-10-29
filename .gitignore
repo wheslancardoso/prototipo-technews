@@ -44,6 +44,8 @@ cookies.txt
 test_output*.log
 test_output_*.log
 *.log
+test-output*.txt
+test_*.json
 
 # Curl cookies/session files
 *.curlrc
