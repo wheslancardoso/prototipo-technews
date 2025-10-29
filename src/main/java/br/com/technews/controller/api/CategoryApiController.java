@@ -2,7 +2,7 @@ package br.com.technews.controller.api;
 
 import br.com.technews.entity.Category;
 import br.com.technews.service.CategoryService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -23,10 +23,10 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/categories")
 @CrossOrigin(origins = "*", maxAge = 3600)
+@RequiredArgsConstructor
 public class CategoryApiController {
 
-    @Autowired
-    private CategoryService categoryService;
+    private final CategoryService categoryService;
 
     /**
      * Lista todas as categorias ativas

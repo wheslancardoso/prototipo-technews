@@ -4,7 +4,7 @@ import br.com.technews.entity.Subscriber;
 import br.com.technews.entity.NewsArticle;
 import br.com.technews.service.SubscriberService;
 import br.com.technews.service.NewsArticleService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
@@ -17,13 +17,12 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.util.List;
 
 @Controller
+@RequiredArgsConstructor
 public class PageController {
 
-    @Autowired
-    private SubscriberService subscriberService;
+    private final SubscriberService subscriberService;
     
-    @Autowired
-    private NewsArticleService newsArticleService;
+    private final NewsArticleService newsArticleService;
     
     @GetMapping("/")
     public String home(Model model) {

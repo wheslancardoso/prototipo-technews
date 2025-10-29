@@ -2,7 +2,7 @@ package br.com.technews.controller;
 
 import br.com.technews.entity.NewsArticle;
 import br.com.technews.service.NewsArticleService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -19,10 +19,10 @@ import java.util.Optional;
 
 @Controller
 @RequestMapping("/articles")
+@RequiredArgsConstructor
 public class PublicArticleController {
 
-    @Autowired
-    private NewsArticleService newsArticleService;
+    private final NewsArticleService newsArticleService;
 
     @GetMapping
     public String listArticles(

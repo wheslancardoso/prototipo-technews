@@ -7,7 +7,7 @@ import br.com.technews.service.EmailService;
 import br.com.technews.repository.CategoryRepository;
 import br.com.technews.service.NewsArticleService;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -45,19 +45,16 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/newsletter")
 @CrossOrigin(origins = "*", maxAge = 3600)
+@RequiredArgsConstructor
 public class NewsletterApiController {
 
-    @Autowired
-    private SubscriberService subscriberService;
+    private final SubscriberService subscriberService;
 
-    @Autowired
-    private EmailService emailService;
+    private final EmailService emailService;
 
-    @Autowired
-    private CategoryRepository categoryRepository;
+    private final CategoryRepository categoryRepository;
 
-    @Autowired
-    private NewsArticleService newsArticleService;
+    private final NewsArticleService newsArticleService;
 
     /**
      * Criar nova inscrição via API

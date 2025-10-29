@@ -2,7 +2,7 @@ package br.com.technews.controller.api;
 
 import br.com.technews.entity.NewsletterTemplate;
 import br.com.technews.service.NewsletterTemplateService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,12 +19,12 @@ import java.util.Optional;
  */
 @RestController
 @RequestMapping("/api/newsletter/templates")
+@RequiredArgsConstructor
 public class NewsletterTemplateApiController {
 
     private static final Logger log = LoggerFactory.getLogger(NewsletterTemplateApiController.class);
 
-    @Autowired
-    private NewsletterTemplateService templateService;
+    private final NewsletterTemplateService templateService;
 
     /**
      * Listar todos os templates ativos
