@@ -263,22 +263,8 @@ public class NewsletterController {
     public String showNewsletterArchive(Model model,
                                       @RequestParam(defaultValue = "0") int page,
                                       @RequestParam(defaultValue = "10") int size) {
-        try {
-            Pageable pageable = PageRequest.of(page, size);
-            Page<Newsletter> newsletters = newsletterService.findAllPublished(pageable);
-            
-            model.addAttribute("newsletters", newsletters);
-            model.addAttribute("currentPage", page);
-            model.addAttribute("totalPages", newsletters.getTotalPages());
-            model.addAttribute("totalElements", newsletters.getTotalElements());
-            
-            return "newsletter/archive";
-            
-        } catch (Exception e) {
-            log.error("Erro ao carregar arquivo de newsletters: ", e);
-            model.addAttribute("errorMessage", "Erro ao carregar newsletters.");
-            return "newsletter/archive";
-        }
+        // Página obsoleta: redirecionar para a lista de artigos
+        return "redirect:/articles";
     }
 
     /**
