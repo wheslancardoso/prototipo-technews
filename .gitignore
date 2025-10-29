@@ -35,3 +35,15 @@ build/
 # Local environment files
 .env
 *.local.properties
+
+# Development artifacts and logs
+technews_run.log
+response.json
+article.json
+cookies.txt
+test_output*.log
+test_output_*.log
+*.log
+
+# Curl cookies/session files
+*.curlrc
