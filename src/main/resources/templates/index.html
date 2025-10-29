@@ -20,8 +20,9 @@
             backdrop-filter: blur(6px);
         }
         .stats-card .text-muted { color: #e5e7eb !important; opacity: 0.85; }
-        /* Fundo alternativo para seções de destaques e categorias */
-        .section-alt { background: #0b1220; }
+        /* Fundo alternativo claro para seções de destaques e categorias */
+        .section-alt { background: #f5f7ff; }
+        .section-alt .section-title { color: #0f172a; }
         .badge-category { background: #1d4ed8; color: #fff; border-radius: 20px; padding: 4px 10px; font-size: 0.75rem; }
         .article-meta { color: #9ca3af; font-size: 0.85rem; }
         a.card-link { text-decoration: none; color: inherit; }
@@ -133,7 +134,7 @@
             </div>
             <div class="row g-3" th:if="${!#lists.isEmpty(categories)}">
                 <div class="col-6 col-md-4 col-lg-3" th:each="cat : ${categories}">
-                    <a th:href="@{'/articles?category=' + ${cat}}" class="btn btn-outline-light w-100">
+                    <a th:href="@{'/articles?category=' + ${cat}}" class="btn btn-outline-primary w-100">
                         <i class="fas fa-tag me-2"></i>
                         <span th:text="${cat}">Categoria</span>
                     </a>
