@@ -115,18 +115,7 @@
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
-        <div class="container">
-            <a class="navbar-brand fw-bold text-primary" href="/">
-                <i class="fas fa-home me-2"></i>TechNews
-            </a>
-            <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="/">Início</a>
-                <a class="nav-link" href="/articles">Artigos</a>
-                <a class="nav-link" href="/admin">Admin</a>
-            </div>
-        </div>
-    </nav>
+    <div th:replace="fragments/nav :: navbar"></div>
 
     <!-- Article Header -->
     <section class="article-header">
