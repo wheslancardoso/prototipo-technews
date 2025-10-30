@@ -2,7 +2,9 @@ package br.com.technews.controller;
 
 import br.com.technews.entity.NewsArticle;
 import br.com.technews.service.NewsScrapingService;
+import br.com.technews.service.NewsCollectionService;
 import br.com.technews.service.NewsSchedulerService;
+import br.com.technews.service.NewsCurationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -17,11 +19,12 @@ import java.util.Map;
 @Controller
 @RequestMapping("/admin/news")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
 public class NewsCollectionController {
 
     private final NewsScrapingService newsScrapingService;
+    private final NewsCollectionService newsCollectionService;
     private final NewsSchedulerService newsSchedulerService;
+    private final NewsCurationService newsCurationService;
 
     @GetMapping
     public String newsManagement(Model model) {
@@ -45,26 +48,42 @@ public class NewsCollectionController {
     @ResponseBody
     public ResponseEntity<Map<String, Object>> collectNews() {
         Map<String, Object> response = new HashMap<>();
-        
+
         try {
-            List<NewsArticle> articles = newsScrapingService.scrapeNews();
-            
+            long before = newsCollectionService.getTotalCollectedNews();
+            // Coleta via fontes confiáveis (RSS) ignorando intervalos, para ação manual
+            newsCollectionService.collectNewsFromAllSourcesForced();
+            // Processa itens pendentes para aprovar/rejeitar imediatamente após a coleta
+            newsCurationService.processAllPendingNews();
+            long after = newsCollectionService.getTotalCollectedNews();
+            int collected = (int) Math.max(0, after - before);
+
             response.put("success", true);
-            response.put("message", "Coleta realizada com sucesso!");
-            response.put("articlesCollected", articles.size());
-            response.put("articles", articles.stream()
-                    .map(article -> Map.of(
-                            "title", article.getTitle(),
-                            "source", article.getSource(),
-                            "url", article.getUrl()
-                    ))
-                    .toList());
-            
+            response.put("message", "Coleta e curadoria realizadas com sucesso!");
+            response.put("articlesCollected", collected);
             return ResponseEntity.ok(response);
-            
+
         } catch (Exception e) {
             response.put("success", false);
             response.put("message", "Erro durante a coleta: " + e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    @PostMapping("/publish-approved")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> publishApproved(@RequestParam(defaultValue = "20") int limit) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            int published = newsCurationService.publishApprovedCollectedNews(limit);
+            response.put("success", true);
+            response.put("message", "Publicação concluída com sucesso!");
+            response.put("articlesPublished", published);
+            response.put("limit", limit);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Erro ao publicar aprovadas: " + e.getMessage());
             return ResponseEntity.badRequest().body(response);
         }
     }

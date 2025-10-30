@@ -31,7 +31,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/newsletter/subscribe", "/api/newsletter/status/**", 
                                "/api/newsletter/unsubscribe/**", "/api/newsletter/reactivate",
                                "/api/newsletter/verify", "/api/newsletter/preferences/**",
-                               "/api/news/**").permitAll()
+                               "/api/news/**", "/api/articles/**").permitAll()
                 // ADMIN DESATIVADO - Todas as rotas administrativas agora são públicas
                 // .requestMatchers("/api/newsletter/subscribers", "/api/newsletter/stats", 
                 //                "/api/newsletter/send", "/api/newsletter/templates/**",
@@ -52,7 +52,7 @@ public class SecurityConfig {
             // )
             .csrf(csrf -> csrf
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                .ignoringRequestMatchers("/api/newsletter/**") // Ignorar CSRF para API endpoints
+                .ignoringRequestMatchers("/api/newsletter/**", "/admin/news/**", "/api/articles/**") // Ignorar CSRF para API e ações administrativas
             )
             .headers(headers -> headers.frameOptions().disable());
         

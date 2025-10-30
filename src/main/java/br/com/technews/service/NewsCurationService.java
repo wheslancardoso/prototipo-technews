@@ -1,6 +1,8 @@
 package br.com.technews.service;
 
 import br.com.technews.entity.CollectedNews;
+import br.com.technews.entity.NewsArticle;
+import br.com.technews.service.NewsArticleService;
 import br.com.technews.repository.CollectedNewsRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +21,7 @@ import java.util.regex.Pattern;
 public class NewsCurationService {
 
     private final CollectedNewsRepository collectedNewsRepository;
+    private final NewsArticleService newsArticleService;
 
     // Palavras-chave que indicam conteúdo de qualidade em tecnologia
     private static final Set<String> TECH_KEYWORDS = Set.of(
@@ -84,6 +87,96 @@ public class NewsCurationService {
         news.setProcessedAt(LocalDateTime.now());
         collectedNewsRepository.save(news);
         log.debug("Notícia rejeitada: {}", news.getTitle());
+    }
+
+    @Transactional
+    public int publishApprovedCollectedNews(int limit) {
+        List<CollectedNews> approved = collectedNewsRepository.findTopQualityNewsByStatusAndDate(
+            CollectedNews.NewsStatus.APPROVED,
+            LocalDateTime.now().minusDays(7),
+            PageRequest.of(0, limit)
+        );
+
+        int publishedCount = 0;
+        for (CollectedNews cn : approved) {
+            try {
+                // Pula se já existe artigo com a mesma URL
+                if (newsArticleService.existsByUrl(cn.getOriginalUrl())) {
+                    markCollectedAsPublished(cn);
+                    continue;
+                }
+
+                NewsArticle article = new NewsArticle();
+                // Conteúdo completo (TEXT)
+                article.setContent(cn.getContent());
+                // Título com limite 200
+                article.setTitle(truncateWithEllipsis(cn.getTitle(), 200));
+                // Usa conteúdo como resumo truncado se disponível
+                String content = cn.getContent();
+                if (content != null) {
+                    // Resumo com limite 500
+                    article.setSummary(truncateWithEllipsis(content, 500));
+                }
+                // URL e imagem com limites de coluna
+                article.setUrl(truncatePlain(cn.getOriginalUrl(), 500));
+                article.setImageUrl(truncatePlain(cn.getImageUrl(), 500));
+                article.setSourceDomain(extractDomain(cn.getOriginalUrl()));
+                if (cn.getCategory() != null) {
+                    article.setCategoryEntity(cn.getCategory());
+                    article.setCategory(truncatePlain(cn.getCategory().getName(), 50));
+                }
+                article.setCreatedAt(LocalDateTime.now());
+                article.setPublishedAt(cn.getPublishedAt() != null ? cn.getPublishedAt() : LocalDateTime.now());
+
+                // Cria e publica usando serviço existente
+                NewsArticle saved = newsArticleService.create(article);
+                newsArticleService.publish(saved.getId());
+
+                // Marca coletada como publicada
+                markCollectedAsPublished(cn);
+                publishedCount++;
+            } catch (Exception e) {
+                log.error("Erro ao publicar notícia coletada ID {}: {}", cn.getId(), e.getMessage());
+            }
+        }
+
+        log.info("Publicação de coletadas concluída: {} artigos publicados", publishedCount);
+        return publishedCount;
+    }
+
+    // Utilidades de truncamento
+    private String truncateWithEllipsis(String s, int maxLen) {
+        if (s == null) return null;
+        if (s.length() <= maxLen) return s;
+        int slice = Math.max(0, maxLen - 3);
+        return s.substring(0, slice) + "...";
+    }
+
+    private String truncatePlain(String s, int maxLen) {
+        if (s == null) return null;
+        return s.length() <= maxLen ? s : s.substring(0, maxLen);
+    }
+
+    private void markCollectedAsPublished(CollectedNews cn) {
+        cn.setStatus(CollectedNews.NewsStatus.PUBLISHED);
+        cn.setProcessedAt(LocalDateTime.now());
+        collectedNewsRepository.save(cn);
+    }
+
+    private String extractDomain(String url) {
+        if (url == null || url.isBlank()) return null;
+        try {
+            java.net.URI uri = new java.net.URI(url);
+            String host = uri.getHost();
+            if (host == null) return null;
+            // Remove www.
+            if (host.startsWith("www.")) {
+                host = host.substring(4);
+            }
+            return host;
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private boolean shouldApproveNews(CollectedNews news) {

@@ -34,6 +34,11 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.nio.charset.StandardCharsets;
 
 @Service
 @RequiredArgsConstructor
@@ -67,6 +72,9 @@ public class EmailService {
     @Value("${mailgun.api.key:}")
     private String mailgunApiKey;
 
+    @Value("${app.mail.dev-fake:false}")
+    private boolean devFakeEmail;
+
     /**
      * Envia email de verificação para novo assinante
      */
@@ -80,6 +88,46 @@ public class EmailService {
             context.setVariable("unsubscribeUrl", baseUrl + "/newsletter/unsubscribe?token=" + subscriber.getUnsubscribeToken());
 
             String htmlContent = templateEngine.process("email/verification", context);
+
+            // Modo desenvolvimento: gravar email de verificação em arquivo e não enviar
+            if (devFakeEmail) {
+                String subject = "Confirme sua inscrição na newsletter - " + appName;
+                String plainText = htmlContent
+                    .replaceAll("(?s)<style.*?</style>", " ")
+                    .replaceAll("(?s)<script.*?</script>", " ")
+                    .replaceAll("(?s)<[^>]+>", " ")
+                    .replace("&nbsp;", " ")
+                    .replaceAll("\\s{2,}", " ")
+                    .trim();
+
+                String timestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                String verificationUrl = baseUrl + "/newsletter/verify?token=" + subscriber.getVerificationToken();
+                String jsonEntry = String.format(
+                    "{\"to\":\"%s\",\"subject\":\"%s\",\"ok\":true,\"timestamp\":\"%s\",\"textPreview\":\"%s\",\"verificationUrl\":\"%s\"}\n",
+                    subscriber.getEmail().replace("\"", "\\\""),
+                    subject.replace("\"", "\\\""),
+                    timestamp,
+                    plainText.replace("\"", "\\\""),
+                    verificationUrl.replace("\"", "\\\"")
+                );
+
+                try {
+                    Path p = Paths.get("test_email.json");
+                    Files.write(p, jsonEntry.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+                    log.info("[DEV-FAKE] Email de verificação gravado em test_email.json para: {}", subscriber.getEmail());
+                } catch (Exception fileEx) {
+                    log.warn("[DEV-FAKE] Falha ao gravar test_email.json: {}", fileEx.getMessage());
+                }
+                return CompletableFuture.completedFuture(true);
+            }
+
+            // Se Mailgun estiver habilitado, usar envio via HTTP API
+            if (mailgunEnabled && mailgunApiKey != null && !mailgunApiKey.isBlank() && mailgunDomain != null && !mailgunDomain.isBlank()) {
+                String subject = "Confirme sua inscrição na newsletter - " + appName;
+                boolean ok = sendViaMailgunHttp(subscriber.getEmail(), subject, htmlContent);
+                log.info("Email de verificação enviado via Mailgun HTTP para: {} (status: {})", subscriber.getEmail(), ok);
+                return CompletableFuture.completedFuture(ok);
+            }
 
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -135,6 +183,35 @@ public class EmailService {
     @Async
     public CompletableFuture<Boolean> sendHtmlEmail(String toEmail, String subject, String htmlContent) {
         try {
+            // Modo desenvolvimento: gravar em arquivo em vez de enviar via SMTP
+            if (devFakeEmail) {
+                String plainText = htmlContent
+                    .replaceAll("(?s)<style.*?</style>", " ")
+                    .replaceAll("(?s)<script.*?</script>", " ")
+                    .replaceAll("(?s)<[^>]+>", " ")
+                    .replace("&nbsp;", " ")
+                    .replaceAll("\\s{2,}", " ")
+                    .trim();
+
+                String timestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                String jsonEntry = String.format(
+                    "{\"to\":\"%s\",\"subject\":\"%s\",\"ok\":true,\"timestamp\":\"%s\",\"textPreview\":\"%s\"}\n",
+                    toEmail.replace("\"", "\\\""),
+                    subject.replace("\"", "\\\""),
+                    timestamp,
+                    plainText.replace("\"", "\\\"")
+                );
+
+                try {
+                    Path p = Paths.get("test_email.json");
+                    Files.write(p, jsonEntry.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+                    log.info("[DEV-FAKE] Email gravado em test_email.json para: {} (assunto: {})", toEmail, subject);
+                } catch (Exception fileEx) {
+                    log.warn("[DEV-FAKE] Falha ao gravar test_email.json: {}", fileEx.getMessage());
+                }
+                return CompletableFuture.completedFuture(true);
+            }
+
             if (mailgunEnabled && mailgunApiKey != null && !mailgunApiKey.isBlank() && mailgunDomain != null && !mailgunDomain.isBlank()) {
                 boolean ok = sendViaMailgunHttp(toEmail, subject, htmlContent);
                 log.info("Email HTML enviado via Mailgun HTTP para: {} (status: {})", toEmail, ok);

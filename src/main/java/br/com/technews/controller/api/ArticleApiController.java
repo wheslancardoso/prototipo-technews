@@ -1,206 +1,100 @@
 package br.com.technews.controller.api;
 
-import br.com.technews.entity.NewsArticle;
-import br.com.technews.entity.ArticleStatus;
-import br.com.technews.service.NewsArticleService;
-import org.springframework.beans.factory.annotation.Autowired;
+import br.com.technews.entity.Article;
+import br.com.technews.service.ArticleService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Map;
 import java.util.HashMap;
-import java.util.Optional;
+import java.util.Map;
 
-/**
- * API REST para integração externa com artigos
- * Fornece endpoints públicos para acesso aos artigos publicados
- */
 @RestController
 @RequestMapping("/api/articles")
 @CrossOrigin(origins = "*", maxAge = 3600)
+@RequiredArgsConstructor
 public class ArticleApiController {
 
-    @Autowired
-    private NewsArticleService newsArticleService;
+    private final ArticleService articleService;
 
-    /**
-     * Lista todos os artigos publicados com paginação
-     */
+    @PostMapping
+    public ResponseEntity<?> create(@Valid @RequestBody Article article) {
+        try {
+            Article created = articleService.create(article);
+            return ResponseEntity.status(HttpStatus.CREATED).body(created);
+        } catch (IllegalArgumentException e) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("success", false);
+            error.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        } catch (Exception e) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("success", false);
+            error.put("message", "Erro interno: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        }
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody Article article) {
+        try {
+            Article updated = articleService.update(id, article);
+            return ResponseEntity.ok(updated);
+        } catch (IllegalArgumentException e) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("success", false);
+            error.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        }
+    }
+
     @GetMapping
-    public ResponseEntity<Map<String, Object>> getAllArticles(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "publishedAt") String sortBy,
-            @RequestParam(defaultValue = "desc") String sortDir) {
-        
-        Map<String, Object> response = new HashMap<>();
-        
-        try {
-            Sort sort = sortDir.equalsIgnoreCase("desc") ? 
-                Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
-            
-            Pageable pageable = PageRequest.of(page, size, sort);
-            Page<NewsArticle> articles = newsArticleService.findPublishedArticles(pageable);
-            
-            response.put("success", true);
-            response.put("articles", articles.getContent());
-            response.put("currentPage", page);
-            response.put("totalPages", articles.getTotalPages());
-            response.put("totalElements", articles.getTotalElements());
-            response.put("hasNext", articles.hasNext());
-            response.put("hasPrevious", articles.hasPrevious());
-            
-            return ResponseEntity.ok(response);
-            
-        } catch (Exception e) {
-            response.put("success", false);
-            response.put("message", "Erro ao buscar artigos: " + e.getMessage());
-            return ResponseEntity.internalServerError().body(response);
-        }
+    public ResponseEntity<Page<Article>> list(@RequestParam(defaultValue = "0") int page,
+                                              @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return ResponseEntity.ok(articleService.list(pageable));
     }
 
-    /**
-     * Busca artigo por ID
-     */
     @GetMapping("/{id}")
-    public ResponseEntity<Map<String, Object>> getArticleById(@PathVariable Long id) {
-        Map<String, Object> response = new HashMap<>();
-        
+    public ResponseEntity<?> getById(@PathVariable Long id) {
+        return articleService.findById(id)
+                .<ResponseEntity<?>>map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("success", false, "message", "Artigo não encontrado")));
+    }
+
+    @GetMapping("/slug/{slug}")
+    public ResponseEntity<?> getBySlug(@PathVariable String slug) {
+        return articleService.findBySlug(slug)
+                .<ResponseEntity<?>>map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("success", false, "message", "Artigo não encontrado")));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> delete(@PathVariable Long id) {
         try {
-            Optional<NewsArticle> article = newsArticleService.findById(id);
-            
-            if (article.isPresent() && article.get().getPublished()) {
-                response.put("success", true);
-                response.put("article", article.get());
-                return ResponseEntity.ok(response);
-            } else {
-                response.put("success", false);
-                response.put("message", "Artigo não encontrado ou não publicado");
-                return ResponseEntity.notFound().build();
-            }
-            
-        } catch (Exception e) {
-            response.put("success", false);
-            response.put("message", "Erro ao buscar artigo: " + e.getMessage());
-            return ResponseEntity.internalServerError().body(response);
+            articleService.delete(id);
+            return ResponseEntity.noContent().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("success", false, "message", e.getMessage()));
         }
     }
 
-    /**
-     * Busca artigos por categoria
-     */
-    @GetMapping("/category/{category}")
-    public ResponseEntity<Map<String, Object>> getArticlesByCategory(
-            @PathVariable String category,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        
-        Map<String, Object> response = new HashMap<>();
-        
+    @PutMapping("/{id}/publish")
+    public ResponseEntity<?> publish(@PathVariable Long id, @RequestParam boolean publish) {
         try {
-            Pageable pageable = PageRequest.of(page, size, Sort.by("publishedAt").descending());
-            Page<NewsArticle> articles = newsArticleService.findPublishedArticlesByCategory(category, pageable);
-            
-            response.put("success", true);
-            response.put("articles", articles.getContent());
-            response.put("category", category);
-            response.put("currentPage", page);
-            response.put("totalPages", articles.getTotalPages());
-            response.put("totalElements", articles.getTotalElements());
-            
-            return ResponseEntity.ok(response);
-            
-        } catch (Exception e) {
-            response.put("success", false);
-            response.put("message", "Erro ao buscar artigos por categoria: " + e.getMessage());
-            return ResponseEntity.internalServerError().body(response);
-        }
-    }
-
-    /**
-     * Busca artigos por termo de pesquisa
-     */
-    @GetMapping("/search")
-    public ResponseEntity<Map<String, Object>> searchArticles(
-            @RequestParam String query,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        
-        Map<String, Object> response = new HashMap<>();
-        
-        try {
-            Pageable pageable = PageRequest.of(page, size, Sort.by("publishedAt").descending());
-            Page<NewsArticle> articles = newsArticleService.searchArticlesWithFilters(
-                query, null, null, null, null, pageable);
-            
-            response.put("success", true);
-            response.put("articles", articles.getContent());
-            response.put("query", query);
-            response.put("currentPage", page);
-            response.put("totalPages", articles.getTotalPages());
-            response.put("totalElements", articles.getTotalElements());
-            
-            return ResponseEntity.ok(response);
-            
-        } catch (Exception e) {
-            response.put("success", false);
-            response.put("message", "Erro ao pesquisar artigos: " + e.getMessage());
-            return ResponseEntity.internalServerError().body(response);
-        }
-    }
-
-    /**
-     * Obtém artigos mais recentes
-     */
-    @GetMapping("/recent")
-    public ResponseEntity<Map<String, Object>> getRecentArticles(
-            @RequestParam(defaultValue = "10") int limit) {
-        
-        Map<String, Object> response = new HashMap<>();
-        
-        try {
-            List<NewsArticle> articles = newsArticleService.findRecentArticles(limit);
-            
-            response.put("success", true);
-            response.put("articles", articles);
-            response.put("count", articles.size());
-            
-            return ResponseEntity.ok(response);
-            
-        } catch (Exception e) {
-            response.put("success", false);
-            response.put("message", "Erro ao buscar artigos recentes: " + e.getMessage());
-            return ResponseEntity.internalServerError().body(response);
-        }
-    }
-
-    /**
-     * Obtém estatísticas dos artigos
-     */
-    @GetMapping("/stats")
-    public ResponseEntity<Map<String, Object>> getArticleStats() {
-        Map<String, Object> response = new HashMap<>();
-        
-        try {
-            long totalArticles = newsArticleService.countAll();
-            long publishedArticles = newsArticleService.countPublished();
-            
-            response.put("success", true);
-            response.put("totalArticles", totalArticles);
-            response.put("publishedArticles", publishedArticles);
-            response.put("pendingArticles", totalArticles - publishedArticles);
-            
-            return ResponseEntity.ok(response);
-            
-        } catch (Exception e) {
-            response.put("success", false);
-            response.put("message", "Erro ao obter estatísticas: " + e.getMessage());
-            return ResponseEntity.internalServerError().body(response);
+            Article updated = articleService.publish(id, publish);
+            return ResponseEntity.ok(updated);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("success", false, "message", e.getMessage()));
         }
     }
 }

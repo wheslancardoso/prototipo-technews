@@ -59,6 +59,29 @@ public class NewsCollectionService {
         log.info("Coleta de notícias finalizada");
     }
 
+    /**
+     * Variante para ação manual: ignora o intervalo configurado e força coleta
+     * de todas as fontes ativas.
+     */
+    @Transactional
+    public void collectNewsFromAllSourcesForced() {
+        log.info("Coleta manual: forçando coleta de todas as fontes ativas");
+
+        List<NewsSource> activeSources = newsSourceRepository.findByActiveTrue();
+        log.info("Encontradas {} fontes ativas para coleta (forçada)", activeSources.size());
+
+        for (NewsSource source : activeSources) {
+            try {
+                collectNewsFromSource(source);
+                updateSourceLastFetch(source);
+            } catch (Exception e) {
+                log.error("Erro ao coletar notícias da fonte {} (forçada): {}", source.getName(), e.getMessage(), e);
+            }
+        }
+
+        log.info("Coleta manual finalizada");
+    }
+
     @Transactional
     public void collectNewsFromSource(NewsSource source) {
         log.info("Coletando notícias da fonte: {} ({})", source.getName(), source.getUrl());

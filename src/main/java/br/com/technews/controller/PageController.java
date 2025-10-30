@@ -51,17 +51,15 @@ public class PageController {
         return "index";
     }
 
-    // ADMIN DESATIVADO
-    // @GetMapping("/admin")
-    // public String adminDashboard() {
-    //     return "redirect:/admin/articles";
-    // }
+    @GetMapping("/admin")
+    public String adminDashboard() {
+        return "redirect:/admin/articles";
+    }
     
-    // LOGIN DESATIVADO
-    // @GetMapping("/login")
-    // public String login() {
-    //     return "login";
-    // }
+    @GetMapping("/login")
+    public String login() {
+        return "login";
+    }
     
     @PostMapping("/subscribe")
     public String subscribe(@RequestParam String nome, 

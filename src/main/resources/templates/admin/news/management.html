@@ -45,6 +45,19 @@
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(0, 123, 255, 0.4);
         }
+        .btn-publish {
+            background: linear-gradient(45deg, #fd7e14, #ffc107);
+            border: none;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .btn-publish:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(253, 126, 20, 0.4);
+        }
         .loading {
             display: none;
         }
@@ -144,6 +157,18 @@
                                     Envia newsletter com artigos recentes
                                 </small>
                             </div>
+                            <div class="col-md-6 mb-3">
+                                <button id="publishApprovedBtn" class="btn btn-publish w-100">
+                                    <i class="fas fa-check-circle me-2"></i>
+                                    <span class="btn-text">Publicar Notícias Aprovadas</span>
+                                    <span class="loading">
+                                        <i class="fas fa-spinner fa-spin me-2"></i>Publicando...
+                                    </span>
+                                </button>
+                                <small class="text-muted d-block mt-2">
+                                    Converte itens aprovados em artigos publicados
+                                </small>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -193,6 +218,19 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // CSRF helpers (Spring Security CookieCsrfTokenRepository)
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+            return null;
+        }
+
+        function getCsrfHeaders() {
+            const token = getCookie('XSRF-TOKEN');
+            return token ? { 'X-XSRF-TOKEN': token } : {};
+        }
+
         function showAlert(message, type = 'success') {
             const alertContainer = document.getElementById('alertContainer');
             const alert = document.createElement('div');
@@ -231,15 +269,26 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    ...getCsrfHeaders(),
                 }
             })
-            .then(response => response.json())
+            .then(async response => {
+                try {
+                    const data = await response.json();
+                    return data;
+                } catch (e) {
+                    const text = await response.text();
+                    return { success: response.ok, message: text || `Erro ${response.status}` };
+                }
+            })
             .then(data => {
                 if (data.success) {
                     showAlert(`✅ ${data.message} ${data.articlesCollected} artigos coletados.`, 'success');
                     setTimeout(() => location.reload(), 2000);
                 } else {
-                    showAlert(`❌ ${data.message}`, 'danger');
+                    const msg = data.message ?? 'Falha ao coletar notícias.';
+                    showAlert(`❌ ${msg}`, 'danger');
                 }
             })
             .catch(error => {
@@ -258,14 +307,65 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    ...getCsrfHeaders(),
                 }
             })
-            .then(response => response.json())
+            .then(async response => {
+                try {
+                    const data = await response.json();
+                    return data;
+                } catch (e) {
+                    const text = await response.text();
+                    return { success: response.ok, message: text || `Erro ${response.status}` };
+                }
+            })
             .then(data => {
                 if (data.success) {
                     showAlert(`✅ ${data.message}`, 'success');
                 } else {
-                    showAlert(`❌ ${data.message}`, 'danger');
+                    const msg = data.message ?? 'Falha ao enviar newsletter.';
+                    showAlert(`❌ ${msg}`, 'danger');
+                }
+            })
+            .catch(error => {
+                showAlert('❌ Erro de conexão: ' + error.message, 'danger');
+            })
+            .finally(() => {
+                toggleButton(button, false);
+            });
+        });
+
+        document.getElementById('publishApprovedBtn').addEventListener('click', function() {
+            const button = this;
+            toggleButton(button, true);
+
+            // Opcionalmente você pode adicionar ?limit=20 para ajustar a quantidade
+            fetch('/admin/news/publish-approved', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    ...getCsrfHeaders(),
+                }
+            })
+            .then(async response => {
+                try {
+                    const data = await response.json();
+                    return data;
+                } catch (e) {
+                    const text = await response.text();
+                    return { success: response.ok, message: text || `Erro ${response.status}` };
+                }
+            })
+            .then(data => {
+                if (data.success) {
+                    const count = data.articlesPublished ?? 0;
+                    showAlert(`✅ ${data.message} ${count} artigos publicados.`, 'success');
+                    setTimeout(() => location.reload(), 2000);
+                } else {
+                    const msg = data.message ?? 'Falha ao publicar notícias aprovadas.';
+                    showAlert(`❌ ${msg}`, 'danger');
                 }
             })
             .catch(error => {

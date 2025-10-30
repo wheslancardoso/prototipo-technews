@@ -3,6 +3,53 @@
 <body>
 <div th:fragment="navbar">
     <nav class="navbar navbar-expand-lg navbar-dark shadow-sm" style="background: linear-gradient(135deg, #1d4ed8 0%, #7c3aed 100%);">
+        <style>
+            /* Botões com efeito vidro e borda, combinando com o gradiente do navbar */
+            .nav-pill-glass {
+                background: rgba(255, 255, 255, 0.12);
+                border: 1px solid rgba(255, 255, 255, 0.35);
+                border-radius: 12px;
+                padding: 0.4rem 0.8rem;
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+                transition: all 0.2s ease;
+            }
+            .nav-pill-glass:hover,
+            .nav-pill-glass.active {
+                background: rgba(255, 255, 255, 0.22);
+                border-color: rgba(255, 255, 255, 0.5);
+                color: #fff !important;
+                transform: translateY(-1px);
+            }
+            .navbar .nav-item + .nav-item { margin-left: 0.5rem; }
+
+            /* Override global do .btn-primary com gradiente mais opaco + efeito vidro */
+            .btn.btn-primary {
+                background: linear-gradient(135deg, rgba(29, 78, 216, 0.68) 0%, rgba(124, 58, 237, 0.68) 100%);
+                color: #ffffff;
+                border: 1px solid rgba(255, 255, 255, 0.6);
+                border-radius: 12px;
+                backdrop-filter: blur(6px);
+                -webkit-backdrop-filter: blur(6px);
+                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+                transition: all 0.2s ease;
+            }
+            .btn.btn-primary:hover,
+            .btn.btn-primary:focus {
+                background: linear-gradient(135deg, rgba(29, 78, 216, 0.85) 0%, rgba(124, 58, 237, 0.85) 100%);
+                border-color: rgba(255, 255, 255, 0.75);
+                color: #ffffff;
+                transform: translateY(-1px);
+                box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18);
+            }
+            .btn.btn-primary:active {
+                transform: translateY(0);
+                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.14);
+            }
+            .btn.btn-primary.disabled, .btn.btn-primary:disabled {
+                opacity: 0.75;
+            }
+        </style>
         <div class="container">
             <a class="navbar-brand fw-bold text-white" th:href="@{/}">
                 <i class="fas fa-microchip me-2"></i>TechNews
@@ -13,10 +60,10 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link text-white" th:href="@{/}">Início</a>
+                        <a class="nav-link text-white nav-pill-glass" th:href="@{/}">Início</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-white" th:href="@{/articles}">Artigos</a>
+                        <a class="nav-link text-white nav-pill-glass" th:href="@{/articles}">Artigos</a>
                     </li>
                 </ul>
             </div>
